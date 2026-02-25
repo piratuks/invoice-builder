@@ -7,6 +7,7 @@
 ![Linux](https://img.shields.io/badge/Linux-DEB-blue?logo=linux)
 ![macOS](https://img.shields.io/badge/macOS-DMG-lightgrey?logo=apple&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-blue?style=flat-square&logo=docker&logoColor=white)
+[![GHCR](https://img.shields.io/badge/ghcr.io-invoice--builder-blue?style=flat-square&logo=github)](https://github.com/piratuks/invoice-builder/pkgs/container/invoice-builder)
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-FF813F?style=flat&logo=buy-me-a-coffee&logoColor=white)](https://www.buymeacoffee.com/evaldizi)
 
 **Offline invoicing with full data ownership.**
@@ -142,13 +143,81 @@ This option is ideal if you want:
 
 ### Docker Image
 
-You can create a Docker image with the following commands.
+A pre-built image is published automatically to GitHub Container Registry on every push to `main` and on every version tag:
 
 ```bash
-npm run docker:compose:up
+ghcr.io/piratuks/invoice-builder:latest
 ```
 
-Requirements [Environment Variables](#environment-variables) section.
+Pull it at any time with:
+
+```bash
+docker pull ghcr.io/piratuks/invoice-builder:latest
+```
+
+> **ℹ️ `VITE_API_URL` is no longer needed for Docker deployments.**
+> The Docker image now uses **nginx** as the frontend server. Nginx proxies all `/api/*` requests
+> to the backend internally, so the frontend never needs to know the backend's external address.
+> `VITE_API_URL` is only needed when running the web server outside Docker (e.g. `npm run dev:react`, `npm run dev:webserver`).
+>
+> If you build the image yourself for non-Docker use, you can still pass it:
+>
+> ```bash
+> docker build --build-arg VITE_API_URL=http://your-host:3000 -t invoice-builder .
+> ```
+>
+> But for all standard Docker deployments you can omit it entirely.
+
+---
+
+### Option A – Two containers (recommended)
+
+The default setup runs backend and frontend as separate containers from the same image.
+
+```bash
+# Copy and fill in environment variables
+cp .env.docker.example .env.docker
+docker compose --env-file .env.docker pull
+docker compose --env-file .env.docker up -d
+```
+
+| Container  | Port | Role                         |
+| ---------- | ---- | ---------------------------- |
+| `backend`  | 3000 | Node.js REST API + SQLite/PG |
+| `frontend` | 3001 | Static SPA served by `serve` |
+
+See [Environment Variables](#environment-variables) for the required `.env.docker` values.
+
+---
+
+### Option B – Single container
+
+Run both backend and frontend in one container using `SERVICE=all`:
+
+```bash
+docker compose -f docker-compose.standalone.yml --env-file .env.docker up -d
+```
+
+| Port | Role                         |
+| ---- | ---------------------------- |
+| 3000 | Node.js REST API + SQLite/PG |
+| 3001 | Static SPA served by `serve` |
+
+---
+
+### Building locally instead of pulling
+
+If you prefer to build the image from source:
+
+```bash
+# Two-container build
+docker compose --env-file .env.docker up -d --build
+docker compose --env-file .env.docker up -d
+
+# Or single container
+docker build -t invoice-builder .
+docker compose -f docker-compose.standalone.yml --env-file .env.docker up -d
+```
 
 ## 📦 Installation
 

@@ -3,9 +3,10 @@
 const { execSync } = require('child_process');
 
 const dbName = process.argv[2];
-if (!dbName) {
-  console.error('Usage: node scripts/remove-db.js <db-file>');
+const container = process.argv[3];
+if (!dbName || !container) {
+  console.error('Usage: node scripts/remove-db.js <db-file> <container-name>');
   process.exit(1);
 }
 
-execSync(`docker exec backend rm -f /data/${dbName}`, { stdio: 'inherit' });
+execSync(`docker exec ${container} rm -f /data/${dbName}`, { stdio: 'inherit' });

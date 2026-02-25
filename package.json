@@ -33,9 +33,13 @@
   },
   "license": "MIT",
   "scripts": {
+    "docker:build": "docker build -t invoice-builder .",
     "docker:backup-data": "node scripts/backup-data.cjs",
     "docker:remove-database": "node scripts/remove-db.cjs",
     "docker:list-databases": "docker exec backend ls /data",
+    "docker:list-databases:single": "docker exec invoice-builder ls /data",
+    "docker:compose:up:single": "docker compose -f docker-compose.standalone.yml --env-file .env.docker up -d",
+    "docker:compose:pull": "docker compose --env-file .env.docker pull",
     "docker:compose:build": "docker compose --env-file .env.docker up -d --build",
     "docker:compose:up": "docker compose --env-file .env.docker up -d",
     "docker:compose:down": "docker compose --env-file .env.docker down -d",

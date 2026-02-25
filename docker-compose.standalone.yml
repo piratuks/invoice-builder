@@ -1,31 +1,37 @@
-# Two-container setup using the pre-built image from GitHub Container Registry.
-# Pull the latest image:  docker compose pull
-# Start:                  docker compose up -d
+# Single-container setup – backend and frontend run inside one container.
+# Both ports (3000 backend, 3001 frontend) are exposed from the same container.
+#
+# Start:  docker compose -f docker-compose.standalone.yml up -d
+# Stop:   docker compose -f docker-compose.standalone.yml down
 #
 # NOTE: VITE_API_URL is baked into the frontend at image-build time.
 # If you need a custom backend URL, build the image yourself:
 #   docker build --build-arg VITE_API_URL=http://your-host:3000 -t invoice-builder .
-# and replace the `image:` lines below with `image: invoice-builder`.
+# and replace the `image:` line below with `image: invoice-builder`.
 
 services:
-  backend:
+  app:
     image: ghcr.io/piratuks/invoice-builder:latest
     # To build locally instead of pulling, uncomment the line below and remove the image: line above:
     # build: .
     extra_hosts:
       - 'host.docker.internal:host-gateway'
-    container_name: backend
-    # backend internal-only, works only via nginx
-    # ports:
-    #   - '3000:3000'
+    container_name: invoice-builder
+    ports:
+      # backend internal-only, works only via nginx
+      # - '3000:3000'
+      - '3001:3001'
     environment:
-      - SERVICE=backend
+      - SERVICE=all
       - PORT=${PORT}
       - NODE_ENV=docker
       - DB_DIRECTORY=/data
       - DEV_SERVER_URL=${DEV_SERVER_URL}
       - FE_SERVER_URL=${FE_SERVER_URL}
       - MIGRATIONS_PATH=${MIGRATIONS_PATH}
+      # nginx proxies /api/* to localhost (same container)
+      - BACKEND_HOST=localhost
+      - BACKEND_PORT=3000
     volumes:
       - app-data:/data
     healthcheck:
@@ -40,28 +46,6 @@ services:
       timeout: 3s
       retries: 10
       start_period: 10s
-
-  frontend:
-    image: ghcr.io/piratuks/invoice-builder:latest
-    # To build locally instead of pulling, uncomment below and remove the image: line above:
-    # build: .
-    # build:
-    #   context: .
-    #   dockerfile: Dockerfile
-    #   args:
-    #     VITE_API_URL: ${VITE_API_URL}
-    container_name: frontend
-    ports:
-      - '3001:3001'
-    environment:
-      - SERVICE=frontend
-      # nginx inside the container proxies /api/* here;
-      # 'backend' resolves to the backend container via Docker's internal DNS.
-      - BACKEND_HOST=backend
-      - BACKEND_PORT=3000
-    depends_on:
-      backend:
-        condition: service_healthy
 
 volumes:
   app-data:

@@ -3,13 +3,14 @@
 const { execSync } = require('child_process');
 
 const destPath = process.argv[2];
-if (!destPath) {
-  console.error('Usage: node scripts/backup-data.js <destination-path>');
+const container = process.argv[3];
+if (!destPath || !container) {
+  console.error('Usage: node scripts/backup-data.js <destination-path> <container-name>');
   process.exit(1);
 }
 
 try {
-  execSync(`docker cp backend:/data ${destPath}`, { stdio: 'inherit' });
+  execSync(`docker cp ${container}:/data ${destPath}`, { stdio: 'inherit' });
   console.log(`Data copied to ${destPath}`);
 } catch (err) {
   console.error('Error copying data:', err.message);

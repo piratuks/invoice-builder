@@ -6,6 +6,7 @@ import { getColumnType, getDefaultValue } from '../utils/dbHelper';
 import { mapDatabaseError } from '../utils/errorFunctions';
 
 export const runMigrations = async (db: DatabaseAdapter, migrationsPath: string) => {
+  let transactionStarted = false;
   try {
     const files = fs
       .readdirSync(migrationsPath)
@@ -16,6 +17,7 @@ export const runMigrations = async (db: DatabaseAdapter, migrationsPath: string)
       await db.run('PRAGMA foreign_keys = OFF;');
     }
     await db.run('BEGIN');
+    transactionStarted = true;
 
     await db.run(
       `
@@ -52,11 +54,14 @@ export const runMigrations = async (db: DatabaseAdapter, migrationsPath: string)
     }
     return { success: true, message: undefined, data: undefined, key: undefined };
   } catch (error) {
-    try {
-      await db.run('ROLLBACK');
-    } catch {
-      throw new Error(`ROLLBACK failed`);
+    if (transactionStarted) {
+      try {
+        await db.run('ROLLBACK');
+      } catch {
+        throw new Error(`ROLLBACK failed`);
+      }
     }
+
     if (db.type === DatabaseType.sqlite) {
       await db.run('PRAGMA foreign_keys = ON;');
     }
