@@ -1,4 +1,4 @@
-import { Box, ListItemButton, ListItemText, Typography } from '@mui/material';
+import { Box, ListItemButton, ListItemText, Typography, useTheme } from '@mui/material';
 import { memo, useEffect, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toDataUrl } from '../../../shared/utils/dataUrlFunctions';
@@ -18,6 +18,7 @@ const BusinessSelectorComponent: FC<Props> = ({ data, onEdit, isRequired = true 
   const { businessLogo, businessFileType, businessName, businessShortName } = data ?? {};
 
   const { t } = useTranslation();
+  const theme = useTheme();
 
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
 
@@ -78,17 +79,33 @@ const BusinessSelectorComponent: FC<Props> = ({ data, onEdit, isRequired = true 
           slotProps={{ primary: { sx: { fontWeight: 500, m: 0 } } }}
         />
         {logoUrl ? (
-          <img
-            src={logoUrl}
-            alt={t('invoices.businessLogo')}
-            style={{ width: '60px', height: '60px', objectFit: 'contain' }}
-          />
+          <Box
+            sx={{
+              width: '60px',
+              height: '60px',
+              border: `2px solid ${theme.palette.primary.main}`,
+              background: theme.palette.common.white,
+              borderRadius: 1,
+              overflow: 'hidden',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            <img
+              src={logoUrl}
+              alt={t('invoices.businessLogo')}
+              style={{ width: '60px', height: '60px', objectFit: 'contain' }}
+            />
+          </Box>
         ) : businessShortName ? (
           <Box
             sx={{
               width: '60px',
               height: '60px',
-              background: 'primary.main',
+              border: `2px solid ${theme.palette.primary.main}`,
+              background: theme.palette.common.white,
+              color: theme.palette.common.black,
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',

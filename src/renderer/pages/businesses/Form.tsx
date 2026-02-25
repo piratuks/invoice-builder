@@ -85,6 +85,9 @@ export const Form: FC<Props> = ({ handleChange = () => {}, business }) => {
       vatCode: business?.vatCode ?? '',
       // Legacy payment info. New payment info is via Bank
       paymentInformation: business?.paymentInformation ?? '',
+      fileSize: business?.fileSize,
+      fileType: business?.fileType,
+      fileName: business?.fileName,
       description: business?.description ?? '',
       isArchived: business?.isArchived ?? false
     });

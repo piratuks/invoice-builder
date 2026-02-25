@@ -39,29 +39,38 @@ export const CropModal: React.FC<Props> = ({ onClose = () => {}, imageSrc, isOpe
     const scaleX = image.naturalWidth / image.width;
     const scaleY = image.naturalHeight / image.height;
 
-    canvas.width = crop.width * scaleX;
-    canvas.height = crop.height * scaleY;
+    // Convert crop coordinates to rendered-pixel space (handles both 'px' and '%' units)
+    const pixelX = crop.unit === '%' ? (crop.x / 100) * image.width : crop.x;
+    const pixelY = crop.unit === '%' ? (crop.y / 100) * image.height : crop.y;
+    const pixelWidth = crop.unit === '%' ? (crop.width / 100) * image.width : crop.width;
+    const pixelHeight = crop.unit === '%' ? (crop.height / 100) * image.height : crop.height;
 
-    const ctx = canvas.getContext('2d');
+    canvas.width = pixelWidth * scaleX;
+    canvas.height = pixelHeight * scaleY;
+
+    const ctx = canvas.getContext('2d', { alpha: true });
+
     if (!ctx) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     ctx.drawImage(
       image,
-      crop.x * scaleX,
-      crop.y * scaleY,
-      crop.width * scaleX,
-      crop.height * scaleY,
+      pixelX * scaleX,
+      pixelY * scaleY,
+      pixelWidth * scaleX,
+      pixelHeight * scaleY,
       0,
       0,
-      crop.width * scaleX,
-      crop.height * scaleY
+      canvas.width,
+      canvas.height
     );
 
     return new Promise<Blob | null>(resolve => {
       canvas.toBlob(blob => {
         if (blob) resolve(blob);
         else resolve(null);
-      }, 'image/jpeg');
+      }, 'image/png');
     });
   };
 

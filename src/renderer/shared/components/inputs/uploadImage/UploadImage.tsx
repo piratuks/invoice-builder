@@ -78,6 +78,7 @@ export const UploadImage: React.FC<UploadSquareProps> = ({
           overflow: 'hidden',
           cursor: 'pointer',
           transition: 'all 0.2s ease-in-out',
+          backgroundColor: croppedImageUrl ? theme.palette.common.white : undefined,
           '&:hover': {
             borderColor: theme.palette.primary.main,
             backgroundColor: theme.palette.action.hover

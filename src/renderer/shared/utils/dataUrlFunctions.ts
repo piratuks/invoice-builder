@@ -1,7 +1,7 @@
 import type { TFunction } from 'i18next';
 
-export const toDataUrl = (input: Blob | Uint8Array, mimeType: string = 'image/jpeg'): Promise<string> => {
-  mimeType = mimeType ?? 'image/jpeg';
+export const toDataUrl = (input: Blob | Uint8Array, mimeType: string = 'image/png'): Promise<string> => {
+  mimeType = mimeType ?? 'image/png';
 
   const blob = input instanceof Blob ? input : new Blob([new Uint8Array(input).buffer], { type: mimeType });
 

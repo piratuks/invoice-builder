@@ -145,7 +145,9 @@ const mapInvoiceToWeb = async (data: InvoiceUpdate | InvoiceAdd) => ({
 
 const baseUrl = (): string => {
   if (typeof window === 'undefined') return '';
-  return (import.meta.env.VITE_API_URL as string) || '';
+  // Fall back to window.location.origin so relative /api/* URLs work when
+  // VITE_API_URL is not set (e.g. Docker + nginx reverse-proxy setup).
+  return (import.meta.env.VITE_API_URL as string) || window.location.origin;
 };
 
 const apiGet = async <T>(path: string, params?: Record<string, string>): Promise<T> => {
