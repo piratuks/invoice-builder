@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
-import { SpinnerOverlay } from '../shared/components/feedback/spinner/Spinner';
+import { SpinnerOverlay } from '../shared/components/feedback/spinner/SpinnerOverlay';
 import { ToastContainer } from '../shared/components/feedback/toast/toastContainer';
 import { useSettingsRetrieve } from '../shared/hooks/settings/useSettingsRetrieve';
 import type { Response } from '../shared/types/response';

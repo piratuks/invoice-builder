@@ -1,13 +1,13 @@
 import { useEffect, type FC, type ReactNode } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
+import { ErrorBoundary, type FallbackProps } from 'react-error-boundary';
 import { useAppDispatch } from '../../../../state/configureStore';
 import { addToast } from '../../../../state/pageSlice';
 
-const ErrorFallback: FC<{ error: Error }> = ({ error }) => {
+const ErrorFallback: FC<FallbackProps> = ({ error }) => {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    dispatch(addToast({ message: error.message, severity: 'error' }));
+    dispatch(addToast({ message: error instanceof Error ? error.message : 'An error occurred', severity: 'error' }));
   }, [dispatch, error]);
 
   return null;

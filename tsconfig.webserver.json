@@ -8,7 +8,8 @@
     "strict": true,
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
   },
   "include": ["src/backend/webserver/**/*.ts", "src/backend/shared/**/*.ts"],
   "exclude": ["node_modules"]

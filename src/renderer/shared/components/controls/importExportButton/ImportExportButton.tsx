@@ -87,6 +87,7 @@ export const ImportExportButton: React.FC<Props> = ({ onImport, onExport, onDown
       </Menu>
 
       <input
+        title={`"`}
         type="file"
         accept=".xlsx,.xls"
         style={{ display: 'none' }}
