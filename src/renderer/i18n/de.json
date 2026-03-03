@@ -149,7 +149,7 @@
     "countryCode": "Ländercode (ISO Alpha-2)",
     "countryCodeHelper": "ISO 3166-1 Alpha-2-Code (z. B.: US, DE, FR)",
     "createNew": "Neu erstellen",
-    "createNewFromPreset": "Neu aus Vorlage erstellen",
+    "createNewFromPreset": "Neu aus Vorlage erstellen '{{name}}'",
     "creditCard": "Kreditkarte",
     "currency": "Währung",
     "dark": "Dunkel",

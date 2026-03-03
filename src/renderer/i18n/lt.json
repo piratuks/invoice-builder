@@ -149,7 +149,7 @@
     "countryCode": "Šalies kodas (ISO alpha-2)",
     "countryCodeHelper": "ISO 3166-1 alpha-2 kodas (pvz., US, DE, FR)",
     "createNew": "Sukurti naują",
-    "createNewFromPreset": "Sukurti naują iš šablono",
+    "createNewFromPreset": "Sukurti naują iš šablono '{{name}}'",
     "creditCard": "Kredito kortelė",
     "currency": "Valiuta",
     "dark": "Tamsus",

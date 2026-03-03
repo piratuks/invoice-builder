@@ -21,7 +21,7 @@ import { isInvoiceFromData } from '../../shared/utils/typeGuardFunctions';
 import { useAppSelector } from '../../state/configureStore';
 import { selectBusinessesSnapshotsOptions, selectClientsSnapshotsOptions, selectSettings } from '../../state/pageSlice';
 import { NewActionDropdown } from './Dropdowns/NewActionDropdown';
-import { PresetDropdown } from './Dropdowns/PresetsDropdown';
+
 import { Form } from './Form';
 import { EditPreviewToggle } from './Form/EditPreviewToggle';
 import { List } from './List';
@@ -221,7 +221,6 @@ export const InvoicesPage: FC<Props> = ({ type }) => {
   );
   const [mode, setMode] = useState<InvoiceFormMode>(InvoiceFormMode.edit);
   const [isAddDropdownOpen, setIsAddDropdownOpen] = useState(false);
-  const [isPresetDropdownOpen, setIsPresetDropdownOpen] = useState(false);
   const [openDefaultAdd, setOpenDefaultAdd] = useState<(() => void) | null>(null);
   const [selectedPreset, setSelectedPreset] = useState<Preset | undefined>(undefined);
   const isPresetsEnabled = useMemo(() => settings?.presetsON, [settings]);
@@ -312,18 +311,8 @@ export const InvoicesPage: FC<Props> = ({ type }) => {
             openDefaultAdd();
           }
         }}
-        onNewFromPreset={() => {
+        onNewFromPreset={data => {
           setIsAddDropdownOpen(false);
-          setIsPresetDropdownOpen(true);
-        }}
-      />
-
-      <PresetDropdown
-        isOpen={isPresetDropdownOpen}
-        onClose={() => setIsPresetDropdownOpen(false)}
-        onOpen={() => setIsPresetDropdownOpen(true)}
-        onClick={data => {
-          setIsPresetDropdownOpen(false);
           if (openDefaultAdd) {
             openDefaultAdd();
           }

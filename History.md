@@ -1,5 +1,11 @@
 # Invoice Builder
 
+## [Date], version 2.4.0
+
+New features & improvements
+
+- Improved creation from presets. Showing searchable presets right away insteaf of opening new modal.
+
 ## 2026-03-02, version 2.3.0
 
 New features & improvements
