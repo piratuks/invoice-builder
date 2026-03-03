@@ -1,7 +1,8 @@
 import { Autocomplete, FormControlLabel, Grid, Switch, TextField } from '@mui/material';
-import { useEffect, useState, type FC } from 'react';
+import { useEffect, useRef, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useForm } from '../../shared/hooks/useForm';
+import { useFormDirtyCheck } from '../../shared/hooks/useFormDirtyCheck';
 import type { Currency, CurrencyFromData } from '../../shared/types/currency';
 import { getFormattedLabel } from '../../shared/utils/formatFunctions';
 import { validators } from '../../shared/utils/validatorFunctions';
@@ -13,6 +14,7 @@ interface Props {
 }
 export const Form: FC<Props> = ({ handleChange = () => {}, currency }) => {
   const { t } = useTranslation();
+  const initialFormRef = useRef<CurrencyFromData | undefined>(undefined);
   const optionsCurrencyFormat = CURRENCY_FORMAT_ITEMS_ARRAY;
   const { form, setForm, update } = useForm<CurrencyFromData>({
     id: currency?.id,
@@ -45,8 +47,10 @@ export const Form: FC<Props> = ({ handleChange = () => {}, currency }) => {
     }
   };
 
+  useFormDirtyCheck(form, initialFormRef);
+
   useEffect(() => {
-    setForm({
+    const initial = {
       id: currency?.id,
       code: currency?.code ?? '',
       symbol: currency?.symbol ?? '',
@@ -54,7 +58,9 @@ export const Form: FC<Props> = ({ handleChange = () => {}, currency }) => {
       format: currency?.format ?? '',
       isArchived: currency?.isArchived ?? false,
       subunit: currency?.subunit ?? 0
-    });
+    };
+    initialFormRef.current = initial;
+    setForm(initial);
   }, [currency, setForm]);
 
   useEffect(() => {

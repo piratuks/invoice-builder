@@ -3,11 +3,13 @@ import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
 import { SpinnerOverlay } from '../shared/components/feedback/spinner/SpinnerOverlay';
 import { ToastContainer } from '../shared/components/feedback/toast/toastContainer';
+import { Confirmation } from '../shared/components/modals/confirmation';
 import { useSettingsRetrieve } from '../shared/hooks/settings/useSettingsRetrieve';
+import { useBeforeUnload } from '../shared/hooks/useBeforeUnload';
 import type { Response } from '../shared/types/response';
 import type { Settings } from '../shared/types/settings';
 import { useAppDispatch, useAppSelector } from '../state/configureStore';
-import { addToast, removeToast, selectIsLoading, selectToasts, setSettings } from '../state/pageSlice';
+import { addToast, removeToast, selectAllowed, selectIsLoading, selectToasts, setSettings } from '../state/pageSlice';
 import { AppLayout } from './AppLayout';
 import { DatabaseChooser } from './DatabaseChooser/DatabaseChooser';
 
@@ -15,8 +17,11 @@ export const App: FC = () => {
   const [dbReady, setDbReady] = useState<boolean>(false);
   const isLoading = useAppSelector(selectIsLoading);
   const toasts = useAppSelector(selectToasts);
+  const isAllowedToLeave = useAppSelector(selectAllowed);
   const dispatch = useAppDispatch();
   const { t } = useTranslation();
+  const { showPrompt, cancelNavigation, confirmNavigation } = useBeforeUnload(isAllowedToLeave);
+
   const { settings, execute: getSettings } = useSettingsRetrieve({
     immediate: false,
     onDone: (data: Response<Settings>) => {
@@ -41,6 +46,14 @@ export const App: FC = () => {
     getSettings();
   }, [getSettings]);
 
+  const handleConfirmLeave = useCallback(() => {
+    confirmNavigation();
+  }, [confirmNavigation]);
+
+  const handleCancelLeave = useCallback(() => {
+    cancelNavigation();
+  }, [cancelNavigation]);
+
   useEffect(() => {
     if (settings) {
       dispatch(setSettings(settings));
@@ -55,6 +68,12 @@ export const App: FC = () => {
       {dbReady && <AppLayout />}
       <ToastContainer toasts={toasts} onClose={handleClose} />
       {isLoading && <SpinnerOverlay />}
+      <Confirmation
+        isOpen={showPrompt}
+        text={t('common.beforeLeave')}
+        onCancel={handleCancelLeave}
+        onConfirm={handleConfirmLeave}
+      />
     </>
   );
 };

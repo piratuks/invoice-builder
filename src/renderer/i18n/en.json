@@ -128,6 +128,7 @@
     "authorisedSignatory": "Authorised signatory",
     "bank": "Bank",
     "bankName": "Bank name",
+    "beforeLeave": "You have unsaved changes. Leaving now will discard them. Are you sure you want to leave?",
     "bordered": "Bordered",
     "branchCode": "Branch code",
     "branchCodeInvalid": "Branch code must be 3–6 alphanumeric characters",

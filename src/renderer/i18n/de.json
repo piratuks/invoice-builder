@@ -128,6 +128,7 @@
     "authorisedSignatory": "Bevollmächtigter Unterzeichner",
     "bank": "Bank",
     "bankName": "Bankname",
+    "beforeLeave": "Sie haben ungespeicherte Änderungen. Wenn Sie die Seite jetzt verlassen, gehen diese verloren. Sind Sie sicher, dass Sie die Seite verlassen möchten?",
     "bordered": "Mit Rahmen",
     "branchCode": "Filialcode",
     "branchCodeInvalid": "Der Filialcode muss 3–6 alphanumerische Zeichen enthalten",

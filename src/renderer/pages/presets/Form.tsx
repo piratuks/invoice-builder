@@ -1,8 +1,9 @@
 import { Divider, FormControlLabel, Grid, Switch, TextField } from '@mui/material';
-import { useCallback, useEffect, useMemo, useState, type FC } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Language } from '../../shared/enums/language';
 import { useForm } from '../../shared/hooks/useForm';
+import { useFormDirtyCheck } from '../../shared/hooks/useFormDirtyCheck';
 import type { Bank } from '../../shared/types/bank';
 import type { Business } from '../../shared/types/business';
 import type { Client } from '../../shared/types/client';
@@ -35,6 +36,7 @@ interface Props {
 export const Form: FC<Props> = ({ handleChange = () => {}, preset }) => {
   const storeSettings = useAppSelector(selectSettings);
   const { t } = useTranslation();
+  const initialFormRef = useRef<PresetFromData | undefined>(undefined);
   const { form, setForm, update } = useForm<PresetFromData>({
     id: preset?.id,
     name: preset?.name ?? '',
@@ -209,8 +211,10 @@ export const Form: FC<Props> = ({ handleChange = () => {}, preset }) => {
     [handleOnClose, setForm]
   );
 
+  useFormDirtyCheck(form, initialFormRef);
+
   useEffect(() => {
-    setForm({
+    const initial = {
       id: preset?.id,
       name: preset?.name ?? '',
       businessId: preset?.businessId,
@@ -233,7 +237,9 @@ export const Form: FC<Props> = ({ handleChange = () => {}, preset }) => {
       signatureName: preset?.signatureName,
       signatureData: preset?.signatureData,
       isArchived: preset?.isArchived ?? false
-    });
+    };
+    initialFormRef.current = initial;
+    setForm(initial);
   }, [preset, setForm]);
 
   useEffect(() => {

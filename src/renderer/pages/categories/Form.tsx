@@ -1,7 +1,8 @@
 import { FormControlLabel, Grid, Switch, TextField } from '@mui/material';
-import { useEffect, useState, type FC } from 'react';
+import { useEffect, useRef, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useForm } from '../../shared/hooks/useForm';
+import { useFormDirtyCheck } from '../../shared/hooks/useFormDirtyCheck';
 import type { Category, CategoryFromData } from '../../shared/types/category';
 import { validators } from '../../shared/utils/validatorFunctions';
 
@@ -11,6 +12,7 @@ interface Props {
 }
 export const Form: FC<Props> = ({ handleChange = () => {}, category }) => {
   const { t } = useTranslation();
+  const initialFormRef = useRef<CategoryFromData | undefined>(undefined);
   const { form, setForm, update } = useForm<CategoryFromData>({
     id: category?.id,
     name: category?.name ?? '',
@@ -28,12 +30,16 @@ export const Form: FC<Props> = ({ handleChange = () => {}, category }) => {
     }
   };
 
+  useFormDirtyCheck(form, initialFormRef);
+
   useEffect(() => {
-    setForm({
+    const initial = {
       id: category?.id,
       name: category?.name ?? '',
       isArchived: category?.isArchived ?? false
-    });
+    };
+    initialFormRef.current = initial;
+    setForm(initial);
   }, [category, setForm]);
 
   useEffect(() => {

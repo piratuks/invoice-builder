@@ -18,7 +18,8 @@ const initialState: PageState = {
   businessSnapshotOptions: [],
   version: undefined,
   updateMessage: undefined,
-  newVersion: undefined
+  newVersion: undefined,
+  isAllowedToLeave: true
 };
 
 export const pageSlice = createSlice({
@@ -42,6 +43,9 @@ export const pageSlice = createSlice({
     },
     setNewVersion: (state, action: PayloadAction<string | undefined>) => {
       state.newVersion = action.payload;
+    },
+    setAllowed: (state, action: PayloadAction<boolean>) => {
+      state.isAllowedToLeave = action.payload;
     },
     setUpdateMessage: (state, action: PayloadAction<string | undefined>) => {
       state.updateMessage = action.payload;
@@ -165,6 +169,7 @@ export const selectBusinessesSnapshotsOptions = createSelector(
 export const selectVersion = createSelector(selectState, state => state.version);
 export const selectNewVersion = createSelector(selectState, state => state.newVersion);
 export const selectUpdateMessage = createSelector(selectState, state => state.updateMessage);
+export const selectAllowed = createSelector(selectState, state => state.isAllowedToLeave);
 
 export const {
   enableLoading,
@@ -188,7 +193,8 @@ export const {
   setCategoryOptions,
   setUnitOptions,
   setBusinessSnapshotOptions,
-  setClientSnapshotOptions
+  setClientSnapshotOptions,
+  setAllowed
 } = pageSlice.actions;
 
 export const pageReducer = pageSlice.reducer;

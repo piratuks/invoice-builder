@@ -1,9 +1,10 @@
 import { FormControlLabel, Grid, Switch, TextField } from '@mui/material';
-import { useCallback, useEffect, useMemo, useState, type FC } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CustomizationLayout } from '../../shared/components/layout/customizationLayout/CustomizationLayout';
 import { FontFamily } from '../../shared/enums/fontFamily';
 import { useForm } from '../../shared/hooks/useForm';
+import { useFormDirtyCheck } from '../../shared/hooks/useFormDirtyCheck';
 import type { CustomizationForm } from '../../shared/types/invoice';
 import type { StyleProfile, StyleProfileFromData } from '../../shared/types/styleProfiles';
 import { validators } from '../../shared/utils/validatorFunctions';
@@ -17,6 +18,7 @@ interface Props {
 }
 export const Form: FC<Props> = ({ handleChange = () => {}, styleProfile }) => {
   const { t } = useTranslation();
+  const initialFormRef = useRef<StyleProfileFromData | undefined>(undefined);
   const storeSettings = useAppSelector(selectSettings);
   const { form, setForm, update } = useForm<StyleProfileFromData>({
     id: styleProfile?.id,
@@ -118,8 +120,10 @@ export const Form: FC<Props> = ({ handleChange = () => {}, styleProfile }) => {
     };
   }, [form]);
 
+  useFormDirtyCheck(form, initialFormRef);
+
   useEffect(() => {
-    setForm({
+    const initial = {
       id: styleProfile?.id,
       name: styleProfile?.name ?? '',
       color: styleProfile?.color,
@@ -145,7 +149,9 @@ export const Form: FC<Props> = ({ handleChange = () => {}, styleProfile }) => {
       showRowNo: styleProfile?.showRowNo ?? true,
       fieldSortOrders: styleProfile?.fieldSortOrders ?? DEFAULT_TABLE_FIELD_SORT_ORDERS,
       pdfTexts: styleProfile?.pdfTexts
-    });
+    };
+    initialFormRef.current = initial;
+    setForm(initial);
   }, [styleProfile, setForm]);
 
   useEffect(() => {

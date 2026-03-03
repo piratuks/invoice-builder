@@ -1,7 +1,8 @@
 import { FormControlLabel, Grid, Switch, TextField } from '@mui/material';
-import { useEffect, useState, type FC } from 'react';
+import { useEffect, useRef, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useForm } from '../../shared/hooks/useForm';
+import { useFormDirtyCheck } from '../../shared/hooks/useFormDirtyCheck';
 import type { Client, ClientFromData } from '../../shared/types/client';
 import { validators } from '../../shared/utils/validatorFunctions';
 import { useAppSelector } from '../../state/configureStore';
@@ -13,6 +14,7 @@ interface Props {
 }
 export const Form: FC<Props> = ({ handleChange = () => {}, client }) => {
   const { t } = useTranslation();
+  const initialFormRef = useRef<ClientFromData | undefined>(undefined);
   const settings = useAppSelector(selectSettings);
   const { form, setForm, update } = useForm<ClientFromData>({
     id: client?.id,
@@ -59,8 +61,10 @@ export const Form: FC<Props> = ({ handleChange = () => {}, client }) => {
     }
   };
 
+  useFormDirtyCheck(form, initialFormRef);
+
   useEffect(() => {
-    setForm({
+    const initial = {
       id: client?.id,
       email: client?.email ?? '',
       phone: client?.phone ?? '',
@@ -76,7 +80,9 @@ export const Form: FC<Props> = ({ handleChange = () => {}, client }) => {
       peppolEndpointId: client?.peppolEndpointId ?? '',
       countryCode: client?.countryCode ?? '',
       isArchived: client?.isArchived ?? false
-    });
+    };
+    initialFormRef.current = initial;
+    setForm(initial);
   }, [client, setForm]);
 
   useEffect(() => {

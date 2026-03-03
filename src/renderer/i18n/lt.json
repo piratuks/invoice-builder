@@ -128,6 +128,7 @@
     "authorisedSignatory": "Įgaliotas pasirašantis asmuo",
     "bank": "Bankas",
     "bankName": "Banko pavadinimas",
+    "beforeLeave": "Turite neišsaugotų pakeitimų. Išėjus dabar jie bus prarasti. Ar tikrai norite išeiti?",
     "bordered": "Su rėmeliais",
     "branchCode": "Filialo kodas",
     "branchCodeInvalid": "Filialo kodas turi būti 3–6 raidiniai skaitmeniniai simboliai",

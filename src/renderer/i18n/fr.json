@@ -128,6 +128,7 @@
     "authorisedSignatory": "Signataire autorisé",
     "bank": "Banque",
     "bankName": "Nom de la banque",
+    "beforeLeave": "Vous avez des modifications non enregistrées. Si vous quittez maintenant, elles seront perdues. Êtes-vous sûr(e) de vouloir quitter?",
     "bordered": "Bordé",
     "branchCode": "Code de succursale",
     "branchCodeInvalid": "Le code de succursale doit comporter 3 à 6 caractères alphanumériques",

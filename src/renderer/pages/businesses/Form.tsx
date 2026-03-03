@@ -1,9 +1,10 @@
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { Box, FormControlLabel, Grid, Switch, TextField, Tooltip } from '@mui/material';
-import { useEffect, useState, type FC } from 'react';
+import { useEffect, useRef, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { UploadImage } from '../../shared/components/inputs/uploadImage/UploadImage';
 import { useForm } from '../../shared/hooks/useForm';
+import { useFormDirtyCheck } from '../../shared/hooks/useFormDirtyCheck';
 import type { Business, BusinessFromData } from '../../shared/types/business';
 import { toDataUrl, toUint8Array } from '../../shared/utils/dataUrlFunctions';
 import { validators } from '../../shared/utils/validatorFunctions';
@@ -16,6 +17,7 @@ interface Props {
 }
 export const Form: FC<Props> = ({ handleChange = () => {}, business }) => {
   const { t } = useTranslation();
+  const initialFormRef = useRef<BusinessFromData | undefined>(undefined);
   const settings = useAppSelector(selectSettings);
   const { form, setForm, update } = useForm<BusinessFromData>({
     id: business?.id,
@@ -41,6 +43,7 @@ export const Form: FC<Props> = ({ handleChange = () => {}, business }) => {
     code: business?.code ?? '',
     isArchived: business?.isArchived ?? false
   });
+
   const [errors, setErrors] = useState({
     email: false,
     phone: false,
@@ -86,8 +89,10 @@ export const Form: FC<Props> = ({ handleChange = () => {}, business }) => {
     }
   };
 
+  useFormDirtyCheck(form, initialFormRef);
+
   useEffect(() => {
-    setForm({
+    const initial = {
       id: business?.id,
       logo: business?.logo ?? undefined,
       email: business?.email ?? '',
@@ -110,7 +115,9 @@ export const Form: FC<Props> = ({ handleChange = () => {}, business }) => {
       countryCode: business?.countryCode ?? '',
       code: business?.code ?? '',
       isArchived: business?.isArchived ?? false
-    });
+    };
+    initialFormRef.current = initial;
+    setForm(initial);
 
     (async () => {
       const url = business && business.logo ? await toDataUrl(business.logo, business.fileType) : undefined;

@@ -12,4 +12,5 @@ export interface PageState {
   version?: string;
   newVersion?: string;
   updateMessage?: string;
+  isAllowedToLeave: boolean;
 }

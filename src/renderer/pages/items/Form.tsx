@@ -1,11 +1,12 @@
 import { Autocomplete, FormControlLabel, Grid, Switch, TextField } from '@mui/material';
-import { useEffect, useState, type FC } from 'react';
+import { useEffect, useRef, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n';
 import { AmountInput } from '../../shared/components/inputs/amountInput/AmountInput';
 import { useCategoriesRetrieve } from '../../shared/hooks/categories/useCategoriesRetrieve';
 import { useUnitsRetrieve } from '../../shared/hooks/units/useUnitsRetrieve';
 import { useForm } from '../../shared/hooks/useForm';
+import { useFormDirtyCheck } from '../../shared/hooks/useFormDirtyCheck';
 import type { Category } from '../../shared/types/category';
 import type { Item, ItemFromData } from '../../shared/types/item';
 import type { Response } from '../../shared/types/response';
@@ -21,6 +22,7 @@ interface Props {
 export const Form: FC<Props> = ({ handleChange = () => {}, item }) => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
+  const initialFormRef = useRef<ItemFromData | undefined>(undefined);
 
   useUnitsRetrieve({
     onDone: (data: Response<Unit[]>) => {
@@ -71,8 +73,10 @@ export const Form: FC<Props> = ({ handleChange = () => {}, item }) => {
     }
   };
 
+  useFormDirtyCheck(form, initialFormRef);
+
   useEffect(() => {
-    setForm({
+    const initial = {
       id: item?.id,
       name: item?.name ?? '',
       amount: item?.amount ?? '0',
@@ -80,7 +84,9 @@ export const Form: FC<Props> = ({ handleChange = () => {}, item }) => {
       categoryId: item?.categoryId,
       description: item?.description ?? '',
       isArchived: item?.isArchived ?? false
-    });
+    };
+    initialFormRef.current = initial;
+    setForm(initial);
   }, [item, setForm]);
 
   useEffect(() => {

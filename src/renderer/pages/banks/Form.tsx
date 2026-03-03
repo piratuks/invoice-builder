@@ -1,8 +1,9 @@
 import { Box, FormControlLabel, Grid, Switch, TextField, Typography } from '@mui/material';
-import { useEffect, useState, type FC } from 'react';
+import { useEffect, useRef, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { UploadImage } from '../../shared/components/inputs/uploadImage/UploadImage';
 import { useForm } from '../../shared/hooks/useForm';
+import { useFormDirtyCheck } from '../../shared/hooks/useFormDirtyCheck';
 import type { Bank, BankFromData } from '../../shared/types/bank';
 import { toDataUrl, toUint8Array } from '../../shared/utils/dataUrlFunctions';
 import { validators } from '../../shared/utils/validatorFunctions';
@@ -13,6 +14,7 @@ interface Props {
 }
 export const Form: FC<Props> = ({ handleChange = () => {}, bank }) => {
   const { t } = useTranslation();
+  const initialFormRef = useRef<BankFromData | undefined>(undefined);
   const { form, setForm, update } = useForm<BankFromData>({
     id: bank?.id,
     qrCode: bank?.qrCode ?? undefined,
@@ -32,7 +34,6 @@ export const Form: FC<Props> = ({ handleChange = () => {}, bank }) => {
     qrCodeFileName: bank?.qrCodeFileName,
     isArchived: bank?.isArchived ?? false
   });
-
   const [errors, setErrors] = useState({
     name: false,
     accountNumber: false,
@@ -65,6 +66,7 @@ export const Form: FC<Props> = ({ handleChange = () => {}, bank }) => {
       }));
     }
   };
+
   const validateField = (field: keyof typeof errors, value: string) => {
     if (!validators.required(value) && field === 'name') {
       setErrors(e => ({ ...e, [field]: true }));
@@ -85,8 +87,10 @@ export const Form: FC<Props> = ({ handleChange = () => {}, bank }) => {
     }
   };
 
+  useFormDirtyCheck(form, initialFormRef);
+
   useEffect(() => {
-    setForm({
+    const initial = {
       id: bank?.id,
       qrCode: bank?.qrCode ?? undefined,
       name: bank?.name ?? '',
@@ -104,7 +108,9 @@ export const Form: FC<Props> = ({ handleChange = () => {}, bank }) => {
       qrCodeFileType: bank?.qrCodeFileType,
       qrCodeFileName: bank?.qrCodeFileName,
       isArchived: bank?.isArchived ?? false
-    });
+    };
+    initialFormRef.current = initial;
+    setForm(initial);
     (async () => {
       const url = bank && bank.qrCode ? await toDataUrl(bank.qrCode, bank.qrCodeFileType) : undefined;
       setQrCodeUrl(url);

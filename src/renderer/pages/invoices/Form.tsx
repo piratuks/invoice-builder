@@ -12,6 +12,7 @@ import { SizeType } from '../../shared/enums/sizeType';
 import { TableHeaderStyle } from '../../shared/enums/tableHeaderStyle';
 import { TableRowStyle } from '../../shared/enums/tableRowStyle';
 import { useStyleProfileAdd } from '../../shared/hooks/styleProfiles/useStyleProfileAdd';
+import { useFormDirtyCheck } from '../../shared/hooks/useFormDirtyCheck';
 import type { Invoice, InvoiceFromData } from '../../shared/types/invoice';
 import type { Preset } from '../../shared/types/preset';
 import type { Response } from '../../shared/types/response';
@@ -46,6 +47,7 @@ const InvoiceFormComponent: FC<Props> = ({
   const [, startTransition] = useTransition();
   const dispatch = useAppDispatch();
   const { t } = useTranslation();
+  const initialFormRef = useRef<InvoiceFromData | undefined>(undefined);
 
   const [newStyleProfile, setNewStyleProfile] = useState<StyleProfileAdd | undefined>(undefined);
   const { execute: addStyleProfile, data: newRowStyleProfile } = useStyleProfileAdd({
@@ -80,49 +82,46 @@ const InvoiceFormComponent: FC<Props> = ({
     }
   }, [invoiceForm]);
 
+  useFormDirtyCheck(invoiceForm, initialFormRef);
+
   useEffect(() => {
     startTransition(() => {
-      if (invoice) {
-        setInvoiceForm({
-          ...invoice,
-          invoiceBusinessSnapshot: invoice.invoiceBusinessSnapshot
-            ? {
-                ...invoice.invoiceBusinessSnapshot,
-                businessLogo: invoice.invoiceBusinessSnapshot?.businessLogo
-              }
-            : invoice.invoiceBusinessSnapshot
-        });
-      } else {
-        setInvoiceForm({
-          invoiceType: type,
-          status: type === InvoiceType.quotation ? InvoiceStatus.open : InvoiceStatus.unpaid,
-          taxRate: 0,
-          isArchived: false,
-          discountAmountCents: '0',
-          discountPercent: 0,
-          shippingFeeCents: '0',
-          invoiceItems: [],
-          invoicePayments: [],
-          invoiceAttachments: [],
-          language: Language.en,
-          invoiceCustomization: {
-            color: '#006400',
-            logoSize: SizeType.medium,
-            fontSize: SizeType.medium,
-            fontFamily: FontFamily.roboto,
-            layout: LayoutType.classic,
-            tableHeaderStyle: TableHeaderStyle.light,
-            tableRowStyle: TableRowStyle.classic,
-            pageFormat: PageFormat.a4,
-            labelUpperCase: false,
-            showQuantity: true,
-            showUnit: true,
-            showRowNo: true,
-            fieldSortOrders: DEFAULT_TABLE_FIELD_SORT_ORDERS,
-            pdfTexts: undefined
+      const initial = invoice
+        ? {
+            ...invoice
           }
-        });
-      }
+        : {
+            invoiceType: type,
+            status: type === InvoiceType.quotation ? InvoiceStatus.open : InvoiceStatus.unpaid,
+            taxRate: 0,
+            isArchived: false,
+            discountAmountCents: '0',
+            discountPercent: 0,
+            shippingFeeCents: '0',
+            invoiceItems: [],
+            invoicePayments: [],
+            invoiceAttachments: [],
+            language: Language.en,
+            invoiceCustomization: {
+              color: '#006400',
+              logoSize: SizeType.medium,
+              fontSize: SizeType.medium,
+              fontFamily: FontFamily.roboto,
+              layout: LayoutType.classic,
+              tableHeaderStyle: TableHeaderStyle.light,
+              tableRowStyle: TableRowStyle.classic,
+              pageFormat: PageFormat.a4,
+              labelUpperCase: false,
+              showQuantity: true,
+              showUnit: true,
+              showRowNo: true,
+              fieldSortOrders: DEFAULT_TABLE_FIELD_SORT_ORDERS,
+              pdfTexts: undefined
+            }
+          };
+
+      initialFormRef.current = initial;
+      setInvoiceForm(initial);
     });
   }, [invoice, type, startTransition]);
 
