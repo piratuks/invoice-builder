@@ -21,7 +21,7 @@ import { addToast } from '../../../../state/pageSlice';
 import { useBeforeUnloadContext } from '../../../context/BeforeUnloadContext';
 import { FilterType } from '../../../enums/filterType';
 import { SortType } from '../../../enums/sortType';
-import { usePersistentFilters } from '../../../hooks/other/usePersistentFilters';
+import { usePersistentFilters } from '../../../hooks/persistent/usePersistentFilters';
 import type { CustomOption } from '../../../types/customOption';
 import type { Rows } from '../../../types/excel';
 import type { Filter, FilterData } from '../../../types/filter';
