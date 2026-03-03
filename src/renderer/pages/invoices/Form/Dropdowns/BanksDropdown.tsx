@@ -52,6 +52,7 @@ const BanksDropdownComponent: FC<Props> = ({ isOpen, onClose, onOpen, onClick })
         }}
       >
         <CRUDPage<Bank, BankAdd, BankUpdate>
+          componentId="invoices:banks"
           filters={filters}
           showRightSide={false}
           showAddButton={false}

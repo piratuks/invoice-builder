@@ -74,6 +74,7 @@ const ItemsDropdownComponent: FC<Props> = ({ isOpen, type, headerOptions, onClos
           }}
         >
           <CRUDPage<Item, ItemAdd, ItemUpdate>
+            componentId="invoices:items"
             filters={filters}
             showRightSide={false}
             showAddButton={false}

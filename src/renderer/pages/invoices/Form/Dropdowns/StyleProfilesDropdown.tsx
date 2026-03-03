@@ -55,6 +55,7 @@ const StyleProfilesDropdownComponent: FC<Props> = ({ isOpen, onClose, onOpen, on
         }}
       >
         <CRUDPage<StyleProfile, StyleProfileAdd, StyleProfileUpdate>
+          componentId="invoices:styleprofiles"
           filters={filters}
           showRightSide={false}
           showAddButton={false}

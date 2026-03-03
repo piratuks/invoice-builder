@@ -21,6 +21,7 @@ import { addToast } from '../../../../state/pageSlice';
 import { useBeforeUnloadContext } from '../../../context/BeforeUnloadContext';
 import { FilterType } from '../../../enums/filterType';
 import { SortType } from '../../../enums/sortType';
+import { usePersistentFilters } from '../../../hooks/other/usePersistentFilters';
 import type { CustomOption } from '../../../types/customOption';
 import type { Rows } from '../../../types/excel';
 import type { Filter, FilterData } from '../../../types/filter';
@@ -37,6 +38,7 @@ import { Content } from '../content/Content';
 import { PageAppBar } from '../pageAppBar/PageAppBar';
 
 interface Props<T, TAdd, TUpdate> {
+  componentId: string;
   renderCustomButtons?: () => React.ReactNode;
   title?: string;
   useRetrieve?: (args: { filter?: FilterData[]; onDone?: (data: Response<T[]>) => void }) => {
@@ -99,6 +101,7 @@ export const CRUDPage = <T, TAdd, TUpdate>(props: Props<T, TAdd, TUpdate>) => {
   const dispatch = useAppDispatch();
   const { t } = useTranslation();
   const {
+    componentId,
     title,
     excelData,
     showOnlyExport = false,
@@ -142,7 +145,6 @@ export const CRUDPage = <T, TAdd, TUpdate>(props: Props<T, TAdd, TUpdate>) => {
   } = props;
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
-  const [selectedFilter, setSelectedFilter] = useState<Filter[]>(filters.filter(item => item.initial));
   const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<T | undefined>(undefined);
@@ -156,9 +158,13 @@ export const CRUDPage = <T, TAdd, TUpdate>(props: Props<T, TAdd, TUpdate>) => {
   const [changedItem, setChangedItem] = useState<TUpdate | undefined>(undefined);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const { attemptNavigation } = useBeforeUnloadContext();
+  const [persistentFilters, setPersistentFilters] = usePersistentFilters(
+    filters.filter(item => item.initial),
+    componentId
+  );
 
   const { items, execute: reload } = useRetrieve({
-    filter: selectedFilter,
+    filter: persistentFilters,
     onDone: (data: Response<T[]>) => {
       if (!data.success) {
         if (data.message) {
@@ -437,9 +443,12 @@ export const CRUDPage = <T, TAdd, TUpdate>(props: Props<T, TAdd, TUpdate>) => {
       );
   }, [excelData, showExcelButtons]);
 
-  const onFilter = useCallback((filter: Filter[]) => {
-    setSelectedFilter(filter);
-  }, []);
+  const onFilter = useCallback(
+    (filter: Filter[]) => {
+      setPersistentFilters(filter);
+    },
+    [setPersistentFilters]
+  );
 
   const onPageChange = useCallback((_event: React.ChangeEvent<unknown>, value: number) => {
     setCurrentPage(value);
@@ -471,7 +480,7 @@ export const CRUDPage = <T, TAdd, TUpdate>(props: Props<T, TAdd, TUpdate>) => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchValue, sortBy, sortType, selectedFilter]);
+  }, [searchValue, sortBy, sortType, persistentFilters]);
 
   useEffect(() => {
     setCurrentPage(prev => {
@@ -573,7 +582,7 @@ export const CRUDPage = <T, TAdd, TUpdate>(props: Props<T, TAdd, TUpdate>) => {
             }}
           >
             {filters.length > 0 && (
-              <BottomFilterSheet filters={filters} selectedFilter={selectedFilter} onFilter={onFilter} />
+              <BottomFilterSheet filters={filters} selectedFilter={persistentFilters} onFilter={onFilter} />
             )}
             {filters.length <= 0 && <Box />}
 
@@ -584,7 +593,7 @@ export const CRUDPage = <T, TAdd, TUpdate>(props: Props<T, TAdd, TUpdate>) => {
               onChange={onFilterSortChange}
             />
           </Box>
-          {selectedFilter.length > 0 && (
+          {persistentFilters.length > 0 && (
             <Box
               sx={{
                 display: 'flex',
@@ -593,7 +602,7 @@ export const CRUDPage = <T, TAdd, TUpdate>(props: Props<T, TAdd, TUpdate>) => {
                 alignItems: 'center'
               }}
             >
-              {selectedFilter
+              {persistentFilters
                 .filter(filterItem => filterItem.value !== FilterType.all)
                 .map(filterItem => {
                   return (
@@ -602,7 +611,7 @@ export const CRUDPage = <T, TAdd, TUpdate>(props: Props<T, TAdd, TUpdate>) => {
                       label={filterItem.label}
                       color="primary"
                       onDelete={() => {
-                        const newFilter = selectedFilter.filter(
+                        const newFilter = persistentFilters.filter(
                           newFilterItem => newFilterItem.value !== filterItem.value
                         );
                         const allFilter = filters.find(fi => fi.value === FilterType.all);
@@ -622,7 +631,9 @@ export const CRUDPage = <T, TAdd, TUpdate>(props: Props<T, TAdd, TUpdate>) => {
         {filteredItems.length <= 0 && (
           <NoItem
             text={
-              searchValue !== '' || typeof selectedFilter !== 'undefined' ? t('common.noData') : t('common.noDataYet')
+              searchValue !== '' || typeof persistentFilters !== 'undefined'
+                ? t('common.noData')
+                : t('common.noDataYet')
             }
             icon={<SearchOffIcon color="action" fontSize="large" />}
           />

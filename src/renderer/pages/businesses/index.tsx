@@ -121,6 +121,7 @@ export const BusinessesPage = () => {
 
   return (
     <CRUDPage<Business, BusinessAdd, BusinessUpdate>
+      componentId="businesses"
       title={t('businesses.title')}
       filters={filters}
       excelData={{ excelColumns, excelFileName, excelFormat: 'xlsx', excelTemplateData }}

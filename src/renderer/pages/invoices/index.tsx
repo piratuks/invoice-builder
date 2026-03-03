@@ -228,6 +228,7 @@ export const InvoicesPage: FC<Props> = ({ type }) => {
   return (
     <>
       <CRUDPage<Invoice, InvoiceAdd, InvoiceUpdate>
+        componentId="invoices"
         renderCustomButtons={() => {
           return <EditPreviewToggle mode={mode} setMode={setMode} />;
         }}

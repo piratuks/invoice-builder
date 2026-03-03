@@ -109,6 +109,7 @@ export const ClientsPage: FC = () => {
 
   return (
     <CRUDPage<Client, ClientAdd, ClientUpdate>
+      componentId="clients"
       title={t('common.client')}
       filters={filters}
       excelData={{ excelColumns, excelFileName, excelFormat: 'xlsx', excelTemplateData }}

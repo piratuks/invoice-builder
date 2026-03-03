@@ -4,19 +4,20 @@
 
 New features & improvements
 
-- Improved creation from presets. Showing searchable presets right away insteaf of opening new modal.
-- Implemented confirmation for dirty records before leaving the page and before selecting a different item.
+- Improved creation from presets. Showing searchable presets right away insteaf of opening new modal
+- Implemented confirmation for dirty records before leaving the page and before selecting a different item
+- Implemented persistent filters / search / sort
 
 ## 2026-03-02, version 2.3.0
 
 New features & improvements
 
 - Official Docker prebuilt image published
-- UBL Peppol XML support: download embedded XML alongside the PDF, or as a standalone XML file.
+- UBL Peppol XML support: download embedded XML alongside the PDF, or as a standalone XML file
 
 Bug Fixes
 
-- Fixed an issue where incorrect financial totals were shown when using both discounts and per-item taxes. Previously, taxes were calculated before applying the discount in this scenario. The system now correctly allocates the discount first and then calculates taxes on the adjusted item amounts.
+- Fixed an issue where incorrect financial totals were shown when using both discounts and per-item taxes. Previously, taxes were calculated before applying the discount in this scenario. The system now correctly allocates the discount first and then calculates taxes on the adjusted item amounts
 
 ## 2026-03-01, version 2.2.2
 

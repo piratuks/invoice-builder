@@ -95,6 +95,7 @@ export const PresetsPage: FC = () => {
   };
   return (
     <CRUDPage<Preset, PresetAdd, PresetUpdate>
+      componentId="presets"
       title={t('common.presets')}
       filters={filters}
       excelData={{ excelColumns, excelFileName, excelFormat: 'xlsx', excelTemplateData }}

@@ -77,6 +77,7 @@ export const CategoriesPage: FC = () => {
 
   return (
     <CRUDPage<Category, CategoryAdd, CategoryUpdate>
+      componentId="categories"
       title={t('common.category')}
       filters={filters}
       excelData={{ excelColumns, excelFileName, excelFormat: 'xlsx', excelTemplateData }}

@@ -73,6 +73,7 @@ export const UnitsPage: FC = () => {
   };
   return (
     <CRUDPage<Unit, UnitAdd, UnitUpdate>
+      componentId="unists"
       title={t('common.unit')}
       filters={filters}
       excelData={{ excelColumns, excelFileName, excelFormat: 'xlsx', excelTemplateData }}

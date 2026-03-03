@@ -55,6 +55,7 @@ const CurrenciesDropdownComponent: FC<Props> = ({ isOpen, onClose, onOpen, onCli
         }}
       >
         <CRUDPage<Currency, CurrencyAdd, CurrencyUpdate>
+          componentId="invoices:currencies"
           filters={filters}
           showRightSide={false}
           showAddButton={false}

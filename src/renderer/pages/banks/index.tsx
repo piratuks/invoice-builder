@@ -124,6 +124,7 @@ export const BanksPage: FC = () => {
   };
   return (
     <CRUDPage<Bank, BankAdd, BankUpdate>
+      componentId="banks"
       title={t('common.bank')}
       filters={filters}
       excelData={{ excelColumns, excelFileName, excelFormat: 'xlsx', excelTemplateData }}

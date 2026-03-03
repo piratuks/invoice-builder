@@ -109,6 +109,7 @@ export const StyleProfilesPage = () => {
 
   return (
     <CRUDPage<StyleProfile, StyleProfileAdd, StyleProfileUpdate>
+      componentId="styleprofiles"
       title={t('styleProfiles.title')}
       filters={filters}
       excelData={{ excelColumns, excelFileName, excelFormat: 'xlsx', excelTemplateData }}

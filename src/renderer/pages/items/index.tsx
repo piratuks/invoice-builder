@@ -83,6 +83,7 @@ export const ItemsPage: FC = () => {
 
   return (
     <CRUDPage<Item, ItemAdd, ItemUpdate>
+      componentId="items"
       title={t('items.title')}
       filters={filters}
       excelData={{ excelColumns, excelFileName, excelFormat: 'xlsx', excelTemplateData }}
