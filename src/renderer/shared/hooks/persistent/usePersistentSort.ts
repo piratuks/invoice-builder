@@ -10,7 +10,7 @@ export const usePersistentSort = <T extends string | number | symbol>(
   componentId: string
 ) => {
   const location = useLocation();
-  const pageKey = location.pathname;
+  const pageKey = location.pathname.replace(/^\/+/, '').replace(/\/+$/, '');
   const storageKey = `${pageKey}:${componentId}`;
 
   const [sort, setSort] = useState<{ activeSort: SortType; activeSortBy: CustomOption<T> }>(() => {

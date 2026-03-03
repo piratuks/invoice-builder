@@ -6,7 +6,7 @@ const LOCAL_STORAGE_KEY = 'pageFilters';
 
 export const usePersistentFilters = (initialFilters: Filter[], componentId: string) => {
   const location = useLocation();
-  const pageKey = location.pathname;
+  const pageKey = location.pathname.replace(/^\/+/, '').replace(/\/+$/, '');
   const storageKey = `${pageKey}:${componentId}`;
 
   const [filters, setFilters] = useState<Filter[]>(() => {

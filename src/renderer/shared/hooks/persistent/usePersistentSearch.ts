@@ -5,7 +5,7 @@ const LOCAL_STORAGE_KEY = 'pageSearch';
 
 export const usePersistentSearch = (initialSearch: string, componentId: string) => {
   const location = useLocation();
-  const pageKey = location.pathname;
+  const pageKey = location.pathname.replace(/^\/+/, '').replace(/\/+$/, '');
   const storageKey = `${pageKey}:${componentId}`;
 
   const [search, setSearch] = useState<string>(() => {
