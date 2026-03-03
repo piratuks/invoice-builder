@@ -22,6 +22,7 @@ import { useBeforeUnloadContext } from '../../../context/BeforeUnloadContext';
 import { FilterType } from '../../../enums/filterType';
 import { SortType } from '../../../enums/sortType';
 import { usePersistentFilters } from '../../../hooks/persistent/usePersistentFilters';
+import { usePersistentSearch } from '../../../hooks/persistent/usePersistentSearch';
 import type { CustomOption } from '../../../types/customOption';
 import type { Rows } from '../../../types/excel';
 import type { Filter, FilterData } from '../../../types/filter';
@@ -148,7 +149,6 @@ export const CRUDPage = <T, TAdd, TUpdate>(props: Props<T, TAdd, TUpdate>) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<T | undefined>(undefined);
-  const [searchValue, setSearchValue] = useState('');
   const [sortBy, setSortBy] = useState(sortOptions[0]);
   const [sortType, setSortType] = useState<SortType>(SortType.DEFAULT);
   const [deleteID, setDeleteID] = useState<number>(-1);
@@ -162,6 +162,7 @@ export const CRUDPage = <T, TAdd, TUpdate>(props: Props<T, TAdd, TUpdate>) => {
     filters.filter(item => item.initial),
     componentId
   );
+  const [persistentSearch, setPersistentSearch] = usePersistentSearch('', componentId);
 
   const { items, execute: reload } = useRetrieve({
     filter: persistentFilters,
@@ -265,12 +266,12 @@ export const CRUDPage = <T, TAdd, TUpdate>(props: Props<T, TAdd, TUpdate>) => {
   const filteredItems = useMemo(() => {
     return filterAndSortArray({
       data: items,
-      searchValue,
+      searchValue: persistentSearch,
       searchField,
       sortField: sortBy.value,
       sortType
     });
-  }, [items, searchValue, searchField, sortBy, sortType]);
+  }, [items, persistentSearch, searchField, sortBy, sortType]);
 
   const totalPages = useMemo(() => {
     const pages = Math.ceil(filteredItems.length / itemsPerPage);
@@ -319,9 +320,12 @@ export const CRUDPage = <T, TAdd, TUpdate>(props: Props<T, TAdd, TUpdate>) => {
     [validateAndNormalize, handleCloseModal, isUpdate]
   );
 
-  const onSearchChanged = useCallback((value: string) => {
-    setSearchValue(value);
-  }, []);
+  const onSearchChanged = useCallback(
+    (value: string) => {
+      setPersistentSearch(value);
+    },
+    [setPersistentSearch]
+  );
 
   const onFilterSortChange = useCallback((data: { sortBy: CustomOption<keyof T>; sort: SortType }) => {
     setSortType(data.sort);
@@ -480,7 +484,7 @@ export const CRUDPage = <T, TAdd, TUpdate>(props: Props<T, TAdd, TUpdate>) => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchValue, sortBy, sortType, persistentFilters]);
+  }, [persistentSearch, sortBy, sortType, persistentFilters]);
 
   useEffect(() => {
     setCurrentPage(prev => {
@@ -562,7 +566,7 @@ export const CRUDPage = <T, TAdd, TUpdate>(props: Props<T, TAdd, TUpdate>) => {
           )}
         </Box>
 
-        <SearchInput value={searchValue} onChange={onSearchChanged} />
+        <SearchInput value={persistentSearch} onChange={onSearchChanged} />
 
         <Box
           sx={{
@@ -631,7 +635,7 @@ export const CRUDPage = <T, TAdd, TUpdate>(props: Props<T, TAdd, TUpdate>) => {
         {filteredItems.length <= 0 && (
           <NoItem
             text={
-              searchValue !== '' || typeof persistentFilters !== 'undefined'
+              persistentSearch !== '' || typeof persistentFilters !== 'undefined'
                 ? t('common.noData')
                 : t('common.noDataYet')
             }

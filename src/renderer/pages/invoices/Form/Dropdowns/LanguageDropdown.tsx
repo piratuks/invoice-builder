@@ -9,9 +9,10 @@ import {
   useMediaQuery,
   useTheme
 } from '@mui/material';
-import { memo, useCallback, useMemo, useState, type FC } from 'react';
+import { memo, useCallback, useMemo, type FC } from 'react';
 import { SearchInput } from '../../../../shared/components/inputs/searchInput/SearchInput';
 import type { Language } from '../../../../shared/enums/language';
+import { usePersistentSearch } from '../../../../shared/hooks/persistent/usePersistentSearch';
 import { filterAndSortArray } from '../../../../shared/utils/filterSortFunctions';
 import { LANGUAGE_ITEMS_ARRAY } from '../../../../state/constant';
 
@@ -25,19 +26,22 @@ const LanguageDropdownComponent: FC<Props> = ({ isOpen, onClose, onOpen, onClick
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
   const optionsLanguage = LANGUAGE_ITEMS_ARRAY;
-  const [searchValue, setSearchValue] = useState('');
+  const [persistentSearch, setPersistentSearch] = usePersistentSearch('', 'invoices:languages');
 
-  const onSearchChanged = useCallback((value: string) => {
-    setSearchValue(value);
-  }, []);
+  const onSearchChanged = useCallback(
+    (value: string) => {
+      setPersistentSearch(value);
+    },
+    [setPersistentSearch]
+  );
 
   const filteredItems = useMemo(() => {
     return filterAndSortArray({
       data: optionsLanguage,
-      searchValue,
+      searchValue: persistentSearch,
       searchField: 'label'
     });
-  }, [optionsLanguage, searchValue]);
+  }, [optionsLanguage, persistentSearch]);
 
   return (
     <>
@@ -62,7 +66,7 @@ const LanguageDropdownComponent: FC<Props> = ({ isOpen, onClose, onOpen, onClick
         }}
       >
         <Box sx={{ mb: 2, mt: 2, display: 'flex', gap: 2, flexDirection: 'column' }}>
-          <SearchInput value={searchValue} onChange={onSearchChanged} />
+          <SearchInput value={persistentSearch} onChange={onSearchChanged} />
 
           {filteredItems.map(option => (
             <Paper

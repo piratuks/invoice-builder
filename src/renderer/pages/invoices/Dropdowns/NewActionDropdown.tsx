@@ -11,11 +11,12 @@ import {
   useMediaQuery,
   useTheme
 } from '@mui/material';
-import { memo, useCallback, useMemo, useState, type FC } from 'react';
+import { memo, useCallback, useMemo, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../../i18n';
 import { SearchInput } from '../../../shared/components/inputs/searchInput/SearchInput';
 import { PageHeader } from '../../../shared/components/layout/pageHeader/PageHeader';
+import { usePersistentSearch } from '../../../shared/hooks/persistent/usePersistentSearch';
 import { usePresetsRetrieve } from '../../../shared/hooks/presets/usePresetsRetrieve';
 import type { Preset } from '../../../shared/types/preset';
 import type { Response } from '../../../shared/types/response';
@@ -34,11 +35,14 @@ const NewActionDropdownComponent: FC<Props> = ({ isOpen, onClose, onOpen, onNew,
   const { t } = useTranslation();
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
-  const [searchValue, setSearchValue] = useState('');
+  const [persistentSearch, setPersistentSearch] = usePersistentSearch('', 'invoices:actions');
 
-  const onSearchChanged = useCallback((value: string) => {
-    setSearchValue(value);
-  }, []);
+  const onSearchChanged = useCallback(
+    (value: string) => {
+      setPersistentSearch(value);
+    },
+    [setPersistentSearch]
+  );
 
   const dispatch = useAppDispatch();
   const { presets } = usePresetsRetrieve({
@@ -55,10 +59,10 @@ const NewActionDropdownComponent: FC<Props> = ({ isOpen, onClose, onOpen, onNew,
   const filteredPresets = useMemo(() => {
     return filterAndSortArray({
       data: presets,
-      searchValue,
+      searchValue: persistentSearch,
       searchField: 'name'
     });
-  }, [presets, searchValue]);
+  }, [presets, persistentSearch]);
 
   return (
     <>
@@ -91,7 +95,7 @@ const NewActionDropdownComponent: FC<Props> = ({ isOpen, onClose, onOpen, onNew,
             onClose={onClose}
           />
           <Box>
-            <SearchInput value={searchValue} onChange={onSearchChanged} />
+            <SearchInput value={persistentSearch} onChange={onSearchChanged} />
             <ListItemButton
               onClick={() => onNew?.()}
               sx={{
