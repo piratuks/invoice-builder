@@ -23,6 +23,7 @@ import { FilterType } from '../../../enums/filterType';
 import { SortType } from '../../../enums/sortType';
 import { usePersistentFilters } from '../../../hooks/persistent/usePersistentFilters';
 import { usePersistentSearch } from '../../../hooks/persistent/usePersistentSearch';
+import { usePersistentSort } from '../../../hooks/persistent/usePersistentSort';
 import type { CustomOption } from '../../../types/customOption';
 import type { Rows } from '../../../types/excel';
 import type { Filter, FilterData } from '../../../types/filter';
@@ -149,8 +150,6 @@ export const CRUDPage = <T, TAdd, TUpdate>(props: Props<T, TAdd, TUpdate>) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<T | undefined>(undefined);
-  const [sortBy, setSortBy] = useState(sortOptions[0]);
-  const [sortType, setSortType] = useState<SortType>(SortType.DEFAULT);
   const [deleteID, setDeleteID] = useState<number>(-1);
   const [duplicateID, setDuplicateID] = useState<number>(-1);
   const [newItem, setNewItem] = useState<TAdd | undefined>(undefined);
@@ -163,6 +162,13 @@ export const CRUDPage = <T, TAdd, TUpdate>(props: Props<T, TAdd, TUpdate>) => {
     componentId
   );
   const [persistentSearch, setPersistentSearch] = usePersistentSearch('', componentId);
+  const [persistentSort, setPersistentSort] = usePersistentSort<keyof T>(
+    {
+      activeSort: SortType.DEFAULT,
+      activeSortBy: sortOptions[0]
+    },
+    componentId
+  );
 
   const { items, execute: reload } = useRetrieve({
     filter: persistentFilters,
@@ -268,10 +274,10 @@ export const CRUDPage = <T, TAdd, TUpdate>(props: Props<T, TAdd, TUpdate>) => {
       data: items,
       searchValue: persistentSearch,
       searchField,
-      sortField: sortBy.value,
-      sortType
+      sortField: persistentSort.activeSortBy.value,
+      sortType: persistentSort.activeSort
     });
-  }, [items, persistentSearch, searchField, sortBy, sortType]);
+  }, [items, persistentSearch, searchField, persistentSort]);
 
   const totalPages = useMemo(() => {
     const pages = Math.ceil(filteredItems.length / itemsPerPage);
@@ -327,10 +333,15 @@ export const CRUDPage = <T, TAdd, TUpdate>(props: Props<T, TAdd, TUpdate>) => {
     [setPersistentSearch]
   );
 
-  const onFilterSortChange = useCallback((data: { sortBy: CustomOption<keyof T>; sort: SortType }) => {
-    setSortType(data.sort);
-    setSortBy(data.sortBy);
-  }, []);
+  const onFilterSortChange = useCallback(
+    (data: { sortBy: CustomOption<keyof T>; sort: SortType }) => {
+      setPersistentSort({
+        activeSort: data.sort,
+        activeSortBy: data.sortBy
+      });
+    },
+    [setPersistentSort]
+  );
 
   const onEdit = useCallback(
     (item: T) => {
@@ -484,7 +495,7 @@ export const CRUDPage = <T, TAdd, TUpdate>(props: Props<T, TAdd, TUpdate>) => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [persistentSearch, sortBy, sortType, persistentFilters]);
+  }, [persistentSearch, persistentSort, persistentFilters]);
 
   useEffect(() => {
     setCurrentPage(prev => {
@@ -592,8 +603,8 @@ export const CRUDPage = <T, TAdd, TUpdate>(props: Props<T, TAdd, TUpdate>) => {
 
             <FilterSortBar<keyof T>
               sortByOptions={sortOptions}
-              activeSort={sortType}
-              activeSortBy={sortBy}
+              activeSort={persistentSort.activeSort}
+              activeSortBy={persistentSort.activeSortBy}
               onChange={onFilterSortChange}
             />
           </Box>
