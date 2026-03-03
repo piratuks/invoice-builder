@@ -4,8 +4,9 @@ import i18n from '../i18n';
 import { SpinnerOverlay } from '../shared/components/feedback/spinner/SpinnerOverlay';
 import { ToastContainer } from '../shared/components/feedback/toast/toastContainer';
 import { Confirmation } from '../shared/components/modals/confirmation';
+import { BeforeUnloadProvider } from '../shared/context/BeforeUnloadContext';
 import { useSettingsRetrieve } from '../shared/hooks/settings/useSettingsRetrieve';
-import { useBeforeUnload } from '../shared/hooks/useBeforeUnload';
+import { useBeforeLeave } from '../shared/hooks/useBeforeLeave';
 import type { Response } from '../shared/types/response';
 import type { Settings } from '../shared/types/settings';
 import { useAppDispatch, useAppSelector } from '../state/configureStore';
@@ -20,7 +21,8 @@ export const App: FC = () => {
   const isAllowedToLeave = useAppSelector(selectAllowed);
   const dispatch = useAppDispatch();
   const { t } = useTranslation();
-  const { showPrompt, cancelNavigation, confirmNavigation } = useBeforeUnload(isAllowedToLeave);
+  const { showPrompt, cancelNavigation, confirmNavigation, attemptNavigation, setBlocked } =
+    useBeforeLeave(isAllowedToLeave);
 
   const { settings, execute: getSettings } = useSettingsRetrieve({
     immediate: false,
@@ -65,7 +67,11 @@ export const App: FC = () => {
   return (
     <>
       {!dbReady && <DatabaseChooser onDatabaseRead={onDatabaseRead} />}
-      {dbReady && <AppLayout />}
+      {dbReady && (
+        <BeforeUnloadProvider value={{ attemptNavigation, setBlocked }}>
+          <AppLayout />
+        </BeforeUnloadProvider>
+      )}
       <ToastContainer toasts={toasts} onClose={handleClose} />
       {isLoading && <SpinnerOverlay />}
       <Confirmation

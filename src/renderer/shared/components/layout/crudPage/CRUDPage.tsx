@@ -18,6 +18,7 @@ import { useTranslation } from 'react-i18next';
 import i18n from '../../../../i18n';
 import { useAppDispatch } from '../../../../state/configureStore';
 import { addToast } from '../../../../state/pageSlice';
+import { useBeforeUnloadContext } from '../../../context/BeforeUnloadContext';
 import { FilterType } from '../../../enums/filterType';
 import { SortType } from '../../../enums/sortType';
 import type { CustomOption } from '../../../types/customOption';
@@ -154,6 +155,7 @@ export const CRUDPage = <T, TAdd, TUpdate>(props: Props<T, TAdd, TUpdate>) => {
   const [newItemsBatch, setNewItemsBatch] = useState<TAdd[] | undefined>(undefined);
   const [changedItem, setChangedItem] = useState<TUpdate | undefined>(undefined);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const { attemptNavigation } = useBeforeUnloadContext();
 
   const { items, execute: reload } = useRetrieve({
     filter: selectedFilter,
@@ -312,14 +314,24 @@ export const CRUDPage = <T, TAdd, TUpdate>(props: Props<T, TAdd, TUpdate>) => {
     setSortBy(data.sortBy);
   }, []);
 
-  const onEdit = useCallback((item: T) => {
-    setSelectedItem(prev => {
-      if (prev && typeof prev === 'object' && 'id' in prev && item && typeof item === 'object' && 'id' in item) {
-        return prev.id === item.id ? prev : item;
+  const onEdit = useCallback(
+    (item: T) => {
+      const doSelect = () =>
+        setSelectedItem(prev => {
+          if (prev && typeof prev === 'object' && 'id' in prev && item && typeof item === 'object' && 'id' in item) {
+            return prev.id === item.id ? prev : item;
+          }
+          return item;
+        });
+
+      if (attemptNavigation) {
+        attemptNavigation(doSelect);
+      } else {
+        doSelect();
       }
-      return item;
-    });
-  }, []);
+    },
+    [attemptNavigation]
+  );
 
   const onDelete = useCallback((id: number) => {
     setDeleteID(id);
