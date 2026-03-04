@@ -44,7 +44,7 @@ export const CategoriesPage: FC = () => {
   const useCategoryCRUDAdd = (args: {
     item?: CategoryAdd;
     immediate?: boolean;
-    onDone?: (data: Response<CategoryAdd>) => void;
+    onDone?: (data: Response<Category>) => void;
   }) => {
     return useCategoryAdd({
       category: args.item,
@@ -66,7 +66,7 @@ export const CategoriesPage: FC = () => {
   const useCategoryCRUDUpdate = (args: {
     item?: CategoryUpdate;
     immediate?: boolean;
-    onDone?: (data: Response<CategoryUpdate>) => void;
+    onDone?: (data: Response<Category>) => void;
   }) => {
     return useCategoryUpdate({
       category: args.item,

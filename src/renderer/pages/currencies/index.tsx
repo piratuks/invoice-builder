@@ -52,7 +52,7 @@ export const CurrenciesPage: FC = () => {
   const useCurrencyCRUDAdd = (args: {
     item?: CurrencyAdd;
     immediate?: boolean;
-    onDone?: (data: Response<CurrencyAdd>) => void;
+    onDone?: (data: Response<Currency>) => void;
   }) => {
     return useCurrencyAdd({
       currency: args.item,
@@ -74,7 +74,7 @@ export const CurrenciesPage: FC = () => {
   const useCurrencyCRUDUpdate = (args: {
     item?: CurrencyUpdate;
     immediate?: boolean;
-    onDone?: (data: Response<CurrencyUpdate>) => void;
+    onDone?: (data: Response<Currency>) => void;
   }) => {
     return useCurrencyUpdate({
       currency: args.item,

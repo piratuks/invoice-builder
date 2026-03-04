@@ -80,7 +80,7 @@ export const InvoicesPage: FC<Props> = ({ type }) => {
   const useInvoiceCRUDAdd = (args: {
     item?: InvoiceAdd;
     immediate?: boolean;
-    onDone?: (data: Response<InvoiceAdd>) => void;
+    onDone?: (data: Response<Invoice>) => void;
   }) => {
     return useInvoiceAdd({
       invoice: args.item,
@@ -91,7 +91,7 @@ export const InvoicesPage: FC<Props> = ({ type }) => {
   const useInvoiceCRUDUpdate = (args: {
     item?: InvoiceUpdate;
     immediate?: boolean;
-    onDone?: (data: Response<InvoiceUpdate>) => void;
+    onDone?: (data: Response<Invoice>) => void;
   }) => {
     return useInvoiceUpdate({
       invoice: args.item,

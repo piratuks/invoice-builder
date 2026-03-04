@@ -88,7 +88,7 @@ export const BusinessesPage = () => {
   const useBusinessCRUDAdd = (args: {
     item?: BusinessAdd;
     immediate?: boolean;
-    onDone?: (data: Response<BusinessAdd>) => void;
+    onDone?: (data: Response<Business>) => void;
   }) => {
     return useBusinessAdd({
       business: args.item,
@@ -110,7 +110,7 @@ export const BusinessesPage = () => {
   const useBusinessCRUDUpdate = (args: {
     item?: BusinessUpdate;
     immediate?: boolean;
-    onDone?: (data: Response<BusinessUpdate>) => void;
+    onDone?: (data: Response<Business>) => void;
   }) => {
     return useBusinessUpdate({
       business: args.item,

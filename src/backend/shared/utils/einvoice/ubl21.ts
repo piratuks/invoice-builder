@@ -417,7 +417,6 @@ export const generateUBLInvoiceXML = (invoice: Invoice): string => {
   if (!invoice.invoiceBusinessSnapshot.businessCode && !invoice.invoiceBusinessSnapshot.businessVatCode)
     throw new Error('error.peppolVATCode');
 
-  console.log(invoice.taxName);
   const calc = calculateInvoiceTotals(invoice);
 
   const raw = `<?xml version="1.0" encoding="UTF-8"?>

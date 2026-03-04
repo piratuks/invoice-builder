@@ -76,7 +76,7 @@ export const StyleProfilesPage = () => {
   const useStyleProfileCRUDAdd = (args: {
     item?: StyleProfileAdd;
     immediate?: boolean;
-    onDone?: (data: Response<StyleProfileAdd>) => void;
+    onDone?: (data: Response<StyleProfile>) => void;
   }) => {
     return useStyleProfileAdd({
       styleProfile: args.item,
@@ -98,7 +98,7 @@ export const StyleProfilesPage = () => {
   const useStyleProfileCRUDUpdate = (args: {
     item?: StyleProfileUpdate;
     immediate?: boolean;
-    onDone?: (data: Response<StyleProfileUpdate>) => void;
+    onDone?: (data: Response<StyleProfile>) => void;
   }) => {
     return useStyleProfileUpdate({
       styleProfile: args.item,

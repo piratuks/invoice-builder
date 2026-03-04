@@ -1,5 +1,12 @@
 # Invoice Builder
 
+## 2026-03-04, version 2.4.2
+
+Bug Fixes
+
+- Fix for dirty confirmation after saves. It was still not stable as not always log the state of dirty
+-
+
 ## 2026-03-03, version 2.4.1
 
 Bug Fixes

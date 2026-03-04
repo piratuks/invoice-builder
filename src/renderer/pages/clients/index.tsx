@@ -76,7 +76,7 @@ export const ClientsPage: FC = () => {
   const useClientCRUDAdd = (args: {
     item?: ClientAdd;
     immediate?: boolean;
-    onDone?: (data: Response<ClientAdd>) => void;
+    onDone?: (data: Response<Client>) => void;
   }) => {
     return useClientAdd({
       client: args.item,
@@ -98,7 +98,7 @@ export const ClientsPage: FC = () => {
   const useClientCRUDUpdate = (args: {
     item?: ClientUpdate;
     immediate?: boolean;
-    onDone?: (data: Response<ClientUpdate>) => void;
+    onDone?: (data: Response<Client>) => void;
   }) => {
     return useClientUpdate({
       client: args.item,

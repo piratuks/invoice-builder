@@ -89,11 +89,7 @@ export const BanksPage: FC = () => {
     const { banks, execute } = useBanksRetrieve({ filter: args.filter, onDone: args.onDone });
     return { items: banks, execute };
   };
-  const useBankCRUDAdd = (args: {
-    item?: BankAdd;
-    immediate?: boolean;
-    onDone?: (data: Response<BankAdd>) => void;
-  }) => {
+  const useBankCRUDAdd = (args: { item?: BankAdd; immediate?: boolean; onDone?: (data: Response<Bank>) => void }) => {
     return useBankAdd({
       bank: args.item,
       immediate: args.immediate,
@@ -114,7 +110,7 @@ export const BanksPage: FC = () => {
   const useBankCRUDUpdate = (args: {
     item?: BankUpdate;
     immediate?: boolean;
-    onDone?: (data: Response<BankUpdate>) => void;
+    onDone?: (data: Response<Bank>) => void;
   }) => {
     return useBankUpdate({
       bank: args.item,

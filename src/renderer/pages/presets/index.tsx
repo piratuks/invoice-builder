@@ -63,7 +63,7 @@ export const PresetsPage: FC = () => {
   const usePresetCRUDAdd = (args: {
     item?: PresetAdd;
     immediate?: boolean;
-    onDone?: (data: Response<PresetAdd>) => void;
+    onDone?: (data: Response<Preset>) => void;
   }) => {
     return usePresetAdd({
       preset: args.item,
@@ -85,7 +85,7 @@ export const PresetsPage: FC = () => {
   const usePresetCRUDUpdate = (args: {
     item?: PresetUpdate;
     immediate?: boolean;
-    onDone?: (data: Response<PresetUpdate>) => void;
+    onDone?: (data: Response<Preset>) => void;
   }) => {
     return usePresetUpdate({
       preset: args.item,

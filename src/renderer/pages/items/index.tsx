@@ -47,11 +47,7 @@ export const ItemsPage: FC = () => {
     const { items, execute } = useItemsRetrieve({ filter: args.filter, onDone: args.onDone });
     return { items: items, execute };
   };
-  const useItemCRUDAdd = (args: {
-    item?: ItemAdd;
-    immediate?: boolean;
-    onDone?: (data: Response<ItemAdd>) => void;
-  }) => {
+  const useItemCRUDAdd = (args: { item?: ItemAdd; immediate?: boolean; onDone?: (data: Response<Item>) => void }) => {
     return useItemAdd({
       item: args.item,
       immediate: args.immediate,
@@ -72,7 +68,7 @@ export const ItemsPage: FC = () => {
   const useItemCRUDUpdate = (args: {
     item?: ItemUpdate;
     immediate?: boolean;
-    onDone?: (data: Response<ItemUpdate>) => void;
+    onDone?: (data: Response<Item>) => void;
   }) => {
     return useItemUpdate({
       item: args.item,

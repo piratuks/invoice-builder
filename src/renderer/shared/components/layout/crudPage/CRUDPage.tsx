@@ -47,14 +47,14 @@ interface Props<T, TAdd, TUpdate> {
     items: T[];
     execute: () => void;
   };
-  useAdd?: (args: { item?: TAdd; immediate?: boolean; onDone?: (data: Response<TAdd>) => void }) => {
+  useAdd?: (args: { item?: TAdd; immediate?: boolean; onDone?: (data: Response<T>) => void }) => {
     data?: T;
     execute: () => void;
   };
   useAddBatch?: (args: { item?: TAdd[]; immediate?: boolean; onDone?: (data: Response<TAdd[]>) => void }) => {
     execute: () => void;
   };
-  useUpdate?: (args: { item?: TUpdate; immediate?: boolean; onDone?: (data: Response<TUpdate>) => void }) => {
+  useUpdate?: (args: { item?: TUpdate; immediate?: boolean; onDone?: (data: Response<T>) => void }) => {
     execute: () => void;
   };
   useDuplicate?: (args: { id: number; immediate?: boolean; onDone?: (data: Response<unknown>) => void }) => {
@@ -185,7 +185,7 @@ export const CRUDPage = <T, TAdd, TUpdate>(props: Props<T, TAdd, TUpdate>) => {
   const { execute: addItem, data: newRow } = useAdd({
     item: newItem,
     immediate: false,
-    onDone: (data: Response<TAdd>) => {
+    onDone: (data: Response<T>) => {
       setNewItem(undefined);
       setSelectedItem(undefined);
       reload();
@@ -219,9 +219,11 @@ export const CRUDPage = <T, TAdd, TUpdate>(props: Props<T, TAdd, TUpdate>) => {
   const { execute: updateItem } = useUpdate({
     item: changedItem,
     immediate: false,
-    onDone: (data: Response<TUpdate>) => {
+    onDone: (data: Response<T>) => {
       setChangedItem(undefined);
       if (!isDesktop) setSelectedItem(undefined);
+      else setSelectedItem(data.data);
+
       reload();
 
       if (!data.success) {
@@ -289,18 +291,21 @@ export const CRUDPage = <T, TAdd, TUpdate>(props: Props<T, TAdd, TUpdate>) => {
     return filteredItems.slice(startIndex, startIndex + itemsPerPage);
   }, [filteredItems, currentPage, itemsPerPage]);
 
-  const handleCloseModal = useCallback(() => {
-    const doSelect = () => {
-      setIsModalOpen(false);
-      setSelectedItem(undefined);
-    };
+  const handleCloseModal = useCallback(
+    (skipAttempt: boolean) => {
+      const doSelect = () => {
+        setIsModalOpen(false);
+        setSelectedItem(undefined);
+      };
 
-    if (attemptNavigation && !isDesktop) {
-      attemptNavigation(doSelect);
-    } else {
-      setIsModalOpen(false);
-    }
-  }, [attemptNavigation, isDesktop]);
+      if (!skipAttempt && attemptNavigation && !isDesktop) {
+        attemptNavigation(doSelect);
+      } else {
+        setIsModalOpen(false);
+      }
+    },
+    [attemptNavigation, isDesktop]
+  );
 
   const isUpdate = useCallback((item: TAdd | TUpdate): item is TUpdate => {
     return typeof item === 'object' && item !== null && 'id' in item && typeof item.id !== 'undefined';
@@ -321,7 +326,7 @@ export const CRUDPage = <T, TAdd, TUpdate>(props: Props<T, TAdd, TUpdate>) => {
       } else {
         setNewItem(normalized as TAdd);
       }
-      handleCloseModal();
+      handleCloseModal(true);
     },
     [validateAndNormalize, handleCloseModal, isUpdate]
   );
@@ -528,7 +533,7 @@ export const CRUDPage = <T, TAdd, TUpdate>(props: Props<T, TAdd, TUpdate>) => {
       title={title}
       isOpen={isModalOpen}
       isModal={inlineOnAdd ? false : typeof selectedItem === 'undefined'}
-      handleClose={handleCloseModal}
+      handleClose={() => handleCloseModal(false)}
       handleSave={handleSave}
       renderCustomButtons={renderCustomButtons}
       renderForm={({ onChange }) =>

@@ -38,11 +38,7 @@ export const UnitsPage: FC = () => {
     const { units, execute } = useUnitsRetrieve({ filter: args.filter, onDone: args.onDone });
     return { items: units, execute };
   };
-  const useUnitCRUDAdd = (args: {
-    item?: UnitAdd;
-    immediate?: boolean;
-    onDone?: (data: Response<UnitAdd>) => void;
-  }) => {
+  const useUnitCRUDAdd = (args: { item?: UnitAdd; immediate?: boolean; onDone?: (data: Response<Unit>) => void }) => {
     return useUnitAdd({
       unit: args.item,
       immediate: args.immediate,
@@ -63,7 +59,7 @@ export const UnitsPage: FC = () => {
   const useUnitCRUDUpdate = (args: {
     item?: UnitUpdate;
     immediate?: boolean;
-    onDone?: (data: Response<UnitUpdate>) => void;
+    onDone?: (data: Response<Unit>) => void;
   }) => {
     return useUnitUpdate({
       unit: args.item,
