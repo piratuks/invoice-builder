@@ -698,11 +698,11 @@ Enter the quote details, including:
 
 ![Quote information](tutorial/quote_page_5.jpg)
 
-Select a item from the dropdown and set quantity. The dropdown supports **search, filter, and sort** (see [Items screen](#items-screen) for details).
+Select a item from the dropdown and set quantity and unit price. The dropdown supports **search, filter, and sort** (see [Items screen](#items-screen) for details).
 
 > 💡 **Note:** The selected item is saved as a snapshot. The snapshot is updated only when editing the quote and changing the item.
 >
-> 💡 When adding or editing an item in a quotation, a modal will appear requiring you to set the quantity. You can also define custom field data for the item, including a header, value, and alignment. Each unique custom header is added as a column in the PDF’s item table, and the corresponding value is placed in that column for the item. Alignment is configured per unique header. A header can be selected from the existing list or typed in as a new one (pressing Enter is required to register a new header). Both fields header and value must either be fully selected / entered or empty; otherwise, the Save button will remain disabled.
+> 💡 When adding or editing an item in a quotation, a modal will appear requiring you to set the quantity and unit price. You can also define custom field data for the item, including a header, value, and alignment. Each unique custom header is added as a column in the PDF’s item table, and the corresponding value is placed in that column for the item. Alignment is configured per unique header. A header can be selected from the existing list or typed in as a new one (pressing Enter is required to register a new header). Both fields header and value must either be fully selected / entered or empty; otherwise, the Save button will remain disabled.
 
 ![Quote item creation](tutorial/quote_page_6.jpg)
 ![Quote item quantity](tutorial/quote_page_7.jpg)
@@ -925,11 +925,11 @@ Enter the invoice details, including:
 
 ![Invoice information](tutorial/invoice_page_5.jpg)
 
-Select a item from the dropdown and set quantity. The dropdown supports **search, filter, and sort** (see [Items screen](#items-screen) for details).
+Select a item from the dropdown and set quantity and unit price. The dropdown supports **search, filter, and sort** (see [Items screen](#items-screen) for details).
 
 > 💡 **Note:** The selected item is saved as a snapshot. The snapshot is updated only when editing the invoice and changing the item.
 >
-> 💡 When adding or editing an item in a invoice, a modal will appear requiring you to set the quantity. You can also define custom field data for the item, including a header, value, and alignment. Each unique custom header is added as a column in the PDF’s item table, and the corresponding value is placed in that column for the item. Alignment is configured per unique header. A header can be selected from the existing list or typed in as a new one (pressing Enter is required to register a new header). Both fields header and value must either be fully selected / entered or empty; otherwise, the Save button will remain disabled.
+> 💡 When adding or editing an item in a invoice, a modal will appear requiring you to set the quantity and unit price. You can also define custom field data for the item, including a header, value, and alignment. Each unique custom header is added as a column in the PDF’s item table, and the corresponding value is placed in that column for the item. Alignment is configured per unique header. A header can be selected from the existing list or typed in as a new one (pressing Enter is required to register a new header). Both fields header and value must either be fully selected / entered or empty; otherwise, the Save button will remain disabled.
 
 ![Invoice item creation](tutorial/invoice_page_6.jpg)
 ![Invoice item quantity](tutorial/invoice_page_7.jpg)
@@ -1109,10 +1109,10 @@ To generate valid UBL/Peppol XML, additional fields are available on Businesses 
 > - Currency codes must be standard ISO codes (e.g., EUR, USD). Random text will fail validation.
 >
 > Export behavior:
+>
 > - A regular PDF can be exported at any time.
 > - The XML file and the PDF with embedded XML reflect only saved data.
 > - You cannot export XML while creating a new invoice until it has been saved.
 > - When editing an invoice, make sure to save changes before exporting.
->   
 >
 > Use a Peppol XML validator (e.g., [https://peppolvalidator.com/](https://peppolvalidator.com/)) to ensure compliance before sending.
