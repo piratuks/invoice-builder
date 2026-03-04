@@ -14,6 +14,7 @@ export const BOOLEAN_FIELDS = [
   'showUnit',
   'showRowNo',
   'ublON',
+  'xrechnungON',
   'styleProfileShowQuantity',
   'styleProfileShowUnit',
   'styleProfileShowRowNo'

@@ -29,6 +29,7 @@ interface Props {
   onExportPDF?: () => void;
   onExportPDFUBL?: () => void;
   onExportUBLXML?: () => void;
+  onExportXRechnungXML?: () => void;
   onDelete?: () => void;
   onDuplicate?: () => void;
   onMakeInvoice?: () => void;
@@ -50,6 +51,7 @@ const MoreActionDropdownComponent: FC<Props> = ({
   onExportPDF,
   onExportPDFUBL,
   onExportUBLXML,
+  onExportXRechnungXML,
   onDelete,
   onDuplicate,
   onMakeInvoice
@@ -218,6 +220,46 @@ const MoreActionDropdownComponent: FC<Props> = ({
                               sx={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis' }}
                             >
                               {t('common.exportUBLXML')}
+                            </Typography>
+                          }
+                          disableTypography
+                          sx={{ m: 0 }}
+                          slotProps={{ primary: { sx: { fontWeight: 600, m: 0 } } }}
+                        />
+                      </ListItem>
+                    </ListItemButton>
+                  </Box>
+                </Tooltip>
+              </>
+            )}
+            {storeSettings?.xrechnungON && type === InvoiceType.invoice && (
+              <>
+                <Tooltip title={t('common.tooltipXML')}>
+                  <Box>
+                    <ListItemButton
+                      onClick={onExportXRechnungXML}
+                      disabled={!isPDFReady}
+                      sx={{
+                        width: '100%',
+                        borderRadius: 1,
+                        display: 'flex',
+                        justifyContent: 'start',
+                        alignItems: 'start',
+                        flexDirection: 'column'
+                      }}
+                    >
+                      <ListItem sx={{ p: 0 }}>
+                        <ListItemIcon sx={{ minWidth: 'auto', mr: 1 }}>
+                          <CodeIcon color="primary" />
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={
+                            <Typography
+                              component="div"
+                              variant="body1"
+                              sx={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis' }}
+                            >
+                              {t('common.exportXRechnungXML')}
                             </Typography>
                           }
                           disableTypography

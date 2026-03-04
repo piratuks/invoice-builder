@@ -265,7 +265,7 @@ export const Form: FC<Props> = ({ handleChange = () => {}, business }) => {
           onChange={e => update('vatCode', e.target.value)}
         />
       </Grid>
-      {settings?.ublON && (
+      {(settings?.ublON || settings?.xrechnungON) && (
         <Grid size={{ xs: 12, md: 6 }}>
           <TextField
             label={t('common.peppolEndpointId')}
@@ -280,7 +280,7 @@ export const Form: FC<Props> = ({ handleChange = () => {}, business }) => {
           />
         </Grid>
       )}
-      {settings?.ublON && (
+      {(settings?.ublON || settings?.xrechnungON) && (
         <Grid size={{ xs: 12, md: 6 }}>
           <TextField
             label={t('common.peppolEndpointSchemeId')}

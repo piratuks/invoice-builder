@@ -146,6 +146,17 @@ export const Menu: FC<Props> = ({
           onChange: () => {
             toggleUBL(!storeSettings?.ublON);
           }
+        },
+        {
+          text: t('settingsMenuItems.titles.turnXRechnung'),
+          description: t('settingsMenuItems.descriptions.turnXRechnung'),
+          icon: <ReceiptLongIcon />,
+          isToggle: true,
+          isSelected: false,
+          checked: storeSettings?.xrechnungON ?? true,
+          onChange: () => {
+            toggleUBL(!storeSettings?.xrechnungON);
+          }
         }
       ]
     }

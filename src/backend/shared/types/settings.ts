@@ -16,6 +16,7 @@ export interface Settings {
   quotesON: boolean;
   styleProfilesON: boolean;
   ublON: boolean;
+  xrechnungON: boolean;
   presetsON: boolean;
   reportsON: boolean;
   createdAt: string;

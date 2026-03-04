@@ -6,8 +6,12 @@
 // https://docs.peppol.eu/poacc/billing/3.0/
 // https://peppolvalidator.com/
 // https://validator.invoice-portal.de/
+//
+// Note: XRechnung (UBL 2.1) and UBL 2.1 PEPPOL are almost identical therefore generateUBLInvoiceXML accepts EInvoice (ubl21 or xrechnung)
+// Note: For XRechnung, the BuyerReference must contain the Leitweg-ID.
 
 import { DateFormat } from '../../enums/dateFormat';
+import { EInvoice } from '../../enums/einvoice';
 import type { CalculatedInvoice } from '../../types/einvoice';
 import type { Invoice } from '../../types/invoice';
 import { formatDate, formatXml, splitAddress, xmlEscape } from './helperFunctions';
@@ -154,16 +158,20 @@ const getAllowances = (invoice: Invoice, calc: CalculatedInvoice) => {
   `;
 };
 
-const getXMLHeader = (invoice: Invoice) => {
+const getXMLHeader = (invoice: Invoice, einvoice: EInvoice.ubl21 | EInvoice.xrechnung) => {
   const noteText = [invoice.thanksNotes, invoice.customerNotes, invoice.termsConditionNotes]
     .filter(Boolean)
     .join(' | ');
 
   const issueDate = formatDate(invoice.issuedAt ?? new Date(), DateFormat.yyyyMMddDash);
   const dueDate = invoice.dueDate ? formatDate(invoice.dueDate, DateFormat.yyyyMMddDash) : undefined;
+  const customizationID =
+    einvoice === EInvoice.xrechnung
+      ? 'urn:cen.eu:en16931:2017#compliant#urn:xeinkauf.de:kosit:xrechnung_3.0'
+      : 'urn:cen.eu:en16931:2017#compliant#urn:fdc:peppol.eu:2017:poacc:billing:3.0';
 
   return `
-    <cbc:CustomizationID>urn:cen.eu:en16931:2017#compliant#urn:fdc:peppol.eu:2017:poacc:billing:3.0</cbc:CustomizationID>
+    <cbc:CustomizationID>${customizationID}</cbc:CustomizationID>
     <cbc:ProfileID>urn:fdc:peppol.eu:2017:poacc:billing:01:1.0</cbc:ProfileID>
     <cbc:ID>${xmlEscape(invoice.invoiceNumber)}</cbc:ID>
     <cbc:IssueDate>${issueDate}</cbc:IssueDate>
@@ -175,7 +183,7 @@ const getXMLHeader = (invoice: Invoice) => {
   `;
 };
 
-const getXMLSupplier = (invoice: Invoice) => {
+const getXMLSupplier = (invoice: Invoice, einvoice: EInvoice.ubl21 | EInvoice.xrechnung) => {
   const sellerAddress = splitAddress(invoice.invoiceBusinessSnapshot?.businessAddress);
   if (!sellerAddress.countryCode && invoice.invoiceBusinessSnapshot!.businessCountryCode) {
     sellerAddress.countryCode = invoice.invoiceBusinessSnapshot!.businessCountryCode.toUpperCase();
@@ -201,6 +209,7 @@ const getXMLSupplier = (invoice: Invoice) => {
         invoice.invoiceBusinessSnapshot!.businessPhone || invoice.invoiceBusinessSnapshot!.businessEmail
           ? `
       <cac:Contact>
+        ${invoice.invoiceBusinessSnapshot!.businessName && einvoice === EInvoice.xrechnung ? `<cbc:Name>${xmlEscape(invoice.invoiceBusinessSnapshot!.businessName)}</cbc:Name>` : ''}
         ${invoice.invoiceBusinessSnapshot!.businessPhone ? `<cbc:Telephone>${xmlEscape(invoice.invoiceBusinessSnapshot!.businessPhone)}</cbc:Telephone>` : ''}
         ${invoice.invoiceBusinessSnapshot!.businessEmail ? `<cbc:ElectronicMail>${xmlEscape(invoice.invoiceBusinessSnapshot!.businessEmail)}</cbc:ElectronicMail>` : ''}
       </cac:Contact>`
@@ -247,6 +256,16 @@ const getXMLBuyer = (invoice: Invoice) => {
   </cac:AccountingCustomerParty>`;
 
   return customerParty;
+};
+
+const getXMLDelivery = (invoice: Invoice) => {
+  const issueDate = formatDate(invoice.issuedAt ?? new Date(), DateFormat.yyyyMMddDash);
+
+  return `
+    <cac:Delivery>
+      <cbc:ActualDeliveryDate>${issueDate}</cbc:ActualDeliveryDate>
+    </cac:Delivery>
+  `;
 };
 
 const getXMLPaymentMeans = (invoice: Invoice) => {
@@ -405,7 +424,7 @@ const getXMLLines = (invoice: Invoice, calc: CalculatedInvoice) => {
     .join('');
 };
 
-export const generateUBLInvoiceXML = (invoice: Invoice): string => {
+const validateUBLPeppol = (invoice: Invoice) => {
   if (!invoice.invoiceCurrencySnapshot || !invoice.invoiceBusinessSnapshot || !invoice.invoiceClientSnapshot)
     throw new Error('error.peppolNotSupported');
   if (
@@ -423,7 +442,39 @@ export const generateUBLInvoiceXML = (invoice: Invoice): string => {
   if (!invoice.invoiceBusinessSnapshot.businessCountryCode) throw new Error('error.peppolBusinessCC');
   if (!invoice.dueDate) throw new Error('error.peppolDueDate');
   if (!invoice.invoiceBusinessSnapshot.businessCode && !invoice.invoiceBusinessSnapshot.businessVatCode)
-    throw new Error('error.peppolVATCode');
+    throw new Error('error.peppolBusinessVATCode');
+};
+
+const validateXRechung = (invoice: Invoice) => {
+  if (!invoice.invoiceCurrencySnapshot || !invoice.invoiceBusinessSnapshot || !invoice.invoiceClientSnapshot)
+    throw new Error('error.xrechnungNotSupported');
+  if (
+    !invoice.invoiceBusinessSnapshot.businessPeppolEndpointId ||
+    !invoice.invoiceBusinessSnapshot.businessPeppolEndpointSchemeId
+  )
+    throw new Error('error.xrechnungBusinessSchema');
+  if (
+    !invoice.invoiceClientSnapshot.clientPeppolEndpointId ||
+    !invoice.invoiceClientSnapshot.clientPeppolEndpointSchemeId
+  )
+    throw new Error('error.xrechnungClientSchema');
+  if (!invoice.invoiceClientSnapshot.clientBuyerReference) throw new Error('error.xrechnungClientReference');
+  if (!invoice.invoiceClientSnapshot.clientCountryCode) throw new Error('error.xrechnungClientCC');
+  if (!invoice.invoiceBusinessSnapshot.businessCountryCode) throw new Error('error.xrechnungBusinessCC');
+  if (!invoice.dueDate) throw new Error('error.xrechnungDueDate');
+  if (!invoice.invoiceBusinessSnapshot.businessCode && !invoice.invoiceBusinessSnapshot.businessVatCode)
+    throw new Error('error.xrechnungBusinessVATCode');
+  if (!invoice.invoiceBusinessSnapshot.businessEmail) throw new Error('error.xrechnungBusinessEmail');
+  if (!invoice.invoiceBusinessSnapshot.businessPhone) throw new Error('error.xrechnungBusinessPhone');
+  if (!invoice.invoiceClientSnapshot.clientAddress) throw new Error('error.xrechnungClientAddress');
+};
+
+export const generateUBLInvoiceXML = (invoice: Invoice, einvoice: EInvoice.ubl21 | EInvoice.xrechnung): string => {
+  if (einvoice === EInvoice.ubl21) {
+    validateUBLPeppol(invoice);
+  } else {
+    validateXRechung(invoice);
+  }
 
   const calc = calculateInvoiceTotals(invoice);
 
@@ -432,9 +483,10 @@ export const generateUBLInvoiceXML = (invoice: Invoice): string => {
         xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
         xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
         <cbc:UBLVersionID>2.1</cbc:UBLVersionID>
-        ${getXMLHeader(invoice)}
-        ${getXMLSupplier(invoice)}
+        ${getXMLHeader(invoice, einvoice)}
+        ${getXMLSupplier(invoice, einvoice)}
         ${getXMLBuyer(invoice)}
+        ${einvoice === EInvoice.xrechnung ? getXMLDelivery(invoice) : ''}
         ${getXMLPaymentMeans(invoice)}
         ${getAllowances(invoice, calc)}
         ${getXMLTaxTotal(invoice, calc)}

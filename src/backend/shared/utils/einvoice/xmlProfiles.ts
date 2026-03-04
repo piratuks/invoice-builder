@@ -17,7 +17,14 @@ const PROFILES: Record<EInvoice, XMLProfile> = {
     name: 'UBL 2.1 (PEPPOL BIS Billing 3.0)',
     mediaType: 'application/xml',
     fileExtension: 'xml',
-    generate: invoice => generateUBLInvoiceXML(invoice)
+    generate: invoice => generateUBLInvoiceXML(invoice, EInvoice.ubl21)
+  },
+  xrechnung: {
+    id: EInvoice.xrechnung,
+    name: 'XRechnung (UBL 2.1)',
+    mediaType: 'application/xml',
+    fileExtension: 'xml',
+    generate: invoice => generateUBLInvoiceXML(invoice, EInvoice.xrechnung)
   }
 };
 

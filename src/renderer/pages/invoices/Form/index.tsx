@@ -983,6 +983,11 @@ const InvoiceFormComponent: FC<Props> = ({
           handleOnClose(setMoreActionDropdown);
           if (invoiceForm?.id) setXMLData({ invoiceId: invoiceForm.id, einvoice: EInvoice.ubl21, type: 'singleFile' });
         }}
+        onExportXRechnungXML={() => {
+          handleOnClose(setMoreActionDropdown);
+          if (invoiceForm?.id)
+            setXMLData({ invoiceId: invoiceForm.id, einvoice: EInvoice.xrechnung, type: 'singleFile' });
+        }}
         showDelete={invoiceForm?.id !== undefined}
         showDuplicate={invoiceForm?.id !== undefined}
         showMakeInvoice={invoiceForm?.id !== undefined && invoiceForm.invoiceType === InvoiceType.quotation}

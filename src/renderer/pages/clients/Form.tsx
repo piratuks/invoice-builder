@@ -205,7 +205,7 @@ export const Form: FC<Props> = ({ handleChange = () => {}, client }) => {
           onChange={e => update('vatCode', e.target.value)}
         />
       </Grid>
-      {settings?.ublON && (
+      {(settings?.ublON || settings?.xrechnungON) && (
         <Grid size={{ xs: 12, md: 6 }}>
           <TextField
             label={t('common.peppolEndpointId')}
@@ -220,7 +220,7 @@ export const Form: FC<Props> = ({ handleChange = () => {}, client }) => {
           />
         </Grid>
       )}
-      {settings?.ublON && (
+      {(settings?.ublON || settings?.xrechnungON) && (
         <Grid size={{ xs: 12, md: 6 }}>
           <TextField
             label={t('common.peppolEndpointSchemeId')}
@@ -237,12 +237,20 @@ export const Form: FC<Props> = ({ handleChange = () => {}, client }) => {
           />
         </Grid>
       )}
-      {settings?.ublON && (
+      {(settings?.ublON || settings?.xrechnungON) && (
         <Grid size={{ xs: 12, md: 6 }}>
           <TextField
             label={t('common.buyerReference')}
             fullWidth
             value={form.buyerReference}
+            helperText={
+              settings?.ublON && settings?.xrechnungON
+                ? `${t('common.buyerReferenceUBL')}\n${t('common.buyerReferenceXRechnung')}`
+                : settings?.ublON
+                  ? t('common.buyerReferenceUBL')
+                  : t('common.buyerReferenceXRechnung')
+            }
+            slotProps={{ formHelperText: { style: { whiteSpace: 'pre-line' } } }}
             onChange={e => {
               update('buyerReference', e.target.value);
             }}
