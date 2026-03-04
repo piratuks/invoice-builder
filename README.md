@@ -49,6 +49,7 @@ If you value **privacy, portability, and control**, this app is built for you.
 - Responsive layout - usable on small and large screens, resizable windows supported
 - Invoice/Quote translations – select a language per document, independent of app settings
 - Export invoices in UBL 2.1 / Peppol BIS Billing 3.0 XML format, fully compliant for automated e-invoicing
+- Export invoices in XRechnung (UBL 2.1) XML format, fully compliant for automated e-invoicing
 
 ### Business Data Management
 
@@ -425,6 +426,7 @@ Please open an issue before starting major work to ensure alignment.
 
 | Version | Status                |
 | ------- | --------------------- |
+| v2.5.0  | ✅ Actively supported |
 | v2.4.2  | ✅ Actively supported |
 | v2.4.1  | ✅ Actively supported |
 | v2.4.0  | ✅ Actively supported |

@@ -1,10 +1,11 @@
 # Invoice Builder
 
-## [date], version [2.5.0]
+## 2026-03-04, version 2.5.0
 
 New features & improvements
 
 - Dynamic allocation of price to individual items, including the ability to change item prices when creating an invoice
+- XRechnung (UBL 2.1) XML support: download standalone XML file
 
 Bug Fixes
 

@@ -43,7 +43,7 @@ The **Settings** screen allows you to configure application behavior, manage dat
 From this screen you can:
 
 - Enable or disable optional layouts (**Presets**, **Style profiles**, **Quotes** and **Reports**)
-- Enable or disable optional features (**UBL 2.1**)
+- Enable or disable optional features (**UBL 2.1**, **XRechnung**)
 - Export all application data to **JSON**
 - Import previously exported data
 - Access project resources:
@@ -1091,17 +1091,20 @@ You can filter reports using:
 
 ## e-invoices
 
-The application supports UBL Peppol XML: you can download the XML embedded with the PDF, or as a standalone XML file. This feature is enabled by default and can be toggled in the Settings page.
+The application supports:
+
+- UBL Peppol XML: you can download the XML embedded with the PDF, or as a standalone XML file. This feature is enabled by default and can be toggled in the Settings page.
+- XRechnung (UBL 2.1) XML: you can download the standalone XML file. This feature is enabled by default and can be toggled in the Settings page.
 
 ![E-Invoice](tutorial/e-invoice-actions.jpg)
 
-To generate valid UBL/Peppol XML, additional fields are available on Businesses and Clients. These fields must be properly filled to produce compliant invoices.
+To generate valid UBL/Peppol XML or XRechnung (UBL 2.1) XML, additional fields are available on Businesses and Clients. These fields must be properly filled to produce compliant invoices.
 
 ![E-Invoice](tutorial/e-invoice-actions1.jpg)
 ![E-Invoice](tutorial/e-invoice-actions2.jpg)
 
-> **ℹ️ UBL XML may fail validation if data is misconfigured.**
-> The application only checks that required fields are present. It does not guarantee that all values conform to UBL/Peppol standards.
+> **ℹ️ UBL XML / XRechnung XML may fail validation if data is misconfigured.**
+> The application only checks that required fields are present. It does not guarantee that all values conform to UBL/Peppol or XRechnung (UBL 2.1) standards.
 >
 > For example:
 >
@@ -1115,4 +1118,5 @@ To generate valid UBL/Peppol XML, additional fields are available on Businesses 
 > - You cannot export XML while creating a new invoice until it has been saved.
 > - When editing an invoice, make sure to save changes before exporting.
 >
-> Use a Peppol XML validator (e.g., [https://peppolvalidator.com/](https://peppolvalidator.com/)) to ensure compliance before sending.
+> Use a UBL Peppol XML validator (e.g., [https://peppolvalidator.com/](https://peppolvalidator.com/)) to ensure compliance before sending.
+> Use a XRechnung (UBL 2.1) XML validator (e.g., [https://validator.invoice-portal.de/](https://validator.invoice-portal.de/)) to ensure compliance before sending.
