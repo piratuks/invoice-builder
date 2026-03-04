@@ -194,7 +194,6 @@ const ItemsInfoComponent: FC<Props> = ({ invoiceForm, storeSettings, labels }) =
         ]}
       >
         {visibleColumns.map((colKey, index) => {
-          console.log(sizes);
           switch (colKey) {
             case 'no':
               return (

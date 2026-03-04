@@ -5,7 +5,7 @@
 Bug Fixes
 
 - Fix for dirty confirmation after saves. It was still not stable as not always log the state of dirty
--
+- Fix for PDF table columns. The sizes of columns will be more dynamic
 
 ## 2026-03-03, version 2.4.1
 
