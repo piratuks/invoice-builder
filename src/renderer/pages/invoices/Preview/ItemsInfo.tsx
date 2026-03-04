@@ -1,4 +1,5 @@
 import { Text, View } from '@react-pdf/renderer';
+import type { Style } from '@react-pdf/types';
 import { memo, useMemo, type FC } from 'react';
 import { TableHeaderStyle } from '../../../shared/enums/tableHeaderStyle';
 import { TableRowStyle } from '../../../shared/enums/tableRowStyle';
@@ -6,7 +7,7 @@ import type { CustomField, InvoiceFromData } from '../../../shared/types/invoice
 import type { Settings } from '../../../shared/types/settings';
 import { getItemFinancialData } from '../../../shared/utils/invoiceFunctions';
 import { DEFAULT_TABLE_FIELD_SORT_ORDERS } from '../../../state/constant';
-import { COLUMN_WEIGHTS, DEFAULT_FONT_SIZES, DEFAULT_USER_COLUMN_WEIGHT, FONT_SIZES, PDF_STYLES } from './constant';
+import { DEFAULT_FONT_SIZES, FIXED_COLUMNS, FONT_SIZES, FONT_WIDTH_MULTIPLIERS, PDF_STYLES } from './constant';
 
 interface PropsLabels {
   itemLabel: string;
@@ -41,25 +42,40 @@ const ItemsInfoComponent: FC<Props> = ({ invoiceForm, storeSettings, labels }) =
   }, [invoiceForm?.invoiceItems]);
 
   const sizes = useMemo(() => {
-    const weights = { ...COLUMN_WEIGHTS };
+    const weights: Record<string, Style> = {};
+
+    if (invoiceForm?.invoiceCustomization?.showRowNo) {
+      weights.rowNo = { width: FIXED_COLUMNS.rowNo };
+    }
+    if (invoiceForm?.invoiceCustomization?.showQuantity) {
+      weights.quantity = { width: FIXED_COLUMNS.quantity };
+    }
+    if (invoiceForm?.invoiceCustomization?.showUnit) {
+      weights.unit = { width: FIXED_COLUMNS.unit };
+    }
+
+    weights.unitCost = { width: FIXED_COLUMNS.unitCost };
+    weights.total = { width: FIXED_COLUMNS.total };
+
     customFields.forEach(col => {
-      weights[col.header] = DEFAULT_USER_COLUMN_WEIGHT;
+      const multiplier = invoiceForm?.invoiceCustomization?.fontFamily
+        ? FONT_WIDTH_MULTIPLIERS[invoiceForm.invoiceCustomization.fontFamily]
+        : 6;
+      weights[col.header] = {
+        minWidth: Math.max(70, col.header.length * multiplier),
+        flexGrow: 1,
+        flexBasis: 0
+      };
     });
-    if (!invoiceForm?.invoiceCustomization?.showRowNo) {
-      delete weights['rowNo'];
-    }
-    if (!invoiceForm?.invoiceCustomization?.showQuantity) {
-      delete weights['quantity'];
-    }
-    if (!invoiceForm?.invoiceCustomization?.showUnit) {
-      delete weights['unit'];
-    }
-    const totalWeight = Object.values(weights).reduce((a, b) => (a ?? 0) + (b ?? 0), 0);
-    const sizes = Object.fromEntries(
-      Object.entries(weights).map(([key, weight]) => [key, { width: `${((weight ?? 0) / (totalWeight ?? 0)) * 100}%` }])
-    );
-    return sizes;
-  }, [customFields, invoiceForm?.invoiceCustomization]);
+
+    weights.item = {
+      flexGrow: 3,
+      flexBasis: 0,
+      minWidth: 100
+    };
+
+    return weights;
+  }, [customFields, invoiceForm]);
 
   const lightenHex = (data: { hex?: string; amount: number }) => {
     const { hex, amount } = data;
@@ -178,6 +194,7 @@ const ItemsInfoComponent: FC<Props> = ({ invoiceForm, storeSettings, labels }) =
         ]}
       >
         {visibleColumns.map((colKey, index) => {
+          console.log(sizes);
           switch (colKey) {
             case 'no':
               return (

@@ -19,6 +19,7 @@ export const LOGO_SIZES = {
   large: { width: 80, height: 80 }
 };
 
+//COLUMN_WEIGHTS is considered legacy
 export const COLUMN_WEIGHTS: ColumnWeights = {
   rowNo: 5,
   item: 35,
@@ -26,6 +27,22 @@ export const COLUMN_WEIGHTS: ColumnWeights = {
   unit: 15,
   unitCost: 15,
   total: 15
+};
+
+export const FIXED_COLUMNS = {
+  rowNo: 30,
+  quantity: 55,
+  unit: 55,
+  unitCost: 65,
+  total: 75
+};
+
+export const FONT_WIDTH_MULTIPLIERS: Record<string, number> = {
+  Helvetica: 6,
+  Roboto: 6,
+  'Times-Roman': 7,
+  Courier: 10,
+  Inter: 6
 };
 
 export const FONT_SIZES = {
