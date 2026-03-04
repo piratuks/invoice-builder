@@ -26,14 +26,15 @@ import { useHeadersRetrieve } from '../../../../shared/hooks/invoices/useHeaders
 import type { CustomField, CustomFieldMeta, ItemForm } from '../../../../shared/types/invoice';
 import type { Response } from '../../../../shared/types/response';
 import { validators } from '../../../../shared/utils/validatorFunctions';
-import { useAppDispatch } from '../../../../state/configureStore';
-import { addToast } from '../../../../state/pageSlice';
+import { useAppDispatch, useAppSelector } from '../../../../state/configureStore';
+import { addToast, selectSettings } from '../../../../state/pageSlice';
 
 interface Props {
   isOpen: boolean;
   type: InvoiceType;
   headerOptions: CustomFieldMeta[];
   currQuantity?: string;
+  currUnitPrice?: number;
   customField?: CustomField;
   onCancel?: () => void;
   onSave?: (data: ItemForm) => void;
@@ -43,21 +44,25 @@ const ItemMetadataSetterComponent: FC<Props> = ({
   type,
   headerOptions,
   currQuantity,
+  currUnitPrice,
   customField,
   onCancel = () => {},
   onSave = () => {}
 }) => {
   const { t } = useTranslation();
+  const storeSettings = useAppSelector(selectSettings);
   const [isFormValid, setIsFormValid] = useState(true);
   const { form, setForm, update } = useForm<ItemForm>({
     quantity: Number(currQuantity ?? 1),
     header: customField?.header ?? undefined,
     value: customField?.value ?? undefined,
     sortOrder: customField?.sortOrder ?? undefined,
-    alignment: customField?.alignment ?? undefined
+    alignment: customField?.alignment ?? undefined,
+    unitPrice: Number(currUnitPrice ?? 0)
   });
   const [errors, setErrors] = useState({
     quantity: false,
+    unitPrice: false,
     header: false,
     sortOrder: false,
     value: false,
@@ -99,7 +104,7 @@ const ItemMetadataSetterComponent: FC<Props> = ({
   }, [form]);
 
   const validateField = (field: keyof typeof errors, value: string) => {
-    if (!validators.required(value) && field === 'quantity') {
+    if (!validators.required(value) && (field === 'quantity' || field === 'unitPrice')) {
       setErrors(e => ({ ...e, [field]: true }));
     } else {
       setErrors(e => ({ ...e, [field]: false }));
@@ -135,6 +140,7 @@ const ItemMetadataSetterComponent: FC<Props> = ({
   useEffect(() => {
     const valid = (() => {
       if (form.quantity === undefined) return false;
+      if (form.unitPrice === undefined) return false;
 
       const header = form.header;
       const value = form.value;
@@ -168,9 +174,10 @@ const ItemMetadataSetterComponent: FC<Props> = ({
         header: customField?.header ?? undefined,
         value: customField?.value ?? undefined,
         sortOrder: customField?.sortOrder ?? undefined,
-        alignment: customField?.alignment ?? undefined
+        alignment: customField?.alignment ?? undefined,
+        unitPrice: Number(currUnitPrice ?? 0)
       });
-  }, [currQuantity, customField, isOpen, setForm]);
+  }, [currQuantity, currUnitPrice, customField, isOpen, setForm]);
 
   useEffect(() => {
     if (isOpen) {
@@ -190,6 +197,7 @@ const ItemMetadataSetterComponent: FC<Props> = ({
         onSave={data => {
           onSave(data as ItemForm);
           setErrors({
+            unitPrice: false,
             quantity: false,
             header: false,
             sortOrder: false,
@@ -200,7 +208,7 @@ const ItemMetadataSetterComponent: FC<Props> = ({
       />
       <DialogContent sx={{ minWidth: '300px' }}>
         <Grid container spacing={2}>
-          <Grid size={{ xs: 12, md: 12 }}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <AmountInput
               required={true}
               label={t('invoices.quantity')}
@@ -214,6 +222,22 @@ const ItemMetadataSetterComponent: FC<Props> = ({
               }}
             />
           </Grid>
+          {storeSettings && (
+            <Grid size={{ xs: 12, md: 6 }}>
+              <AmountInput
+                required={true}
+                amountFormat={storeSettings?.amountFormat}
+                label={t('common.amount')}
+                value={form.unitPrice}
+                error={errors.unitPrice}
+                helperText={errors.unitPrice ? t('common.fieldRequired') : ''}
+                onChange={e => {
+                  update('unitPrice', e);
+                  validateField('unitPrice', (e ?? '').toString());
+                }}
+              />
+            </Grid>
+          )}
           <Grid size={{ xs: 12, md: 6 }}>
             <Autocomplete
               freeSolo

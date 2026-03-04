@@ -43,6 +43,7 @@ const ItemsDropdownComponent: FC<Props> = ({ isOpen, type, headerOptions, onClos
         <ItemMetadataSetter
           type={type}
           headerOptions={headerOptions}
+          currUnitPrice={Number(selectedItem?.amount ?? 0)}
           isOpen={selectedItem !== undefined}
           onCancel={() => setSelectedItem(undefined)}
           onSave={data => {

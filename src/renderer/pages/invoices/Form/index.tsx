@@ -420,12 +420,12 @@ const InvoiceFormComponent: FC<Props> = ({
 
       if (!invoiceForm) return;
 
-      const { quantity, header, value, alignment, sortOrder } = data;
+      const { quantity, header, value, alignment, sortOrder, unitPrice } = data;
 
-      const amount = Number(item.amount ?? 0);
-      const unitPrice = invoiceForm.invoiceCurrencySnapshot?.currencySubunit
-        ? amount * invoiceForm.invoiceCurrencySnapshot?.currencySubunit
-        : amount;
+      const unitPriceCents =
+        invoiceForm.invoiceCurrencySnapshot?.currencySubunit && unitPrice != undefined
+          ? unitPrice * invoiceForm.invoiceCurrencySnapshot?.currencySubunit
+          : (unitPrice ?? 0);
 
       const newItemID = Date.now();
       const newItem = {
@@ -435,7 +435,7 @@ const InvoiceFormComponent: FC<Props> = ({
           parentInvoiceItemId: newItemID,
           itemName: item.name,
           unitName: item.unitName,
-          unitPriceCents: unitPrice.toString()
+          unitPriceCents: unitPriceCents.toString()
         },
         customField:
           header && value && alignment && sortOrder != undefined
@@ -514,12 +514,15 @@ const InvoiceFormComponent: FC<Props> = ({
     (data: ItemForm) => {
       if (!selectedInvoiceItem || !invoiceForm) return;
 
-      const { quantity, header, value, alignment, sortOrder } = data;
+      const { quantity, header, value, alignment, sortOrder, unitPrice } = data;
+      const unitPriceCents =
+        invoiceForm.invoiceCurrencySnapshot?.currencySubunit && unitPrice != undefined
+          ? unitPrice * invoiceForm.invoiceCurrencySnapshot?.currencySubunit
+          : (unitPrice ?? 0);
 
       startTransition(() => {
         setInvoiceForm(prev => {
           if (!prev) return prev;
-
           return {
             ...prev,
             invoiceItems: (prev.invoiceItems ?? []).map(item => {
@@ -530,6 +533,10 @@ const InvoiceFormComponent: FC<Props> = ({
                 return {
                   ...item,
                   ...(quantity !== undefined && { quantity: quantity.toString() }),
+                  invoiceItemSnapshot: {
+                    ...item.invoiceItemSnapshot,
+                    unitPriceCents: unitPriceCents.toString()
+                  },
                   customField:
                     header && value && alignment && sortOrder != undefined
                       ? { header, value, alignment, sortOrder }
@@ -985,6 +992,12 @@ const InvoiceFormComponent: FC<Props> = ({
         isOpen={isModalItemMetadataOpen}
         onCancel={() => handleOnClose(setIsModalItemMetadataOpen)}
         currQuantity={selectedInvoiceItem?.quantity}
+        currUnitPrice={Number(
+          invoiceForm?.invoiceCurrencySnapshot?.currencySubunit != undefined
+            ? Number(selectedInvoiceItem?.invoiceItemSnapshot.unitPriceCents ?? 0) /
+                invoiceForm?.invoiceCurrencySnapshot?.currencySubunit
+            : 0
+        )}
         customField={selectedInvoiceItem?.customField}
         type={type}
         headerOptions={customFieldHeaders}

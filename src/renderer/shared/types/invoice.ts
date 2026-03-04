@@ -78,6 +78,7 @@ export interface InvoicesByCurrency {
 
 export interface ItemForm {
   quantity: number | undefined;
+  unitPrice: number | undefined;
   header?: string;
   value?: string;
   sortOrder?: number;

@@ -1,10 +1,15 @@
 # Invoice Builder
 
-## [date], version [version]
+## [date], version [2.5.0]
+
+New features & improvements
+
+- Dynamic allocation of price to individual items, including the ability to change item prices when creating an invoice
 
 Bug Fixes
 
-- Fix for dirty confirmation when screen is small
+- Fixed an issue where the dirty confirmation appeared incorrectly on small screens
+- Fixed an issue where invoices with custom fields were incorrectly marked as dirty
 
 ## 2026-03-04, version 2.4.2
 
