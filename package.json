@@ -99,7 +99,7 @@
     "i18next": "^25.8.13",
     "i18next-browser-languagedetector": "^8.2.1",
     "mui-color-input": "^7.0.0",
-    "multer": "^2.0.2",
+    "multer": "^2.1.1",
     "pako": "^2.1.0",
     "pdf-lib": "^1.17.1",
     "pg": "^8.19.0",
