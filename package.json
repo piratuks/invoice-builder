@@ -112,7 +112,7 @@
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.13.1",
     "react-signature-canvas": "^1.1.0-alpha.2",
-    "recharts": "^3.7.0",
+    "recharts": "^3.8.0",
     "sqlite3": "^5.1.7",
     "tsx": "^4.21.0",
     "uuid": "^13.0.0",
