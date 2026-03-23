@@ -153,7 +153,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.4.0",
-    "jsdom": "^28.1.0",
+    "jsdom": "^29.0.1",
     "msw": "^2.12.10",
     "prettier": "^3.8.1",
     "redux-mock-store": "^1.5.5",
