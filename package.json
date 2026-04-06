@@ -113,7 +113,7 @@
     "react-router-dom": "^7.13.1",
     "react-signature-canvas": "^1.1.0-alpha.2",
     "recharts": "^3.8.0",
-    "sqlite3": "^5.1.7",
+    "sqlite3": "^6.0.1",
     "tsx": "^4.21.0",
     "uuid": "^13.0.0",
     "web-vitals": "^5.2.0"
