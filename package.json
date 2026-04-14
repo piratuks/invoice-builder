@@ -110,7 +110,7 @@
     "react-image-crop": "^11.0.10",
     "react-number-format": "^5.4.5",
     "react-redux": "^9.2.0",
-    "react-router-dom": "^7.13.1",
+    "react-router-dom": "^7.14.1",
     "react-signature-canvas": "^1.1.0-alpha.2",
     "recharts": "^3.8.0",
     "sqlite3": "^6.0.1",
