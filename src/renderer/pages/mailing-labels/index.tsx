@@ -3,8 +3,29 @@ import { Box, Button, Grid, Paper, TextField, Typography } from '@mui/material';
 import { type FC, useState } from 'react';
 import { useClientsRetrieve } from '../../shared/hooks/clients/useClientsRetrieve';
 
+const textFieldSx = {
+  width: 100,
+  '& .MuiOutlinedInput-root': {
+    color: 'black',
+    '& fieldset': {
+      borderColor: 'rgba(0, 0, 0, 0.5)'
+    },
+    '&:hover fieldset': {
+      borderColor: 'rgba(0, 0, 0, 0.8)'
+    },
+    '&.Mui-focused fieldset': {
+      borderColor: 'primary.main'
+    }
+  },
+  '& .MuiInputLabel-root': {
+    color: 'black'
+  }
+};
+
 export const MailingLabelsPage: FC = () => {
   const { clients } = useClientsRetrieve({ immediate: true });
+  const [tagWidth, setTagWidth] = useState(200);
+  const [tagHeight, setTagHeight] = useState(50);
   const [topMargin, setTopMargin] = useState(0);
   const [leftMargin, setLeftMargin] = useState(0);
   const [rowSpacing, setRowSpacing] = useState(1);
@@ -33,12 +54,28 @@ export const MailingLabelsPage: FC = () => {
           Print Labels
         </Button>
         <TextField
+          label="Width"
+          type="number"
+          value={tagWidth}
+          onChange={(e) => setTagWidth(Number(e.target.value))}
+          size="small"
+          sx={textFieldSx}
+        />
+        <TextField
+          label="Height"
+          type="number"
+          value={tagHeight}
+          onChange={(e) => setTagHeight(Number(e.target.value))}
+          size="small"
+          sx={textFieldSx}
+        />
+        <TextField
           label="Top Margin"
           type="number"
           value={topMargin}
           onChange={(e) => setTopMargin(Number(e.target.value))}
           size="small"
-          sx={{ width: 100, mr: 1 }}
+          sx={textFieldSx}
         />
         <TextField
           label="Left Margin"
@@ -46,7 +83,7 @@ export const MailingLabelsPage: FC = () => {
           value={leftMargin}
           onChange={(e) => setLeftMargin(Number(e.target.value))}
           size="small"
-          sx={{ width: 100, mr: 1 }}
+          sx={textFieldSx}
         />
         <TextField
           label="Row Spacing"
@@ -54,7 +91,7 @@ export const MailingLabelsPage: FC = () => {
           value={rowSpacing}
           onChange={(e) => setRowSpacing(Number(e.target.value))}
           size="small"
-          sx={{ width: 100, mr: 1 }}
+          sx={textFieldSx}
         />
         <TextField
           label="Column Spacing"
@@ -62,7 +99,7 @@ export const MailingLabelsPage: FC = () => {
           value={colSpacing}
           onChange={(e) => setColSpacing(Number(e.target.value))}
           size="small"
-          sx={{ width: 100 }}
+          sx={textFieldSx}
         />
       </Box>
       <Grid
@@ -81,7 +118,8 @@ export const MailingLabelsPage: FC = () => {
               elevation={0}
               sx={{
                 p: 1,
-                height: 100,
+                width: tagWidth,
+                height: tagHeight,
                 border: '1px solid #ccc',
                 display: 'flex',
                 flexDirection: 'column',
