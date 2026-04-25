@@ -509,12 +509,16 @@
     "currencies": "Valiutos",
     "invoices": "Sąskaitos",
     "items": "Prekės",
+    "mailingLabels": "Pašto etiketės",
     "presets": "Šablonai",
     "quotes": "Pasiūlymai",
     "reports": "Ataskaitos",
     "settings": "Nustatymai",
     "styleProfiles": "Stiliaus profiliai",
     "units": "Vienetai"
+  },
+  "mailingLabels": {
+    "instructions": "Spausdinkite šį puslapį, kad gautumėte pašto etiketes savo klientams. Kiekviena etiketė turi kliento vardą ir adresą."
   },
   "presets": {
     "add": "Pridėti šabloną",

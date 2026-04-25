@@ -509,12 +509,16 @@
     "currencies": "Währungen",
     "invoices": "Rechnungen",
     "items": "Artikel",
+    "mailingLabels": "Adressetiketten",
     "presets": "Voreinstellungen",
     "quotes": "Angebote",
     "reports": "Berichte",
     "settings": "Einstellungen",
     "styleProfiles": "Stilprofile",
     "units": "Einheiten"
+  },
+  "mailingLabels": {
+    "instructions": "Drucken Sie diese Seite, um Adressetiketten für Ihre Kunden zu erhalten. Jedes Etikett enthält den Namen und die Adresse des Kunden."
   },
   "presets": {
     "add": "Preset hinzufügen",

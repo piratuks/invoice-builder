@@ -509,12 +509,16 @@
     "currencies": "Devises",
     "invoices": "Factures",
     "items": "Articles",
+    "mailingLabels": "Étiquettes postales",
     "presets": "Préréglages",
     "quotes": "Devis",
     "reports": "Rapports",
     "settings": "Paramètres",
     "styleProfiles": "Profils de style",
     "units": "Unités"
+  },
+  "mailingLabels": {
+    "instructions": "Imprimez cette page pour obtenir des étiquettes postales pour vos clients. Chaque étiquette contient le nom et l'adresse du client."
   },
   "presets": {
     "add": "Ajouter un preset",

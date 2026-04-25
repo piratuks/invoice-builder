@@ -509,12 +509,16 @@
     "currencies": "Currencies",
     "invoices": "Invoices",
     "items": "Items",
+    "mailingLabels": "Mailing Labels",
     "presets": "Presets",
     "quotes": "Quotes",
     "reports": "Reports",
     "settings": "Settings",
     "styleProfiles": "Style Profiles",
     "units": "Units"
+  },
+  "mailingLabels": {
+    "instructions": "Print this page to get mailing labels for your clients. Each label contains the client's name and address."
   },
   "presets": {
     "add": "Add preset",

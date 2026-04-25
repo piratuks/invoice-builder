@@ -15,6 +15,7 @@ import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import CategoryIcon from '@mui/icons-material/Category';
 import ColorLensIcon from '@mui/icons-material/ColorLens';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import LocalPostOfficeIcon from '@mui/icons-material/LocalPostOffice';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import ScaleIcon from '@mui/icons-material/Scale';
 import ViewModule from '@mui/icons-material/ViewModule';
@@ -188,6 +189,15 @@ export const Sidebar: FC = () => {
           onClick: onClickNavigate
         },
         {
+          text: t('menuItems.mailingLabels'),
+          icon: <LocalPostOfficeIcon />,
+          path: '/mailing-labels',
+          isToggle: false,
+          minHeight: 50,
+          isSelected: isSelected,
+          onClick: onClickNavigate
+        },
+        {
           text: t('menuItems.businesses'),
           icon: <Business />,
           path: '/businesses',
@@ -296,7 +306,7 @@ export const Sidebar: FC = () => {
 
       {isDesktop && <Divider />}
 
-      <MenuList useTooltip={true} items={menuItems} showText={open} />
+      <MenuList useTooltip={false} items={menuItems} showText={open} />
 
       <Box sx={{ p: 2 }}>
         <Divider />
