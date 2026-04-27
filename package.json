@@ -165,7 +165,7 @@
     "vite-plugin-static-copy": "^4.0.1",
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^4.1.4",
-    "wait-on": "^9.0.4"
+    "wait-on": "^9.0.5"
   },
   "msw": {
     "workerDirectory": "public"
