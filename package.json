@@ -85,7 +85,7 @@
     "@mui/icons-material": "^7.3.8",
     "@mui/material": "^7.3.8",
     "@mui/x-date-pickers": "^8.27.2",
-    "@react-pdf/renderer": "^4.3.2",
+    "@react-pdf/renderer": "^4.5.1",
     "@reduxjs/toolkit": "^2.11.2",
     "cors": "^2.8.6",
     "date-fns": "^4.1.0",
