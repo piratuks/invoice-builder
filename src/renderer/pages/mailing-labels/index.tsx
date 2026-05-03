@@ -102,52 +102,68 @@ export const MailingLabelsPage: FC = () => {
           sx={textFieldSx}
         />
       </Box>
-      <Grid
-        container
-        rowSpacing={rowSpacing}
-        columnSpacing={colSpacing}
+      <Paper
         sx={{
-          mt: topMargin,
-          ml: leftMargin,
-          '@media print': { mt: topMargin, ml: leftMargin }
+          width: '210mm',
+          height: '297mm',
+          mx: 'auto',
+          my: 2,
+          pt: topMargin,
+          backgroundColor: '#AAA',
+          '@media print': {
+            width: '210mm',
+            height: '297mm',
+            my: 0,
+            mx: 0,
+            pt: topMargin,
+            display: 'contents'
+          }
         }}
       >
-        {Array.isArray(clients) && clients.map((client, index) => (
-          <Grid item xs={4} key={client.id || index} sx={{ '@media print': { pageBreakInside: 'avoid' } }}>
-            <Paper
-              elevation={0}
-              sx={{
-                p: 1,
-                width: tagWidth,
-                height: tagHeight,
-                border: '1px solid #ccc',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                '@media print': {
-                  border: '1px solid black',
-                  height: 'auto',
-                  minHeight: 80,
-                  pageBreakInside: 'avoid'
-                }
-              }}
-            >
-              <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                {client.name}
-              </Typography>
-              {client.address && (
-                <Typography variant="body2">{client.address}</Typography>
-              )}
-              {client.additional && (
-                <Typography variant="body2">{client.additional}</Typography>
-              )}
-              {client.countryCode && (
-                <Typography variant="body2">{client.countryCode}</Typography>
-              )}
-            </Paper>
-          </Grid>
-        ))}
-      </Grid>
+        <Grid
+          container
+          rowSpacing={rowSpacing}
+          columnSpacing={colSpacing}
+          sx={{
+            ml: leftMargin,
+            '@media print': { ml: leftMargin }
+          }}
+        >
+          {Array.isArray(clients) && clients.map((client, index) => (
+            <Grid item xs={4} key={client.id || index} sx={{ '@media print': { pageBreakInside: 'avoid' } }}>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 1,
+                  width: tagWidth,
+                  height: tagHeight,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  color: 'black',
+                  '@media print': {
+                    height: tagHeight,
+                    pageBreakInside: 'avoid'
+                  }
+                }}
+              >
+                <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                  {client.name}
+                </Typography>
+                {client.address && (
+                  <Typography variant="body2">{client.address}</Typography>
+                )}
+                {client.additional && (
+                  <Typography variant="body2">{client.additional}</Typography>
+                )}
+                {client.countryCode && (
+                  <Typography variant="body2">{client.countryCode}</Typography>
+                )}
+              </Paper>
+            </Grid>
+          ))}
+        </Grid>
+      </Paper>
     </Box>
   );
 };
