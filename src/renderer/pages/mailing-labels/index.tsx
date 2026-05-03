@@ -1,6 +1,6 @@
 import { Print } from '@mui/icons-material';
 import { Box, Button, Grid, Paper, TextField, Typography } from '@mui/material';
-import { type FC, useState } from 'react';
+import { type FC, useEffect, useState } from 'react';
 import { useClientsRetrieve } from '../../shared/hooks/clients/useClientsRetrieve';
 
 const textFieldSx = {
@@ -22,14 +22,69 @@ const textFieldSx = {
   }
 };
 
+interface MailingLabelsSettings {
+  tagWidth: number;
+  tagHeight: number;
+  topMargin: number;
+  leftMargin: number;
+  rowSpacing: number;
+  colSpacing: number;
+}
+
+const STORAGE_KEY = 'mailingLabelsSettings';
+
+const defaultSettings: MailingLabelsSettings = {
+  tagWidth: 200,
+  tagHeight: 50,
+  topMargin: 0,
+  leftMargin: 0,
+  rowSpacing: 1,
+  colSpacing: 1
+};
+
 export const MailingLabelsPage: FC = () => {
   const { clients } = useClientsRetrieve({ immediate: true });
-  const [tagWidth, setTagWidth] = useState(200);
-  const [tagHeight, setTagHeight] = useState(50);
-  const [topMargin, setTopMargin] = useState(0);
-  const [leftMargin, setLeftMargin] = useState(0);
-  const [rowSpacing, setRowSpacing] = useState(1);
-  const [colSpacing, setColSpacing] = useState(1);
+  const [tagWidth, setTagWidth] = useState(defaultSettings.tagWidth);
+  const [tagHeight, setTagHeight] = useState(defaultSettings.tagHeight);
+  const [topMargin, setTopMargin] = useState(defaultSettings.topMargin);
+  const [leftMargin, setLeftMargin] = useState(defaultSettings.leftMargin);
+  const [rowSpacing, setRowSpacing] = useState(defaultSettings.rowSpacing);
+  const [colSpacing, setColSpacing] = useState(defaultSettings.colSpacing);
+
+  // Load settings from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const settings: MailingLabelsSettings = JSON.parse(saved);
+        setTagWidth(settings.tagWidth);
+        setTagHeight(settings.tagHeight);
+        setTopMargin(settings.topMargin);
+        setLeftMargin(settings.leftMargin);
+        setRowSpacing(settings.rowSpacing);
+        setColSpacing(settings.colSpacing);
+      }
+    } catch (error) {
+      console.error('Failed to load settings from localStorage:', error);
+    }
+  }, []);
+
+  // Save settings to localStorage whenever they change
+  useEffect(() => {
+    const settings: MailingLabelsSettings = {
+      tagWidth,
+      tagHeight,
+      topMargin,
+      leftMargin,
+      rowSpacing,
+      colSpacing
+    };
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+    } catch (error) {
+      console.error('Failed to save settings to localStorage:', error);
+    }
+  }, [tagWidth, tagHeight, topMargin, leftMargin, rowSpacing, colSpacing]);
 
   const handlePrint = () => {
     window.print();
@@ -39,12 +94,28 @@ export const MailingLabelsPage: FC = () => {
     <Box
       sx={{
         minHeight: '100vh',
-        p: 2,
         backgroundColor: 'white',
-        '@media print': { p: 0 }
+        '@media print': {
+          minHeight: 'auto',
+          backgroundColor: 'white',
+          margin: 0,
+          padding: 0
+        }
       }}
     >
-      <Box sx={{ textAlign: 'center', mb: 2, displayPrint: 'none' }}>
+      {/* Control Panel - Hidden from print */}
+      <Box
+        sx={{
+          display: 'block',
+          textAlign: 'center',
+          p: 2,
+          backgroundColor: 'white',
+          borderBottom: '1px solid #eee',
+          '@media print': {
+            display: 'none'
+          }
+        }}
+      >
         <Button
           variant="contained"
           startIcon={<Print />}
@@ -102,68 +173,86 @@ export const MailingLabelsPage: FC = () => {
           sx={textFieldSx}
         />
       </Box>
-      <Paper
+
+      {/* Print Preview Container - A4 Paper */}
+      <Box
         sx={{
-          width: '210mm',
-          height: '297mm',
-          mx: 'auto',
-          my: 2,
-          pt: topMargin,
-          backgroundColor: '#AAA',
+          display: 'flex',
+          justifyContent: 'center',
+          p: 2,
+          backgroundColor: '#f5f5f5',
           '@media print': {
-            width: '210mm',
-            height: '297mm',
-            my: 0,
-            mx: 0,
-            pt: topMargin,
-            display: 'contents'
+            display: 'block',
+            p: 0,
+            backgroundColor: 'white'
           }
         }}
       >
-        <Grid
-          container
-          rowSpacing={rowSpacing}
-          columnSpacing={colSpacing}
+        <Paper
+          elevation={3}
           sx={{
-            ml: leftMargin,
-            '@media print': { ml: leftMargin }
+            width: '210mm',
+            height: '297mm',
+            backgroundColor: 'white',
+            position: 'relative',
+            '@media print': {
+              width: '210mm',
+              height: '297mm',
+              boxShadow: 'none',
+              elevation: 0
+            }
           }}
         >
-          {Array.isArray(clients) && clients.map((client, index) => (
-            <Grid item xs={4} key={client.id || index} sx={{ '@media print': { pageBreakInside: 'avoid' } }}>
-              <Paper
-                elevation={0}
-                sx={{
-                  p: 1,
-                  width: tagWidth,
-                  height: tagHeight,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'center',
-                  color: 'black',
-                  '@media print': {
+          <Grid
+            container
+            sx={{
+              p: `${topMargin}px 0 0 ${leftMargin}px`,
+              rowGap: `${rowSpacing}px`,
+              columnGap: `${colSpacing}px`,
+              '@media print': {
+                p: `${topMargin}px 0 0 ${leftMargin}px`,
+                rowGap: `${rowSpacing}px`,
+                columnGap: `${colSpacing}px`
+              }
+            }}
+          >
+            {Array.isArray(clients) && clients.map((client, index) => (
+              <Grid item xs={4} key={client.id || index}>
+                <Box
+                  sx={{
+                    width: tagWidth,
                     height: tagHeight,
-                    pageBreakInside: 'avoid'
-                  }
-                }}
-              >
-                <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                  {client.name}
-                </Typography>
-                {client.address && (
-                  <Typography variant="body2">{client.address}</Typography>
-                )}
-                {client.additional && (
-                  <Typography variant="body2">{client.additional}</Typography>
-                )}
-                {client.countryCode && (
-                  <Typography variant="body2">{client.countryCode}</Typography>
-                )}
-              </Paper>
-            </Grid>
-          ))}
-        </Grid>
-      </Paper>
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    p: 1,
+                    color: 'black',
+                    '@media print': {
+                      width: tagWidth,
+                      height: tagHeight,
+                      p: 1,
+                      color: 'black'
+                    }
+                  }}
+                >
+                  <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                    {client.name}
+                  </Typography>
+                  {client.address && (
+                    <Typography variant="body2">{client.address}</Typography>
+                  )}
+                  {client.additional && (
+                    <Typography variant="body2">{client.additional}</Typography>
+                  )}
+                  {client.countryCode && (
+                    <Typography variant="body2">{client.countryCode}</Typography>
+                  )}
+                </Box>
+              </Grid>
+            ))}
+          </Grid>
+        </Paper>
+      </Box>
     </Box>
   );
 };
