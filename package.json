@@ -85,7 +85,7 @@
     "@mui/icons-material": "^7.3.8",
     "@mui/material": "^7.3.8",
     "@mui/x-date-pickers": "^8.27.2",
-    "@react-pdf/renderer": "^4.3.2",
+    "@react-pdf/renderer": "^4.5.1",
     "@reduxjs/toolkit": "^2.11.2",
     "cors": "^2.8.6",
     "date-fns": "^4.1.0",
@@ -96,7 +96,7 @@
     "express": "^5.2.1",
     "express-rate-limit": "^8.2.2",
     "file-saver": "^2.0.5",
-    "i18next": "^26.0.3",
+    "i18next": "^26.0.8",
     "i18next-browser-languagedetector": "^8.2.1",
     "mui-color-input": "^7.0.0",
     "multer": "^2.1.1",
@@ -153,7 +153,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.4.0",
-    "jsdom": "^29.0.1",
+    "jsdom": "^29.1.0",
     "msw": "^2.12.14",
     "prettier": "^3.8.1",
     "redux-mock-store": "^1.5.5",
@@ -165,7 +165,7 @@
     "vite-plugin-static-copy": "^4.0.1",
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^4.1.4",
-    "wait-on": "^9.0.4"
+    "wait-on": "^9.0.5"
   },
   "msw": {
     "workerDirectory": "public"
