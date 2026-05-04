@@ -94,7 +94,7 @@
     "electron-updater": "^6.8.3",
     "exceljs": "^4.4.0",
     "express": "^5.2.1",
-    "express-rate-limit": "^8.2.2",
+    "express-rate-limit": "^8.4.1",
     "file-saver": "^2.0.5",
     "i18next": "^26.0.8",
     "i18next-browser-languagedetector": "^8.2.1",
