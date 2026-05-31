@@ -167,6 +167,7 @@ const TaxDropdownComponent: FC<Props> = ({ isOpen, data, onClose, onOpen, onClic
                 max={100}
                 label={t('invoices.percentage')}
                 value={form.taxRate}
+                decimalScale={3}
                 error={errors.taxRate}
                 helperText={errors.taxRate ? t('common.fieldRequired') : ''}
                 onChange={e => {
@@ -233,6 +234,7 @@ const TaxDropdownComponent: FC<Props> = ({ isOpen, data, onClose, onOpen, onClic
                       <AmountInput
                         required={false}
                         max={100}
+                        decimalScale={3}
                         label={'%'}
                         value={invoiceItem.taxRate}
                         onChange={(e?: number) => {
