@@ -140,7 +140,7 @@
     "@vitejs/plugin-react": "^5.1.4",
     "@vitest/coverage-v8": "^4.1.5",
     "baseline-browser-mapping": "^2.10.20",
-    "concurrently": "^9.2.1",
+    "concurrently": "^10.0.3",
     "electron": "^41.1.1",
     "electron-builder": "^26.8.1",
     "electronmon": "^2.0.4",
