@@ -1,6 +1,6 @@
 export const validators = {
   email: (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
-  phone: (v: string) => /^\+[1-9]\d{6,14}$/.test(v.replace(/\s+/g, '')),
+  phone: (v: string) => /^(\+\d{1,3}|\(\+\d{1,3}\))\s*\d{4,14}$/.test(v.replace(/\s+/g, '')),
   required: (v: string) => v.trim() !== '',
   sortCode: (v: string) => {
     if (!v) return false;
