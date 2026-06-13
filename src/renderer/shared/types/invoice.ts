@@ -70,6 +70,7 @@ export interface InvoicesByCurrencyMeta {
   collectionRate: number;
   avgPerInvoice: number;
   issuedAt: string;
+  paidAt?: string;
   currencyId: number;
 }
 export interface InvoicesByCurrency {
@@ -391,6 +392,8 @@ export interface InvoiceMeta {
   invoiceStyleProfileSnapshot?: InvoiceStyleProfileSnapshots;
   invoiceClientSnapshot?: InvoiceClientSnapshots;
   invoiceCurrencySnapshot?: InvoiceCurrencySnapshots;
+  paidAt?: string;
+  closedAt?: string;
 }
 
 export interface Invoice extends InvoiceMeta {
@@ -444,6 +447,8 @@ export interface InvoiceAddMeta {
   invoiceStyleProfileSnapshot?: InvoiceStyleProfileSnapshots;
   invoiceClientSnapshot?: InvoiceClientSnapshots;
   invoiceCurrencySnapshot?: InvoiceCurrencySnapshots;
+  paidAt?: string;
+  closedAt?: string;
 }
 
 export interface InvoiceAdd extends InvoiceAddMeta {
@@ -512,6 +517,8 @@ export interface InvoiceFromData {
   signatureType?: string;
   signatureName?: string;
   styleProfilesId?: number;
+  paidAt?: string;
+  closedAt?: string;
 }
 export interface InvoiceInfo {
   id?: number;

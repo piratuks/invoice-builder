@@ -560,7 +560,9 @@
     "title": "Finansų suvestinė",
     "topClients": "Didžiausi klientai pagal pajamas",
     "topItems": "Populiariausios prekės pagal pardavimus",
-    "totalInvoices": "{{count}} sąskaitos"
+    "totalInvoices": "{{count}} sąskaitos",
+    "dateTypeIssuedAt": "Naudoti „Išdavimo datos“ reikšmę",
+    "dateTypePaidAt": "Naudoti „Apmokėjimo datos“ reikšmę"
   },
   "settingsMenuItems": {
     "descriptions": {

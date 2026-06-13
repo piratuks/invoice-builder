@@ -24,6 +24,7 @@ import {
 } from 'date-fns';
 import { memo, useCallback, useEffect, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
+import { ReportDateType } from '../../shared/enums/reportDateType';
 import { ReportRangeType } from '../../shared/enums/reportRangeType';
 import type { InvoicesByCurrency } from '../../shared/types/invoice';
 import { toUTCISOString } from '../../shared/utils/formatFunctions';
@@ -35,9 +36,15 @@ interface Props {
   currencies: InvoicesByCurrency;
   onDateChange?: (value: { from: string; to: string }) => void;
   onCurrencyChange?: (value: string) => void;
+  onDateTypeChange?: (value: ReportDateType) => void;
 }
 
-const HeaderComponent: FC<Props> = ({ onCurrencyChange = () => {}, onDateChange = () => {}, currencies }) => {
+const HeaderComponent: FC<Props> = ({
+  onDateTypeChange = () => {},
+  onCurrencyChange = () => {},
+  onDateChange = () => {},
+  currencies
+}) => {
   const theme = useTheme();
   const { t } = useTranslation();
   const storeSettings = useAppSelector(selectSettings);
@@ -49,6 +56,12 @@ const HeaderComponent: FC<Props> = ({ onCurrencyChange = () => {}, onDateChange 
   });
   const [internalValue, setInternalValue] = useState<ReportRangeType>(ReportRangeType.last_30_days);
   const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [reportDateType, setReportDateType] = useState<ReportDateType>(ReportDateType.issuedAt);
+
+  const handleDateTypeChange = (event: SelectChangeEvent<ReportDateType>) => {
+    const newValue = event.target.value;
+    setReportDateType(newValue);
+  };
 
   const handleChange = (event: SelectChangeEvent<ReportRangeType>) => {
     const newValue = event.target.value;
@@ -137,6 +150,10 @@ const HeaderComponent: FC<Props> = ({ onCurrencyChange = () => {}, onDateChange 
   }, []);
 
   useEffect(() => {
+    onDateTypeChange(reportDateType);
+  }, [onDateTypeChange, reportDateType]);
+
+  useEffect(() => {
     onCurrencyChange(selectedCurrencyCode);
   }, [onCurrencyChange, selectedCurrencyCode]);
 
@@ -172,6 +189,18 @@ const HeaderComponent: FC<Props> = ({ onCurrencyChange = () => {}, onDateChange 
           {t('reports.title')}
         </Typography>
         <Box sx={{ flexGrow: 1 }} />
+        <FormControl size="small" sx={{ minWidth: 200 }}>
+          <InputLabel id="date-label">{t('common.currency')}</InputLabel>
+          <Select
+            labelId="date-label"
+            label={t('common.currency')}
+            value={reportDateType}
+            onChange={handleDateTypeChange}
+          >
+            <MenuItem value={ReportDateType.issuedAt}>{t('reports.dateTypeIssuedAt')}</MenuItem>
+            <MenuItem value={ReportDateType.paidAt}>{t('reports.dateTypePaidAt')}</MenuItem>
+          </Select>
+        </FormControl>
         <FormControl size="small" sx={{ minWidth: 200 }}>
           <InputLabel id="currency-label">{t('common.currency')}</InputLabel>
           <Select

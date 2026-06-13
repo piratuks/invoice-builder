@@ -1074,7 +1074,7 @@ Invoices can be exported **only to XLSX** format.
 
 ## Reports screen
 
-The **Reports** screen provides an overview of **aggregated financial data grouped by currency** for a selected period.
+The **Reports** screen provides an overview of **aggregated financial data grouped by currency** for a selected period. It can be choosen to take into account either issued at date or paid at date for reporing.
 
 ![Reports currency 1](tutorial/reports_page_1.jpg)
 ![Reports currency 2](tutorial/reports_page_2.jpg)

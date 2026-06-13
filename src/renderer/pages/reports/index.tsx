@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n';
 import { InvoiceType } from '../../shared/enums/invoiceType';
+import { ReportDateType } from '../../shared/enums/reportDateType';
 import { useInvoicesRetrieve } from '../../shared/hooks/invoices/useInvoicesRetrieve';
 import type { Invoice } from '../../shared/types/invoice';
 import type { Response } from '../../shared/types/response';
@@ -15,6 +16,7 @@ export const ReportsPage: FC = () => {
   const dispatch = useAppDispatch();
   const { t } = useTranslation();
 
+  const [reportDateType, setReportDateType] = useState<ReportDateType>(ReportDateType.issuedAt);
   const [dates, setDates] = useState<{ from: string; to: string }>({
     from: new Date().toISOString(),
     to: new Date().toISOString()
@@ -37,6 +39,10 @@ export const ReportsPage: FC = () => {
     setSelectedCurrencyCode(data);
   }, []);
 
+  const handleOnDateTypeChange = useCallback((value: ReportDateType) => {
+    setReportDateType(value);
+  }, []);
+
   const handleOnDateChange = useCallback((data: { from: string; to: string }) => {
     setDates({
       from: data.from,
@@ -46,17 +52,23 @@ export const ReportsPage: FC = () => {
 
   const groupedMeta = useMemo(() => {
     if (!invoices) return { groups: {}, invoices: [] };
-    return { groups: aggregateInvoicesByCurrency(invoices, dates.from, dates.to), invoices: invoices };
-  }, [invoices, dates]);
+    return { groups: aggregateInvoicesByCurrency(invoices, dates.from, dates.to, reportDateType), invoices: invoices };
+  }, [invoices, dates, reportDateType]);
 
   return (
     <>
       <Header
         onCurrencyChange={handleCurrencyChange}
         onDateChange={handleOnDateChange}
+        onDateTypeChange={handleOnDateTypeChange}
         currencies={groupedMeta.groups}
       />
-      <Overview groupedMeta={groupedMeta} dates={dates} currencyCode={selectedCurrencyCode} />
+      <Overview
+        reportDateType={reportDateType}
+        groupedMeta={groupedMeta}
+        dates={dates}
+        currencyCode={selectedCurrencyCode}
+      />
     </>
   );
 };

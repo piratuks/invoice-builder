@@ -140,6 +140,8 @@ export interface Invoice {
   createdAt: string;
   updatedAt: string;
   issuedAt: string;
+  paidAt?: string;
+  closedAt?: string;
   dueDate?: string;
   invoiceNumber: string;
   isArchived: boolean;

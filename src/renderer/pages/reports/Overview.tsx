@@ -3,6 +3,7 @@ import { parseISO } from 'date-fns';
 import { memo, useMemo, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NoItem } from '../../shared/components/lists/noItem/NoItem';
+import { ReportDateType } from '../../shared/enums/reportDateType';
 import type { ClientRevenue } from '../../shared/types/clientRevenue';
 import type { Invoice, InvoicesByCurrency } from '../../shared/types/invoice';
 import type { ItemSales } from '../../shared/types/itemSales';
@@ -13,11 +14,12 @@ import { ItemsSalesChart } from './ItemsSalesChart';
 import { TrendChart } from './TrendChart';
 
 interface Props {
+  reportDateType: ReportDateType;
   currencyCode: string;
   groupedMeta: { groups: InvoicesByCurrency; invoices: Invoice[] };
   dates: { from: string; to: string };
 }
-const OverviewComponent: FC<Props> = ({ groupedMeta, dates, currencyCode }) => {
+const OverviewComponent: FC<Props> = ({ reportDateType, groupedMeta, dates, currencyCode }) => {
   const { t } = useTranslation();
   const { groups, invoices } = groupedMeta;
 
@@ -45,8 +47,17 @@ const OverviewComponent: FC<Props> = ({ groupedMeta, dates, currencyCode }) => {
     const toDate = parseISO(dates.to);
     const filteredInvoices = invoices.filter(inv => {
       if (inv.currencyId !== data.currencyId) return false;
-      const issued = parseISO(inv.issuedAt);
-      return issued >= fromDate && issued <= toDate;
+      const issueDate = parseISO(inv.issuedAt);
+      let paidAtDate: Date | undefined = undefined;
+      if (inv.paidAt) {
+        paidAtDate = parseISO(inv.paidAt);
+      }
+      if (reportDateType === ReportDateType.issuedAt) {
+        return issueDate >= fromDate && issueDate <= toDate;
+      }
+      if (!paidAtDate) return false;
+
+      return paidAtDate >= fromDate && paidAtDate <= toDate;
     });
     const trendChartDataRaw = filteredInvoices.map(inv => {
       const totalAmountCents = getInvoiceTotal({
@@ -61,7 +72,7 @@ const OverviewComponent: FC<Props> = ({ groupedMeta, dates, currencyCode }) => {
       });
       const totalAmount = totalAmountCents / (inv.invoiceCurrencySnapshot?.currencySubunit ?? 0);
       return {
-        date: inv.issuedAt,
+        date: reportDateType === ReportDateType.issuedAt ? inv.issuedAt : (inv.paidAt ?? inv.issuedAt),
         total: totalAmount
       };
     });
@@ -136,7 +147,7 @@ const OverviewComponent: FC<Props> = ({ groupedMeta, dates, currencyCode }) => {
     );
 
     return { trendChartData, clientRevenueData, itemSalesData };
-  }, [groups, currencyCode, dates, invoices]);
+  }, [groups, reportDateType, currencyCode, dates, invoices]);
 
   return (
     <>

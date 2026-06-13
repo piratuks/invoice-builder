@@ -2,6 +2,7 @@ import { differenceInCalendarDays, parseISO } from 'date-fns';
 import type { CurrencyFormat } from '../enums/currencyFormat';
 import { DiscountType } from '../enums/discountType';
 import { InvoiceStatus } from '../enums/invoiceStatus';
+import { ReportDateType } from '../enums/reportDateType';
 import { InvoiceItemTaxType, InvoiceTaxType } from '../enums/taxType';
 import type { Invoice, InvoiceItem, InvoicePayment, InvoicesByCurrency } from '../types/invoice';
 import type { Settings } from '../types/settings';
@@ -219,13 +220,31 @@ export const getBalanceDue = (data: {
   return balanceAmount;
 };
 
-export const aggregateInvoicesByCurrency = (invoices: Invoice[], from: string, to: string): InvoicesByCurrency => {
+export const aggregateInvoicesByCurrency = (
+  invoices: Invoice[],
+  from: string,
+  to: string,
+  reportDateType: ReportDateType
+): InvoicesByCurrency => {
   const fromDate = parseISO(from);
   const toDate = parseISO(to);
 
+  console.log(invoices, fromDate, toDate, reportDateType);
   const filtered = invoices.filter(inv => {
     const issueDate = parseISO(inv.issuedAt);
-    return issueDate >= fromDate && issueDate <= toDate;
+    let paidAtDate: Date | undefined = undefined;
+
+    if (inv.paidAt) {
+      paidAtDate = parseISO(inv.paidAt);
+    }
+
+    if (reportDateType === ReportDateType.issuedAt) {
+      return issueDate >= fromDate && issueDate <= toDate;
+    }
+
+    if (!paidAtDate) return false;
+
+    return paidAtDate >= fromDate && paidAtDate <= toDate;
   });
 
   const getInvoicePaidAmount = (invoice: Invoice, totalAmountCents: number) => {
@@ -254,7 +273,8 @@ export const aggregateInvoicesByCurrency = (invoices: Invoice[], from: string, t
         collectionRate: 0,
         avgPerInvoice: 0,
         issuedAt: invoice.issuedAt,
-        currencyId: invoice.currencyId
+        currencyId: invoice.currencyId,
+        paidAt: invoice.paidAt
       };
     }
     const daysLeft = getDaysLeft(invoice.dueDate);

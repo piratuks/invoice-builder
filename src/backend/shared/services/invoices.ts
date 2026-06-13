@@ -129,6 +129,8 @@ const invoiceFields: (keyof Invoice)[] = [
   'dueDate',
   'bankId',
   'invoiceNumber',
+  'paidAt',
+  'closedAt',
   'isArchived',
   'status',
   'customerNotes',
@@ -377,6 +379,22 @@ const processSequence = async (
   return { success: true } as Response<number>;
 };
 
+const setPaidAtAndClosedAt = (invoice: Invoice): Invoice => {
+  const now = new Date().toISOString();
+  if (invoice.status === InvoiceStatus.paid) {
+    invoice.paidAt = now;
+    invoice.closedAt = undefined;
+  } else if (invoice.status === InvoiceStatus.closed) {
+    invoice.closedAt = now;
+    invoice.paidAt = undefined;
+  } else {
+    invoice.paidAt = undefined;
+    invoice.closedAt = undefined;
+  }
+
+  return invoice;
+};
+
 const getInvoices = async (db: DatabaseAdapter, options: GetInvoicesOptions) => {
   const { id, type, filter } = options;
 
@@ -580,7 +598,9 @@ export const addInvoice = async (db: DatabaseAdapter, data: Invoice) => {
   try {
     await db.run('BEGIN');
 
-    const result = await handleInvoice(data);
+    const formatedData = setPaidAtAndClosedAt(data);
+
+    const result = await handleInvoice(formatedData);
 
     if (!result.success || result.data == undefined) {
       await rollbackOrThrow(db);
@@ -711,7 +731,9 @@ export const updateInvoice = async (db: DatabaseAdapter, data: Invoice) => {
   try {
     await db.run('BEGIN');
 
-    const result = await handleInvoice(data, true);
+    const formatedData = setPaidAtAndClosedAt(data);
+
+    const result = await handleInvoice(formatedData, true);
     if (!result.success || !data.id) {
       await rollbackOrThrow(db);
       return { success: false, key: result.key };

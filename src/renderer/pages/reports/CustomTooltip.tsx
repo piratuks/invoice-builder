@@ -30,7 +30,7 @@ const CustomTooltipComponent: React.FC<TrendTooltipProps> = ({ active, payload, 
       </Typography>
 
       <Typography variant="body2" sx={{ fontWeight: 600 }}>
-        {storeSettings && formatAmount(value, storeSettings.amountFormat)}
+        {storeSettings && formatAmount(value as unknown as number, storeSettings.amountFormat)}
       </Typography>
     </Paper>
   );

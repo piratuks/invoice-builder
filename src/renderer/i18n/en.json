@@ -560,7 +560,9 @@
     "title": "Financial dashboard",
     "topClients": "Top clients by revenue",
     "topItems": "Top items by sales",
-    "totalInvoices": "{{count}} Invoices"
+    "totalInvoices": "{{count}} Invoices",
+    "dateTypeIssuedAt": "Use 'Issued At' date",
+    "dateTypePaidAt": "Use 'Paid At' date"
   },
   "settingsMenuItems": {
     "descriptions": {

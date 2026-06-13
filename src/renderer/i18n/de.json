@@ -560,7 +560,9 @@
     "title": "Finanz-Dashboard",
     "topClients": "Top-Kunden nach Umsatz",
     "topItems": "Top-Artikel nach Verkauf",
-    "totalInvoices": "{{count}} Rechnungen"
+    "totalInvoices": "{{count}} Rechnungen",
+    "dateTypeIssuedAt": "Das Datum „Ausgestellt am“ verwenden",
+    "dateTypePaidAt": "Das Datum „Bezahlt am“ verwenden"
   },
   "settingsMenuItems": {
     "descriptions": {

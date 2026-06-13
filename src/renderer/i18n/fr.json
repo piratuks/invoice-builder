@@ -560,7 +560,9 @@
     "title": "Tableau de bord financier",
     "topClients": "Meilleurs clients par revenu",
     "topItems": "Meilleurs articles par ventes",
-    "totalInvoices": "{{count}} factures"
+    "totalInvoices": "{{count}} factures",
+    "dateTypeIssuedAt": "Utiliser la date « Émise le »",
+    "dateTypePaidAt": "Utiliser la date « Payé le »"
   },
   "settingsMenuItems": {
     "descriptions": {
