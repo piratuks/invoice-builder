@@ -3,6 +3,7 @@ import { memo, useCallback, useMemo, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { CurrencyFormat } from '../../shared/enums/currencyFormat';
 import { InvoiceStatus } from '../../shared/enums/invoiceStatus';
+import { InvoiceType } from '../../shared/enums/invoiceType';
 import { Themes } from '../../shared/enums/themes';
 import type { Invoice } from '../../shared/types/invoice';
 import { formatDate, getFormattedCurrency } from '../../shared/utils/formatFunctions';
@@ -116,22 +117,49 @@ const InvoiceListItemComponent: FC<Props> = ({ item, isSelected, onEdit }) => {
                 gap: 1
               }}
             >
-              {item.isArchived && (
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  gap: 1,
+                  justifyContent: 'space-between'
+                }}
+              >
                 <Chip
-                  label={t('common.archived').toUpperCase()}
+                  label={t(item.invoiceType === InvoiceType.invoice ? 'common.invoice' : 'common.quote').toUpperCase()}
                   variant="outlined"
                   size="small"
                   clickable={false}
                   sx={{
+                    borderRadius: '5px',
                     pointerEvents: 'none',
-                    width: '100%',
-                    bgcolor: theme.palette.mode === Themes.dark ? theme.palette.grey[700] : theme.palette.grey[200],
+                    color: item.isArchived
+                      ? theme.palette.mode === Themes.dark
+                        ? theme.palette.common.white
+                        : theme.palette.common.black
+                      : theme.palette.mode === Themes.dark
+                        ? theme.palette.common.black
+                        : theme.palette.common.white,
+                    bgcolor: item.isArchived
+                      ? theme.palette.mode === Themes.dark
+                        ? theme.palette.grey[700]
+                        : theme.palette.grey[200]
+                      : getColor(),
                     '.MuiChip-icon': {
                       marginLeft: '4px'
                     }
                   }}
                 />
-              )}
+
+                <Typography
+                  color={theme.palette.primary.main}
+                  component="div"
+                  variant="body1"
+                  sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                >
+                  {item.invoiceFullNumber}
+                </Typography>
+              </Box>
               <Box
                 sx={{
                   display: 'flex',
