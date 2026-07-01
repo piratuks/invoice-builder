@@ -5,6 +5,8 @@
 Bug Fixes
 
 - Fixed invoice sequence handling to stay scoped per business and client, including correct fallback sequencing when duplicating invoices without an existing sequence row
+- Fixed phone number length limits for businesses and clients.
+- Fixed validation helper messages for PEPPOL endpoint fields and country code fields in businesses and clients.
 
 ## 2026-06-15, version 2.5.2
 
