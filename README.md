@@ -417,6 +417,7 @@ Please open an issue before starting major work to ensure alignment.
 - Report issues or features here: [ISSUES/FEATURES](https://github.com/piratuks/invoice-builder/issues)
 - Feature requests and discussions are welcome
 - Please follow [guidelines](CONTRIBUTING.md)
+- For agentic/AI-assisted development workflows, see [AGENTS.md](AGENTS.md)
 
 ## 📚 Documentation
 

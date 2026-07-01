@@ -9,6 +9,23 @@ This repository is an Electron app with a separate backend webserver used for th
 - Optional backend webserver: `src/backend/webserver/main.ts` (dev: `npm run dev:webserver`, build: `npm run build:webserver`)
 - Migrations: source files in `src/backend/shared/migrations`, built into `dist-be/backend/migrations` using `vite.migrations.config.ts`.
 
+BMAD-inspired workflow for agentic development
+--------------------------------------------
+This repository uses a lightweight BMAD-style workflow for coding tasks. See [AGENTS.md](../AGENTS.md) for the complete workflow guide, including when to use this workflow, default verification checks, and team expectations.
+
+For new work with the agent-based approach:
+- Use the `po` agent with [bmad-po.prompt.md](.github/prompts/bmad-po.prompt.md) for acceptance criteria and scope clarification.
+- Use the `dev` agent with [bmad-dev.prompt.md](.github/prompts/bmad-dev.prompt.md) for implementation.
+- Use the `qa` agent with [bmad-qa.prompt.md](.github/prompts/bmad-qa.prompt.md) for review and verification.
+- Use the `delivery` agent with [bmad-delivery.prompt.md](.github/prompts/bmad-delivery.prompt.md) for slicing and sequencing release work.
+- Use the `scrum` agent with [bmad-scrum.prompt.md](.github/prompts/bmad-scrum.prompt.md) for sprint planning and execution cadence.
+
+Repository-specific expectations:
+- UI work usually touches `src/renderer`.
+- IPC or preload changes require matching updates in `src/preload/preload.ts` and the Electron main process under `src/backend/main`.
+- Database or persistence changes should be reviewed for migrations under `src/backend/shared/migrations`.
+- Webserver changes should be validated through the appropriate build or dev workflow.
+
 Primary developer commands
 --------------------------
 - Full local dev (electron + renderer + preload + migrations):

@@ -1,16 +1,16 @@
 <!doctype html>
 <html lang="en">
-
-<head>
-  <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/icon.png" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-  <meta
-    name="description"
-    content="Create and manage invoices and quotations with PDF export. Perfect for small businesses and freelancers using a desktop app." />
-  <meta
-    http-equiv="Content-Security-Policy"
-    content="
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/icon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta
+      name="description"
+      content="Create and manage invoices and quotations with PDF export. Perfect for small businesses and freelancers using a desktop app."
+    />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="
     default-src 'self';
     script-src 'self' 'unsafe-eval' 'unsafe-inline';
     style-src 'self' 'unsafe-inline';
@@ -18,22 +18,22 @@
     connect-src 'self' %API_ORIGIN% data:;
     frame-src 'self' blob:;
     worker-src 'self' blob:;
-  " />
-  <meta name="author" content="Piratuks" />
-  <title>Invoice Builder</title>
-  <style>
-    html,
-    body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-    }
-  </style>
-</head>
+  "
+    />
+    <meta name="author" content="Piratuks" />
+    <title>Invoice Builder</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+      }
+    </style>
+  </head>
 
-<body>
-  <div id="root"></div>
-  <script type="module" src="/src/renderer/main.tsx"></script>
-</body>
-
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/renderer/main.tsx"></script>
+  </body>
 </html>

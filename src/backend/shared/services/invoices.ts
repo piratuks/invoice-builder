@@ -358,8 +358,9 @@ const processSequence = async (
         ) AS "nextSequence"
       FROM invoices
       WHERE "businessId" = ?
-      GROUP BY "businessId";`,
-      [data.invoiceNumber ?? null, data.businessId]
+        AND "clientId" = ?
+      GROUP BY "businessId", "clientId";`,
+      [data.invoiceNumber ?? null, data.businessId, data.clientId]
     );
     if (dataSequence) {
       const r = await handlers.handleSequences({
@@ -905,23 +906,49 @@ export const duplicateInvoice = async (
       `SELECT * FROM invoice_sequences WHERE "businessId" = ? AND "clientId" = ?`,
       [original.businessId, original.clientId]
     );
-    if (!seqRow) {
-      await rollbackOrThrow(db);
-      return { success: false };
+
+    let newInvoiceNumber: string;
+
+    if (seqRow) {
+      const r = await handleSequences(
+        {
+          id: seqRow.id,
+          businessId: seqRow.businessId,
+          clientId: seqRow.clientId,
+          nextSequence: Number(seqRow.nextSequence) + 1
+        } as InvoiceSequence,
+        true
+      );
+      if (!r.success) {
+        await rollbackOrThrow(db);
+        return { success: false };
+      }
+      newInvoiceNumber = seqRow.nextSequence.toString();
+    } else {
+      const dataSequence = await db.get<{ nextSequence: number }>(
+        `SELECT COALESCE(MAX(CAST("invoiceNumber" AS BIGINT)), 0) + 1 AS "nextSequence"
+         FROM invoices
+         WHERE "businessId" = ?
+           AND "clientId" = ?`,
+        [original.businessId, original.clientId]
+      );
+      if (!dataSequence) {
+        await rollbackOrThrow(db);
+        return { success: false };
+      }
+
+      newInvoiceNumber = dataSequence.nextSequence.toString();
+
+      const insertSequenceResult = await handleSequences({
+        businessId: original.businessId,
+        clientId: original.clientId,
+        nextSequence: dataSequence.nextSequence + 1
+      } as InvoiceSequence);
+      if (!insertSequenceResult.success) {
+        await rollbackOrThrow(db);
+        return { success: false };
+      }
     }
-    const r = await handleSequences(
-      {
-        id: seqRow.id,
-        businessId: seqRow.businessId,
-        clientId: seqRow.clientId,
-        nextSequence: Number(seqRow.nextSequence) + 1
-      } as InvoiceSequence,
-      true
-    );
-    if (!r.success) {
-      await rollbackOrThrow(db);
-    }
-    const newInvoiceNumber = seqRow.nextSequence.toString();
 
     const insertInvoiceSQL = `
         INSERT INTO invoices (

@@ -2,13 +2,14 @@
 
 Thanks to the individuals and organizations whose support helps this project grow and improve.
 
-## Individual Supporters
-
 - **longslowbakery**
+- **2 anonymous supporters**
 
-## Organizational Supporters
+## Supporter Notes
 
-_(None yet - your organization can be the first!)_
+> I am an owner of a new small business in Indonesia. I would like to express gratitude to you for the amazing software! Now I can get rid of making invoices in Excel. I'll buy you more coffee when my business grows.
+
+— **longslowbakery**
 
 ## About This File
 

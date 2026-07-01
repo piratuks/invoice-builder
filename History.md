@@ -1,5 +1,11 @@
 # Invoice Builder
 
+## {DATE}, version {VERSION}
+
+Bug Fixes
+
+- Fixed invoice sequence handling to stay scoped per business and client, including correct fallback sequencing when duplicating invoices without an existing sequence row
+
 ## 2026-06-15, version 2.5.2
 
 New features & improvements
