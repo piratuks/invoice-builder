@@ -17,7 +17,8 @@ import type {
   InvoiceAttachment,
   InvoiceAttachmentWeb,
   InvoiceUpdate,
-  InvoiceWeb
+  InvoiceWeb,
+  NextSequenceData
 } from '../types/invoice';
 import type { Item, ItemAdd, ItemUpdate } from '../types/item';
 import type { PostgresConfig } from '../types/postgresConfig';
@@ -429,7 +430,7 @@ export const webApi = () => {
     addBatchPreset: (data: PresetAdd[]) => apiPost<Response<PresetAdd[]>>('/api/presets/batch', data),
 
     getNextSequence: async (data: { businessId: number; clientId: number }) =>
-      apiGet<Response<number | undefined>>('/api/invoices/sequence', {
+      apiGet<Response<NextSequenceData | undefined>>('/api/invoices/sequence', {
         businessId: data.businessId.toString(),
         clientId: data.clientId.toString()
       }),

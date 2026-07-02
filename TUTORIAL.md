@@ -76,6 +76,8 @@ The following options are available:
   - Suffix
 - Customize exported PDF file names
 
+When a numeric invoice number uses leading zeros (for example, 000005), the next auto-generated number keeps the same width (000006, 000007, ...), expanding only when required (for example, 999999 -> 1000000).
+
 By default, files are named: "{Invoice|Quote}\_{InvoiceNumber}.pdf"
 
 You can optionally include:

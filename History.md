@@ -1,5 +1,11 @@
 # Invoice Builder
 
+## {DATE}, version {VERSION}
+
+New features & improvements
+
+- Preserve leading-zero invoice number width when auto-generating the next sequence (including duplicate flow), so exported filenames sort predictably in alphabetical order
+
 ## 2026-07-02, version 2.5.3
 
 Bug Fixes

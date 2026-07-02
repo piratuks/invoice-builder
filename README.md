@@ -107,6 +107,7 @@ If you value **privacy, portability, and control**, this app is built for you.
 - Language selection: currently French, German, English and Lithuanian
 - Number & date formatting (e.g. `1,234.10` vs `1.234,10`)
 - Invoice/quote number prefix & suffix
+- Leading-zero invoice/quote numbering is preserved across auto-increment (for consistent alphabetical file sorting)
 - File name customization for exported PDFs
 - Light & dark mode
 - Enable/disable UBL 2.1 Peppol BIS Billing 3.0, reports, style profiles, presets and quotes

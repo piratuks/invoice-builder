@@ -7,7 +7,7 @@ import { PageHeader } from '../../../../shared/components/layout/pageHeader/Page
 import { InvoiceType } from '../../../../shared/enums/invoiceType';
 import { useForm } from '../../../../shared/hooks/form/useForm';
 import { useGetNextSequence } from '../../../../shared/hooks/invoices/useGetNextSequence';
-import type { InvoiceInfo } from '../../../../shared/types/invoice';
+import type { InvoiceInfo, NextSequenceData } from '../../../../shared/types/invoice';
 import type { Response } from '../../../../shared/types/response';
 import { validators } from '../../../../shared/utils/validatorFunctions';
 import { useAppDispatch, useAppSelector } from '../../../../state/configureStore';
@@ -20,6 +20,17 @@ interface Props {
   onOpen?: () => void;
   onClick?: (data: InvoiceInfo) => void;
 }
+
+export const shouldAutoFillInvoiceNumber = (
+  currentInvoiceNumber: string | undefined,
+  nextSequence: string | undefined
+): nextSequence is string => {
+  return (
+    nextSequence != undefined &&
+    (currentInvoiceNumber == undefined || currentInvoiceNumber === '') &&
+    currentInvoiceNumber !== nextSequence
+  );
+};
 
 const InvoiceInformationDropdownComponent: FC<Props> = ({ isOpen, onClose, onOpen, onClick, information }) => {
   const { t } = useTranslation();
@@ -46,7 +57,7 @@ const InvoiceInformationDropdownComponent: FC<Props> = ({ isOpen, onClose, onOpe
       clientId: information.clientId ?? -1
     },
     immediate: false,
-    onDone: (data: Response<number | undefined>) => {
+    onDone: (data: Response<NextSequenceData | undefined>) => {
       if (!data.success) {
         if (data.message) {
           const message = i18n.exists(data.message) ? t(data.message) : data.message;
@@ -54,13 +65,11 @@ const InvoiceInformationDropdownComponent: FC<Props> = ({ isOpen, onClose, onOpe
         } else if (data.key) dispatch(addToast({ message: t(data.key), severity: 'error' }));
       }
 
-      if (
-        data.data != undefined &&
-        (form.invoiceNumber == undefined || form.invoiceNumber === '') &&
-        form.invoiceNumber !== data.data.toString()
-      ) {
-        update('invoiceNumber', data.data.toString());
-        validateField('invoiceNumber', data.data.toString());
+      const nextSequence = data.data?.formattedSequence;
+
+      if (shouldAutoFillInvoiceNumber(form.invoiceNumber, nextSequence)) {
+        update('invoiceNumber', nextSequence);
+        validateField('invoiceNumber', nextSequence);
       }
     }
   });

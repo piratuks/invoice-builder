@@ -20,6 +20,11 @@ export interface CustomFieldMeta {
   sortOrder: number;
 }
 
+export interface NextSequenceData {
+  nextSequence: number;
+  formattedSequence: string;
+}
+
 export interface CustomField extends CustomFieldMeta {
   value: string;
 }
