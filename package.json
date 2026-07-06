@@ -114,7 +114,7 @@
     "react-signature-canvas": "^1.1.0-alpha.2",
     "recharts": "^3.8.0",
     "sqlite3": "^6.0.1",
-    "tsx": "^4.21.0",
+    "tsx": "^4.23.0",
     "uuid": "^14.0.0",
     "web-vitals": "^5.2.0"
   },
