@@ -142,7 +142,7 @@
     "baseline-browser-mapping": "^2.10.20",
     "concurrently": "^10.0.3",
     "electron": "^41.1.1",
-    "electron-builder": "^26.8.1",
+    "electron-builder": "^26.15.3",
     "electronmon": "^2.0.4",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
