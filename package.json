@@ -141,7 +141,7 @@
     "@vitest/coverage-v8": "^4.1.5",
     "baseline-browser-mapping": "^2.10.20",
     "concurrently": "^10.0.3",
-    "electron": "^41.1.1",
+    "electron": "^43.0.0",
     "electron-builder": "^26.8.1",
     "electronmon": "^2.0.4",
     "eslint": "^9.39.2",
