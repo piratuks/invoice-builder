@@ -152,7 +152,7 @@
     "eslint-plugin-promise": "^7.3.0",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.3",
-    "globals": "^17.6.0",
+    "globals": "^17.7.0",
     "jsdom": "^29.1.1",
     "msw": "^2.12.14",
     "prettier": "^3.8.1",
