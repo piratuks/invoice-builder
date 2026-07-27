@@ -155,7 +155,7 @@
     "globals": "^17.7.0",
     "jsdom": "^29.1.1",
     "msw": "^2.12.14",
-    "prettier": "^3.8.1",
+    "prettier": "^3.9.6",
     "redux-mock-store": "^1.5.5",
     "sort-json": "^2.0.1",
     "ts-node": "^10.9.2",
