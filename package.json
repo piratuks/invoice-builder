@@ -137,7 +137,7 @@
     "@types/react-dom": "^19.2.3",
     "@types/redux-mock-store": "^1.5.0",
     "@typescript-eslint/eslint-plugin": "^8.60.1",
-    "@vitejs/plugin-react": "^5.1.4",
+    "@vitejs/plugin-react": "^6.0.4",
     "@vitest/coverage-v8": "^4.1.5",
     "baseline-browser-mapping": "^2.10.20",
     "concurrently": "^10.0.3",
