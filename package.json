@@ -144,7 +144,7 @@
     "electron": "^41.10.3",
     "electron-builder": "^26.8.1",
     "electronmon": "^2.0.4",
-    "eslint": "^9.39.2",
+    "eslint": "^10.8.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-n": "^18.0.1",
