@@ -183,9 +183,14 @@ export const getInvoiceTotal = (data: {
     }, 0) ?? 0;
 
   const totalDiscount = calcDiscount({ subTotal, discountType, discountAmount, discountPercent });
-  const totalSurcharge = calcSurcharge({ subTotal, surchargeType, surchargeAmount, surchargePercent });
-
   const afterDiscount = subTotal - totalDiscount;
+  const totalSurcharge = calcSurcharge({
+    subTotal: afterDiscount,
+    surchargeType,
+    surchargeAmount,
+    surchargePercent
+  });
+
   const taxInvoice = calcTax(afterDiscount, taxRate, taxType);
   let taxItems = 0;
   invoiceItems.map(item => {
@@ -508,14 +513,15 @@ export const getFinancialData = (data: {
     discountPercent,
     discountType
   });
+  const totalAmountAfterDiscount = subTotalAmount - calculatedDiscountAmount;
+
   const calculatedSurchargeAmount = calcSurcharge({
-    subTotal: subTotalAmount,
+    subTotal: totalAmountAfterDiscount,
     surchargeAmount,
     surchargePercent,
     surchargeType
   });
 
-  const totalAmountAfterDiscount = subTotalAmount - calculatedDiscountAmount;
   const invoiceLevelTax = calcTax(totalAmountAfterDiscount, taxRate, taxType);
   const taxTotalAmount = totalItemTaxAmount + invoiceLevelTax;
   let totalAmount = totalAmountAfterDiscount + shippingAmount + calculatedSurchargeAmount;

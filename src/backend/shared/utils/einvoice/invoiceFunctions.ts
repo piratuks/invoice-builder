@@ -73,7 +73,7 @@ export const aggregateVat = (lines: CalculatedLine[]) => {
 export const calculateInvoiceTotals = (invoice: Invoice): CalculatedInvoice => {
   const totalGrossCents = invoice.invoiceItems.reduce((sum, item) => sum + getInvoiceItemAmount(item), 0);
   const discountCents = calculateDiscount(totalGrossCents, invoice);
-  const surchargeCents = calculateSurcharge(totalGrossCents, invoice);
+  const surchargeCents = calculateSurcharge(totalGrossCents - discountCents, invoice);
 
   const lines = invoice.invoiceItems.map(line =>
     calculateInvoiceLine(line, discountCents, totalGrossCents, invoice.taxRate, invoice.taxType)

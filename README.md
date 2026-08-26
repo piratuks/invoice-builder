@@ -60,6 +60,7 @@ If you value **privacy, portability, and control**, this app is built for you.
 
 ### Financial Flexibility
 
+- Fixed or percentage surcharge
 - Fixed or percentage discounts
 - Shipping fees
 - Tax:
@@ -428,6 +429,7 @@ Please open an issue before starting major work to ensure alignment.
 
 | Version | Status                |
 | ------- | --------------------- |
+| v2.5.6  | ✅ Actively supported |
 | v2.5.5  | ✅ Actively supported |
 | v2.5.4  | ✅ Actively supported |
 | v2.5.3  | ✅ Actively supported |

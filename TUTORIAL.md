@@ -729,6 +729,13 @@ Additionally, you can set a **discount** (fixed amount or percentage-based).
 ![Quote discount percentage](tutorial/quote_page_16.jpg)
 ![Quote discount result](tutorial/quote_page_17.jpg)
 
+Additionally, you can set a **surcharge** (fixed amount or percentage-based).
+
+![Quote surcharge none](tutorial/quote_page_surcharge1.png)
+![Quote surcharge fixed](tutorial/quote_page_surcharge2.png)
+![Quote surcharge percentage](tutorial/quote_page_surcharge3.png)
+![Quote surcharge result](tutorial/quote_page_surcharge4.png)
+
 You can also configure **taxes** for the quote:
 
 - **Total-based taxes**: inclusive, exclusive, or deducted
@@ -833,7 +840,7 @@ Quotes can be exported **only to XLSX** format.
 - The watermark is applied **across all pages** of the document.
 - **Page numbers** are shown **only when the document has more than one page**.
 - **Attachments** are embedded into the PDF when present.
-- Sections with zero values (**Discount**, **Tax**, **Shipping fees**) are **hidden** in the PDF.
+- Sections with zero values (**Surcharge**, **Discount**, **Tax**, **Shipping fees**) are **hidden** in the PDF.
 - **Save as Profile** button will create style profile item with these customization presets for futher usage on other quotes.
 
 ![Quotes customized option 1](tutorial/quote_page_40_1.jpg)
@@ -955,6 +962,13 @@ Additionally, you can set a **discount** (fixed amount or percentage-based).
 ![Invoice discount percentage](tutorial/invoice_page_16.jpg)
 ![Invoice discount result](tutorial/invoice_page_17.jpg)
 
+Additionally, you can set a **surcharge** (fixed amount or percentage-based).
+
+![Invoice surcharge none](tutorial/invoice_page_surcharge1.png)
+![Invoice surcharge fixed](tutorial/invoice_page_surcharge2.png)
+![Invoice surcharge percentage](tutorial/invoice_page_surcharge3.png)
+![Invoice surcharge result](tutorial/invoice_page_surcharge4.png)
+
 You can also configure **taxes** for the invoice:
 
 - **Total-based taxes**: inclusive, exclusive, or deducted
@@ -1061,7 +1075,7 @@ Invoices can be exported **only to XLSX** format.
 - The watermark is applied **across all pages** of the document.
 - **Page numbers** are shown **only when the document has more than one page**.
 - **Attachments** are embedded into the PDF when present.
-- Sections with zero values (**Discount**, **Tax**, **Shipping fees**) are **hidden** in the PDF.
+- Sections with zero values (**Surcharge**, **Discount**, **Tax**, **Shipping fees**) are **hidden** in the PDF.
 - **Save as Profile** button will create style profile item with these customization presets for futher usage on other quotes.
 
 ![Invoices customized option 1](tutorial/invoice_page_40_1.jpg)

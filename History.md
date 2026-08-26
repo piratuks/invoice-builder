@@ -1,5 +1,16 @@
 # Invoice Builder
 
+## 2026-08-10, version 2.5.6
+
+New features & improvements
+
+- Added support for invoice surcharge (fixed amount or percentage-based).
+  Surcharge behaves as a price adjustment, similar to discount:
+  - Percentage surcharge is calculated from the subtotal after discounts.
+  - Fixed surcharge is added directly to the subtotal.
+  - Surcharge does not increase the taxable base (subtotal), as it acts like a shipping/handling/payment fee.
+  - VAT is calculated only from the taxable line items, not from the surcharge amount.
+
 ## 2026-08-10, version 2.5.5
 
 Bug fixes
