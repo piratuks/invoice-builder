@@ -79,6 +79,7 @@ const ModernLayoutComponent: FC<Props> = ({
             discountLabel: pdfTexts.discountLabel,
             incLabel: pdfTexts.incLabel,
             taxLabel: pdfTexts.taxLabel,
+            surchargeLabel: pdfTexts.surchargeLabel,
             taxExclusivePerItemLabel: pdfTexts.taxExclusivePerItemLabel,
             taxInclusivePerItemLabel: pdfTexts.taxInclusivePerItemLabel,
             shippingFeeLabel: pdfTexts.shippingFeeLabel,

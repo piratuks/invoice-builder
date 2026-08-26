@@ -1,12 +1,13 @@
 import { useCallback } from 'react';
 import { getApi } from '../../api/restApi';
+import type { InvoiceType } from '../../enums/invoiceType';
 import type { NextSequenceData } from '../../types/invoice';
 import type { RequestHook } from '../../types/requestHook';
 import type { Response } from '../../types/response';
 import { useAsyncAction } from '../ayncAction/useAsyncAction';
 
 interface UseSequenceParams extends RequestHook<Response<NextSequenceData | undefined>> {
-  seqData: { businessId: number; clientId: number };
+  seqData: { businessId: number; clientId: number; invoiceType: InvoiceType };
 }
 
 export const useGetNextSequence = ({ immediate = true, showLoader = true, seqData, onDone }: UseSequenceParams) => {

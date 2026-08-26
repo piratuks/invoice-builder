@@ -94,6 +94,7 @@ declare global {
       getNextSequence: (data: {
         businessId: number;
         clientId: number;
+        invoiceType: InvoiceType;
       }) => Promise<Response<NextSequenceData | undefined>>;
       getEInvoiceXML: (data: { invoiceId: number; einvoice: EInvoice }) => Promise<Response<Uint8Array | undefined>>;
       getCustomHeaders: (type: InvoiceType) => Promise<Response<CustomFieldMeta[]>>;

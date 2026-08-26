@@ -1,5 +1,6 @@
 import { type Express, type Request, type Response } from 'express';
 import type { EInvoice } from '../../shared/enums/einvoice';
+import { InvoiceType } from '../../shared/enums/invoiceType';
 import * as invoicesService from '../../shared/services/invoices';
 import { decodeInvoice, encodeResultInvoices } from '../../shared/utils/dataUrlFunctions';
 import { dbInstance } from '../database';
@@ -20,7 +21,12 @@ export const initInvoicesController = (app: Express) => {
     res.send(xmlBuffer);
   });
   app.get('/api/invoices/sequence', requireDB, async (req: Request, res: Response) => {
-    const data = req.query as unknown as { businessId: number; clientId: number };
+    const query = req.query as unknown as { businessId: number; clientId: number; invoiceType?: InvoiceType };
+    const data = {
+      businessId: query.businessId,
+      clientId: query.clientId,
+      invoiceType: query.invoiceType ?? InvoiceType.invoice
+    };
     const result = await invoicesService.getNextSequence(dbInstance!, data);
     res.json(result);
   });

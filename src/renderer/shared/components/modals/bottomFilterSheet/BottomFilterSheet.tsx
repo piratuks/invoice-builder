@@ -102,8 +102,7 @@ export const BottomFilterSheet: FC<Props> = ({ filters, onFilter = () => {}, sel
     remainingFilters.forEach(item => {
       const filter = selectedFilter.find(f => f.type === item.type);
       const option = filter?.options?.find(o => (o.value as string | number) === filter.value) as
-        | CustomOption<string | number>
-        | undefined;
+        CustomOption<string | number> | undefined;
 
       map.set(item.type, option);
     });

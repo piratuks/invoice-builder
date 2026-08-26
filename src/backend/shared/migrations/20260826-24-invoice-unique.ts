@@ -30,7 +30,7 @@ export const up = async (db: DatabaseAdapter) => {
            "discountAmountCents" TEXT NOT NULL DEFAULT '0',
            "discountPercent" REAL NOT NULL DEFAULT 0,
            "surchargeName" TEXT,
-           "surchargeType" TEXT CHECK("discountType" IN ('fixed','percentage') OR "discountType" IS NULL),
+           "surchargeType" TEXT CHECK("surchargeType" IN ('fixed','percentage') OR "surchargeType" IS NULL),
            "surchargeAmountCents" TEXT NOT NULL DEFAULT '0',
            "surchargePercent" REAL NOT NULL DEFAULT 0,
            "shippingFeeCents" TEXT NOT NULL DEFAULT '0',

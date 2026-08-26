@@ -116,7 +116,7 @@
     "sqlite3": "^6.0.1",
     "tsx": "^4.23.0",
     "uuid": "^14.0.0",
-    "web-vitals": "^5.2.0"
+    "web-vitals": "^6.1.0"
   },
   "devDependencies": {
     "@electron/rebuild": "^4.0.4",
@@ -137,11 +137,11 @@
     "@types/react-dom": "^19.2.3",
     "@types/redux-mock-store": "^1.5.0",
     "@typescript-eslint/eslint-plugin": "^8.60.1",
-    "@vitejs/plugin-react": "^5.1.4",
+    "@vitejs/plugin-react": "^6.0.5",
     "@vitest/coverage-v8": "^4.1.5",
     "baseline-browser-mapping": "^2.10.20",
     "concurrently": "^10.0.3",
-    "electron": "^41.10.3",
+    "electron": "^43.4.0",
     "electron-builder": "^26.8.1",
     "electronmon": "^2.0.4",
     "eslint": "^9.39.2",
@@ -155,7 +155,7 @@
     "globals": "^17.7.0",
     "jsdom": "^29.1.1",
     "msw": "^2.12.14",
-    "prettier": "^3.8.1",
+    "prettier": "^3.9.6",
     "redux-mock-store": "^1.5.5",
     "sort-json": "^2.0.1",
     "ts-node": "^10.9.2",

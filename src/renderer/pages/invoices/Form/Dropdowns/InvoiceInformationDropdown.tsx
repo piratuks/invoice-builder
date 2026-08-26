@@ -54,7 +54,8 @@ const InvoiceInformationDropdownComponent: FC<Props> = ({ isOpen, onClose, onOpe
   const { execute: retrieveSequence } = useGetNextSequence({
     seqData: {
       businessId: information.businessId ?? -1,
-      clientId: information.clientId ?? -1
+      clientId: information.clientId ?? -1,
+      invoiceType: information.invoiceType ?? InvoiceType.invoice
     },
     immediate: false,
     onDone: (data: Response<NextSequenceData | undefined>) => {

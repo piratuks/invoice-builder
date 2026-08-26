@@ -1,5 +1,5 @@
 import { Box, FormControlLabel, Grid, Switch, TextField } from '@mui/material';
-import { useEffect, useRef, useState, type FC } from 'react';
+import { useCallback, useEffect, useRef, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PageHeader } from '../../../shared/components/layout/pageHeader/PageHeader';
 import { validateOnlyNumbersLetters } from '../../../shared/utils/validatorFunctions';
@@ -30,27 +30,40 @@ export const CustomizeInvoice: FC<Props> = ({ showBack, onCustomizedInvoice = ()
   );
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
-  const handleInputChange =
-    (setter: (val: string) => void, key: 'prefix' | 'suffix') => (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value;
-      if (validateOnlyNumbersLetters(value)) {
-        setter(value);
-
-        if (debounceRef.current) {
-          clearTimeout(debounceRef.current);
-        }
-
-        debounceRef.current = setTimeout(() => {
-          onCustomizedInvoice({
-            prefix: key === 'prefix' ? value : prefix,
-            suffix: key === 'suffix' ? value : suffix,
-            includeMonth,
-            includeYear,
-            includeBusinessName
-          });
-        }, 500);
+  // Debounced emit; ref access happens only inside this event-triggered callback, never during render.
+  const emitDebounced = useCallback(
+    (data: {
+      prefix: string;
+      suffix: string;
+      includeMonth: boolean;
+      includeYear: boolean;
+      includeBusinessName: boolean;
+    }) => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
       }
-    };
+      debounceRef.current = setTimeout(() => {
+        onCustomizedInvoice(data);
+      }, 500);
+    },
+    [onCustomizedInvoice]
+  );
+
+  const handlePrefixChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (validateOnlyNumbersLetters(value)) {
+      setPrefix(value);
+      emitDebounced({ prefix: value, suffix, includeMonth, includeYear, includeBusinessName });
+    }
+  };
+
+  const handleSuffixChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (validateOnlyNumbersLetters(value)) {
+      setSuffix(value);
+      emitDebounced({ prefix, suffix: value, includeMonth, includeYear, includeBusinessName });
+    }
+  };
 
   const handleSwitchChange =
     (setter: (val: boolean) => void, key: 'includeMonth' | 'includeYear' | 'includeBusinessName') =>
@@ -84,7 +97,7 @@ export const CustomizeInvoice: FC<Props> = ({ showBack, onCustomizedInvoice = ()
             label={t('common.invoicePrefix')}
             fullWidth
             placeholder="e.g. INV"
-            onChange={handleInputChange(setPrefix, 'prefix')}
+            onChange={handlePrefixChange}
             value={prefix}
             helperText={t('customizeInvoice.lettersAndNumbers')}
           />
@@ -95,7 +108,7 @@ export const CustomizeInvoice: FC<Props> = ({ showBack, onCustomizedInvoice = ()
             fullWidth
             placeholder="e.g. ALPHA"
             value={suffix}
-            onChange={handleInputChange(setSuffix, 'suffix')}
+            onChange={handleSuffixChange}
             helperText={t('customizeInvoice.lettersAndNumbers')}
           />
         </Grid>
