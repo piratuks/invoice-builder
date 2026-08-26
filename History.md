@@ -11,6 +11,10 @@ New features & improvements
   - Surcharge does not increase the taxable base (subtotal), as it acts like a shipping/handling/payment fee.
   - VAT is calculated only from the taxable line items, not from the surcharge amount.
 
+Bug fixes
+
+- Invoice number must be unique per (businessId, clientId, invoiceType).
+
 ## 2026-08-10, version 2.5.5
 
 Bug fixes

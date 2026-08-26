@@ -18,6 +18,7 @@ export interface InvoiceSequence {
   businessId?: number;
   clientId?: number;
   nextSequence: number;
+  invoiceType: InvoiceType;
   createdAt?: string;
   updatedAt?: string;
 }

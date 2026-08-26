@@ -1,6 +1,7 @@
 import type { Response } from '../../shared/types/response';
 import type { EInvoice } from '../enums/einvoice';
 import { InvoiceStatus } from '../enums/invoiceStatus';
+import { InvoiceType } from '../enums/invoiceType';
 import type { DatabaseAdapter } from '../types/DatabaseAdapter';
 import type { EntityWithId } from '../types/entityWithId';
 import type {
@@ -180,7 +181,7 @@ const itemsSnapshotFields: (keyof InvoiceItemSnapshots)[] = [
   'unitPriceCents',
   'unitName'
 ];
-const invoiceSequencesFields: (keyof InvoiceSequence)[] = ['nextSequence', 'clientId', 'businessId'];
+const invoiceSequencesFields: (keyof InvoiceSequence)[] = ['nextSequence', 'clientId', 'businessId', 'invoiceType'];
 
 const handleEntity =
   <T extends EntityWithId>(db: DatabaseAdapter, table: string, fields: readonly (keyof T)[]) =>
@@ -280,11 +281,12 @@ const formatSequenceWithWidth = (nextSequence: number, width?: number) => {
 const getSequenceScopeStats = async (
   db: DatabaseAdapter,
   businessId: number,
-  clientId: number
+  clientId: number,
+  invoiceType: InvoiceType
 ): Promise<{ maxNumericValue: number; maxWidth: number }> => {
   const rows = await db.all<{ invoiceNumber: string | null }>(
-    `SELECT "invoiceNumber" FROM invoices WHERE "businessId" = ? AND "clientId" = ?`,
-    [businessId, clientId]
+    `SELECT "invoiceNumber" FROM invoices WHERE "businessId" = ? AND "clientId" = ? AND "invoiceType" = ?`,
+    [businessId, clientId, invoiceType]
   );
 
   let maxNumericValue = 0;
@@ -303,9 +305,9 @@ const getSequenceScopeStats = async (
 
 const getScopedNextSequence = async (
   db: DatabaseAdapter,
-  data: { businessId: number; clientId: number; invoiceNumber?: string }
+  data: { businessId: number; clientId: number; invoiceNumber?: string; invoiceType: InvoiceType }
 ): Promise<{ nextSequence: number; paddingWidth?: number }> => {
-  const stats = await getSequenceScopeStats(db, data.businessId, data.clientId);
+  const stats = await getSequenceScopeStats(db, data.businessId, data.clientId, data.invoiceType);
   const parsedInvoiceNumber = parseNumericInvoiceNumber(data.invoiceNumber);
 
   const nextFromHistory = stats.maxNumericValue + 1;
@@ -401,19 +403,21 @@ const processAttachments = async (
 const processSequence = async (
   db: DatabaseAdapter,
   handlers: { handleSequences: (data: InvoiceSequence, isUpdate?: boolean) => Promise<Response<number>> },
-  data: { clientId: number; businessId: number; invoiceNumber?: string }
+  data: { clientId: number; businessId: number; invoiceNumber?: string; invoiceType: InvoiceType }
 ) => {
   const currentSequence = await db.get<InvoiceSequence>(
-    `SELECT * FROM invoice_sequences WHERE "businessId" = ? and "clientId" = ?`,
-    [data.businessId, data.clientId]
+    `SELECT * FROM invoice_sequences WHERE "businessId" = ? and "clientId" = ? and "invoiceType" = ?`,
+    [data.businessId, data.clientId, data.invoiceType]
   );
+
   if (currentSequence) {
     const r = await handlers.handleSequences(
       {
         id: currentSequence.id,
         businessId: currentSequence.businessId,
         clientId: currentSequence.clientId,
-        nextSequence: Number(currentSequence.nextSequence) + 1
+        nextSequence: Number(currentSequence.nextSequence) + 1,
+        invoiceType: currentSequence.invoiceType
       } as InvoiceSequence,
       true
     );
@@ -426,7 +430,8 @@ const processSequence = async (
     const r = await handlers.handleSequences({
       businessId: data.businessId,
       clientId: data.clientId,
-      nextSequence: sequenceData.nextSequence
+      nextSequence: sequenceData.nextSequence,
+      invoiceType: data.invoiceType
     } as InvoiceSequence);
     if (!r.success) {
       await rollbackOrThrow(db);
@@ -447,6 +452,7 @@ const processSequenceOnUpdate = async (
     invoiceNumber?: string;
     clientId: number;
     businessId: number;
+    invoiceType: InvoiceType;
   }
 ) => {
   if (
@@ -463,8 +469,8 @@ const processSequenceOnUpdate = async (
   }
 
   const currentSequence = await db.get<InvoiceSequence>(
-    `SELECT * FROM invoice_sequences WHERE "businessId" = ? and "clientId" = ?`,
-    [data.businessId, data.clientId]
+    `SELECT * FROM invoice_sequences WHERE "businessId" = ? and "clientId" = ? and "invoiceType" = ?`,
+    [data.businessId, data.clientId, data.invoiceType]
   );
 
   const desiredNextSequence = parsedInvoiceNumber.numericValue + 1;
@@ -479,7 +485,8 @@ const processSequenceOnUpdate = async (
         id: currentSequence.id,
         businessId: currentSequence.businessId,
         clientId: currentSequence.clientId,
-        nextSequence: desiredNextSequence
+        nextSequence: desiredNextSequence,
+        invoiceType: data.invoiceType
       } as InvoiceSequence,
       true
     );
@@ -491,7 +498,8 @@ const processSequenceOnUpdate = async (
     const r = await handlers.handleSequences({
       businessId: data.businessId,
       clientId: data.clientId,
-      nextSequence: desiredNextSequence
+      nextSequence: desiredNextSequence,
+      invoiceType: data.invoiceType
     } as InvoiceSequence);
     if (!r.success) {
       await rollbackOrThrow(db);
@@ -516,6 +524,118 @@ const setPaidAtAndClosedAt = (invoice: Invoice): Invoice => {
   }
 
   return invoice;
+};
+
+type SequenceHandler = (data: InvoiceSequence, isUpdate?: boolean) => Promise<Response<number>>;
+
+const getDuplicateInvoiceNumber = async (
+  db: DatabaseAdapter,
+  handleSequences: SequenceHandler,
+  data: {
+    businessId: number;
+    clientId: number;
+    originalInvoiceNumber?: string;
+    originalInvoiceType: InvoiceType;
+    targetInvoiceType: InvoiceType;
+  }
+): Promise<Response<string>> => {
+  const { businessId, clientId, originalInvoiceNumber, originalInvoiceType, targetInvoiceType } = data;
+  const isQuotationConversion =
+    originalInvoiceType === InvoiceType.quotation && targetInvoiceType === InvoiceType.invoice;
+
+  if (isQuotationConversion) {
+    if (!originalInvoiceNumber) return { success: false };
+
+    const parsedOriginalNumber = parseNumericInvoiceNumber(originalInvoiceNumber);
+    if (!parsedOriginalNumber) return { success: true, data: originalInvoiceNumber };
+
+    const existingInvoice = await db.get<{ id: number }>(
+      `SELECT "id" FROM invoices WHERE "businessId" = ? AND "clientId" = ? AND "invoiceType" = ? AND "invoiceNumber" = ?`,
+      [businessId, clientId, InvoiceType.invoice, originalInvoiceNumber]
+    );
+    const invoiceSequence = await db.get<InvoiceSequence>(
+      `SELECT * FROM invoice_sequences WHERE "businessId" = ? AND "clientId" = ? AND "invoiceType" = ?`,
+      [businessId, clientId, InvoiceType.invoice]
+    );
+    const invoiceNumber = existingInvoice
+      ? Math.max(Number(invoiceSequence?.nextSequence ?? 1), parsedOriginalNumber.numericValue + 1)
+      : parsedOriginalNumber.numericValue;
+    const nextSequence = invoiceNumber + 1;
+
+    if (invoiceSequence) {
+      if (Number(invoiceSequence.nextSequence) < nextSequence) {
+        const result = await handleSequences(
+          {
+            id: invoiceSequence.id,
+            businessId,
+            clientId,
+            nextSequence,
+            invoiceType: InvoiceType.invoice
+          } as InvoiceSequence,
+          true
+        );
+        if (!result.success) return { success: false };
+      }
+    } else {
+      const result = await handleSequences({
+        businessId,
+        clientId,
+        nextSequence,
+        invoiceType: InvoiceType.invoice
+      } as InvoiceSequence);
+      if (!result.success) return { success: false };
+    }
+
+    const width = existingInvoice
+      ? Math.max(
+          parsedOriginalNumber.width,
+          invoiceSequence ? (await getSequenceScopeStats(db, businessId, clientId, InvoiceType.invoice)).maxWidth : 0
+        )
+      : parsedOriginalNumber.width;
+
+    return {
+      success: true,
+      data: existingInvoice ? formatSequenceWithWidth(invoiceNumber, width) : originalInvoiceNumber
+    };
+  }
+
+  const sequenceRow = await db.get<InvoiceSequence>(
+    `SELECT * FROM invoice_sequences WHERE "businessId" = ? AND "clientId" = ? AND "invoiceType" = ?`,
+    [businessId, clientId, originalInvoiceType]
+  );
+
+  if (sequenceRow) {
+    const nextSequence = Number(sequenceRow.nextSequence);
+    const { maxWidth } = await getSequenceScopeStats(db, businessId, clientId, originalInvoiceType);
+    const result = await handleSequences(
+      {
+        id: sequenceRow.id,
+        businessId: sequenceRow.businessId,
+        clientId: sequenceRow.clientId,
+        nextSequence: nextSequence + 1,
+        invoiceType: sequenceRow.invoiceType
+      } as InvoiceSequence,
+      true
+    );
+    if (!result.success) return { success: false };
+    return { success: true, data: formatSequenceWithWidth(nextSequence, maxWidth > 0 ? maxWidth : undefined) };
+  }
+
+  const sequenceData = await getScopedNextSequence(db, {
+    businessId,
+    clientId,
+    invoiceNumber: originalInvoiceNumber,
+    invoiceType: originalInvoiceType
+  });
+  const result = await handleSequences({
+    businessId,
+    clientId,
+    nextSequence: sequenceData.nextSequence + 1,
+    invoiceType: originalInvoiceType
+  } as InvoiceSequence);
+  if (!result.success) return { success: false };
+
+  return { success: true, data: formatSequenceWithWidth(sequenceData.nextSequence, sequenceData.paddingWidth) };
 };
 
 const getInvoices = async (db: DatabaseAdapter, options: GetInvoicesOptions) => {
@@ -657,11 +777,11 @@ export const getInvoiceXML = async (db: DatabaseAdapter, data: { invoiceId: numb
 
 export const getNextSequence = async (
   db: DatabaseAdapter,
-  data: { businessId: number; clientId: number }
+  data: { businessId: number; clientId: number; invoiceType: InvoiceType }
 ): Promise<Response<NextSequenceData | undefined>> => {
   const currentSequence = await db.get<InvoiceSequence>(
-    `SELECT * FROM invoice_sequences WHERE "businessId" = ? and "clientId" = ?`,
-    [data.businessId, data.clientId]
+    `SELECT * FROM invoice_sequences WHERE "businessId" = ? and "clientId" = ? and "invoiceType" = ?`,
+    [data.businessId, data.clientId, data.invoiceType]
   );
 
   if (!currentSequence) {
@@ -669,7 +789,7 @@ export const getNextSequence = async (
   }
 
   const nextSequence = Number(currentSequence.nextSequence);
-  const { maxWidth } = await getSequenceScopeStats(db, data.businessId, data.clientId);
+  const { maxWidth } = await getSequenceScopeStats(db, data.businessId, data.clientId, data.invoiceType);
 
   return {
     success: true,
@@ -838,7 +958,12 @@ export const addInvoice = async (db: DatabaseAdapter, data: Invoice) => {
     const resultSequence = await processSequence(
       db,
       { handleSequences },
-      { clientId: data.clientId, businessId: data.businessId, invoiceNumber: data.invoiceNumber }
+      {
+        clientId: data.clientId,
+        businessId: data.businessId,
+        invoiceNumber: data.invoiceNumber,
+        invoiceType: data.invoiceType
+      }
     );
     if (!resultSequence.success) {
       await rollbackOrThrow(db);
@@ -1020,7 +1145,8 @@ export const updateInvoice = async (db: DatabaseAdapter, data: Invoice) => {
         previousBusinessId: currentInvoice.businessId,
         invoiceNumber: data.invoiceNumber,
         clientId: data.clientId,
-        businessId: data.businessId
+        businessId: data.businessId,
+        invoiceType: data.invoiceType as InvoiceType
       }
     );
     if (!resultSequence.success) {
@@ -1053,56 +1179,25 @@ export const duplicateInvoice = async (
 
     let convertedFromQuotationId: number | null = original.convertedFromQuotationId as number | null;
     const status: string = InvoiceStatus.unpaid;
-    if (original.invoiceType === 'quotation' && invoiceType === 'invoice') {
+    const isQuotationConversion = original.invoiceType === 'quotation' && invoiceType === 'invoice';
+    if (isQuotationConversion) {
       convertedFromQuotationId = original.id as number;
       await db.run(`UPDATE invoices SET "status" = 'closed' WHERE "id" = ?;`, [original.id as number]);
     }
 
     const handleSequences = handleEntity<InvoiceSequence>(db, 'invoice_sequences', invoiceSequencesFields);
-    const seqRow = await db.get<InvoiceSequence>(
-      `SELECT * FROM invoice_sequences WHERE "businessId" = ? AND "clientId" = ?`,
-      [businessId, clientId]
-    );
-
-    let newInvoiceNumber: string;
-
-    if (seqRow) {
-      const nextSequence = Number(seqRow.nextSequence);
-      const { maxWidth } = await getSequenceScopeStats(db, businessId, clientId);
-
-      const r = await handleSequences(
-        {
-          id: seqRow.id,
-          businessId: seqRow.businessId,
-          clientId: seqRow.clientId,
-          nextSequence: nextSequence + 1
-        } as InvoiceSequence,
-        true
-      );
-      if (!r.success) {
-        await rollbackOrThrow(db);
-        return { success: false };
-      }
-      newInvoiceNumber = formatSequenceWithWidth(nextSequence, maxWidth > 0 ? maxWidth : undefined);
-    } else {
-      const sequenceData = await getScopedNextSequence(db, {
-        businessId,
-        clientId,
-        invoiceNumber: originalInvoiceNumber
-      });
-
-      newInvoiceNumber = formatSequenceWithWidth(sequenceData.nextSequence, sequenceData.paddingWidth);
-
-      const insertSequenceResult = await handleSequences({
-        businessId,
-        clientId,
-        nextSequence: sequenceData.nextSequence + 1
-      } as InvoiceSequence);
-      if (!insertSequenceResult.success) {
-        await rollbackOrThrow(db);
-        return { success: false };
-      }
+    const numberResult = await getDuplicateInvoiceNumber(db, handleSequences, {
+      businessId,
+      clientId,
+      originalInvoiceNumber,
+      originalInvoiceType: original.invoiceType as InvoiceType,
+      targetInvoiceType: invoiceType as InvoiceType
+    });
+    if (!numberResult.success || numberResult.data === undefined) {
+      await rollbackOrThrow(db);
+      return { success: false };
     }
+    const newInvoiceNumber = numberResult.data;
 
     const insertInvoiceSQL = `
         INSERT INTO invoices (
@@ -1261,7 +1356,12 @@ export const duplicateInvoice = async (
       [duplicatedRowID, invoiceId]
     );
 
-    const duplicated = await getInvoices(db, { id: duplicatedRowID });
+    let duplicated = [];
+    if (isQuotationConversion) {
+      duplicated = await getInvoices(db, { id: original.id as number });
+    } else {
+      duplicated = await getInvoices(db, { id: duplicatedRowID });
+    }
     await db.run('COMMIT');
     return { success: true, data: duplicated.length > 0 ? duplicated[0] : duplicated };
   } catch (error) {
