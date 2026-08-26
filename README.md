@@ -4,7 +4,7 @@
 [![Downloads](https://img.shields.io/github/downloads/piratuks/invoice-builder/total)](https://github.com/piratuks/invoice-builder/releases)
 [![Latest Release](https://img.shields.io/github/v/release/piratuks/invoice-builder)](https://github.com/piratuks/invoice-builder/releases)
 ![Windows](https://img.shields.io/badge/Windows-10%2B-blue?logo=windows)
-![Linux](https://img.shields.io/badge/Linux-DEB-blue?logo=linux)
+![Linux](https://img.shields.io/badge/Linux-DEB%20%7C%20AppImage-blue?logo=linux)
 ![macOS](https://img.shields.io/badge/macOS-DMG-lightgrey?logo=apple&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-blue?style=flat-square&logo=docker&logoColor=white)
 [![GHCR](https://img.shields.io/badge/ghcr.io-invoice--builder-blue?style=flat-square&logo=github)](https://github.com/piratuks/invoice-builder/pkgs/container/invoice-builder)
@@ -116,7 +116,7 @@ If you value **privacy, portability, and control**, this app is built for you.
 ## 🖥️ Supported Platforms
 
 - **Windows:** 10 or newer, 64-bit
-- **Linux:** any modern distribution (Ubuntu, Debian, Linux Mint, etc.) supporting .deb packages
+- **Linux:** any modern distribution (Ubuntu, Debian, Linux Mint, etc.) supporting .deb packages or AppImage
 - **macOS:** 11.0 (Big Sur) or newer, Apple Silicon (M1/M2/M3/M4), 64-bit, .dmg installer available
 - **Memory:** 2 GB RAM minimum (1 GB may work for very small datasets)
 - **Disk space:** ~200 MB for the installer; ~550mb for the app; additional space needed for database files
@@ -228,6 +228,15 @@ Download the latest release from the **GitHub Releases** page:
 
 No account required.
 
+### Linux AppImage
+
+Make the AppImage executable and launch it:
+
+```bash
+chmod +x Invoice-Builder-*.AppImage
+./Invoice-Builder-*.AppImage
+```
+
 > ⚠️ **Browser download warning**
 >
 > When downloading the app, your browser may show a message like:
@@ -237,7 +246,7 @@ No account required.
 >
 > This is normal for newly published apps and does **not** indicate a security issue.  
 > Simply choose **Keep anyway / Save anyway** to proceed with the download.
-> 
+>
 > 🐧 **Linux package warning**
 >
 > On some Linux distributions (Ubuntu, Linux Mint, etc.), you may see messages such as:
@@ -247,7 +256,7 @@ No account required.
 >
 > This warning appears because the app is not distributed via the default system repositories.  
 > If you downloaded the package directly from the official GitHub Releases page, it is safe to proceed.
-> 
+>
 > 🍎 **macOS Gatekeeper warning**
 >
 > Because this app is **unsigned**, macOS may display a message like:
@@ -471,6 +480,5 @@ See the full list of supporters here: [Supporters](SUPPORTERS.md)
 
 Invoice Builder is currently open for acquisition (asset-only).  
 If your company works with invoicing, accounting, ERP, or compliance tools and is interested in taking over development, feel free to reach out (contact: evaldiz@gmail.com)
-
 
 Every contribution counts, even a small one, and your name will appear here as a supporter of Invoice Builder.

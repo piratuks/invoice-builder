@@ -4,6 +4,7 @@
 
 New features & improvements
 
+- Added AppImage support
 - Added support for invoice surcharge (fixed amount or percentage-based).
   Surcharge behaves as a price adjustment, similar to discount:
   - Percentage surcharge is calculated from the subtotal after discounts.

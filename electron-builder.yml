@@ -35,6 +35,7 @@ nsis:
 linux:
   target:
     - deb
+    - AppImage
   category: Office
   maintainer: 'Piratuks <evaldiz@gmail.com>'
   icon: 'src/backend/main/assets/linux-icons'
