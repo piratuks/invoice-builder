@@ -9,6 +9,7 @@ import type {
   InvoiceFromData,
   InvoicePayment,
   PaymentForm,
+  SurchargeForm,
   TaxForm
 } from '../../../shared/types/invoice';
 import { getFinancialData, getPaidData } from '../../../shared/utils/invoiceFunctions';
@@ -18,6 +19,7 @@ import { AddPaymentDropdown } from './Dropdowns/AddPaymentDropdown';
 import { DiscountDropdown } from './Dropdowns/DiscountDropdown';
 import { PaymentListDropdown } from './Dropdowns/PaymentListDropdown';
 import { ShippingFeesDropdown } from './Dropdowns/ShippingFeesDropdown';
+import { SurchargeDropdown } from './Dropdowns/SurchargeDropdown';
 import { TaxDropdown } from './Dropdowns/TaxDropdown';
 
 interface Props {
@@ -25,6 +27,7 @@ interface Props {
   onShippingFeesClick: (shippingFee: number) => void;
   onDiscountClick: (data: DiscountForm) => void;
   onTaxesClick: (data: TaxForm) => void;
+  onSurchargeClick: (data: SurchargeForm) => void;
   onAddPaymentClicked: (data: PaymentForm) => void;
   onRemovePaymentClicked: (data: PaymentForm) => void;
 }
@@ -35,6 +38,7 @@ const FinancialInfoComponent: FC<Props> = ({
   onShippingFeesClick,
   onDiscountClick,
   onTaxesClick,
+  onSurchargeClick,
   onRemovePaymentClicked
 }) => {
   const storeSettings = useAppSelector(selectSettings);
@@ -43,6 +47,7 @@ const FinancialInfoComponent: FC<Props> = ({
   const [isDropdownOpenShippingFees, setIsDropdownOpenShippingFees] = useState<boolean>(false);
   const [isDropdownOpenDiscounts, setIsDropdownOpenDiscounts] = useState<boolean>(false);
   const [isDropdownOpenTaxes, setIsDropdownOpenTaxes] = useState<boolean>(false);
+  const [isDropdownOpenSurcharge, setIsDropdownOpenSurcharge] = useState<boolean>(false);
   const [isDropdownOpenAddPayment, setIsDropdownOpenAddPayment] = useState<boolean>(false);
   const [isDropdownOpenPaymentList, setIsDropdownOpenPaymentList] = useState<boolean>(false);
 
@@ -62,10 +67,12 @@ const FinancialInfoComponent: FC<Props> = ({
     formattedSubTotalAmount,
     totalAmountFormatted,
     discountAmountFormatted,
+    surchargeAmountFormatted,
     shippingAmountFormatted,
     totalAmountPaidFormatted,
     balanceDueFormatted,
     shippingAmount,
+    surchargeAmount,
     discountAmount
   } = useMemo(
     () =>
@@ -81,6 +88,9 @@ const FinancialInfoComponent: FC<Props> = ({
         discountPercent: invoiceForm?.discountPercent,
         taxRate: invoiceForm?.taxRate ?? 0,
         shippingAmount: Number(invoiceForm?.shippingFeeCents ?? 0),
+        surchargeAmount: Number(invoiceForm?.surchargeAmountCents ?? 0),
+        surchargeType: invoiceForm?.surchargeType,
+        surchargePercent: invoiceForm?.surchargePercent,
         taxType: invoiceForm?.taxType,
         invoicePayments: invoiceForm?.invoicePayments ?? []
       }),
@@ -104,6 +114,16 @@ const FinancialInfoComponent: FC<Props> = ({
       invoiceItems: invoiceForm?.invoiceItems ?? []
     };
   }, [invoiceForm]);
+
+  const surchargeData = useMemo(
+    () => ({
+      surchargeType: invoiceForm?.surchargeType,
+      surchargeAmount: surchargeAmount,
+      surchargeRate: invoiceForm?.surchargePercent,
+      surchargeName: invoiceForm?.surchargeName
+    }),
+    [invoiceForm, surchargeAmount]
+  );
 
   const { amountPaid } = useMemo(
     () =>
@@ -220,6 +240,16 @@ const FinancialInfoComponent: FC<Props> = ({
           variant="body1"
           sx={{ fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis' }}
         >
+          {invoiceForm?.surchargeType === DiscountType.percentage &&
+            t('invoices.surchargePrct', { prct: invoiceForm.surchargePercent })}
+
+          {invoiceForm?.surchargeType !== DiscountType.percentage && t('invoices.surcharge')}
+        </Typography>
+        <Typography
+          component="div"
+          variant="body1"
+          sx={{ fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis' }}
+        >
           {t('common.total')}
         </Typography>
         {invoiceForm?.invoiceType === InvoiceType.invoice && (
@@ -304,6 +334,21 @@ const FinancialInfoComponent: FC<Props> = ({
         <Typography
           component="div"
           variant="body1"
+          sx={{
+            fontWeight: 500,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            textDecoration: 'underline',
+            textUnderlineOffset: '5px',
+            cursor: 'pointer'
+          }}
+          onClick={() => handleOnOpen(setIsDropdownOpenSurcharge)}
+        >
+          {surchargeAmountFormatted}
+        </Typography>
+        <Typography
+          component="div"
+          variant="body1"
           sx={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis' }}
         >
           {totalAmountFormatted}
@@ -371,6 +416,16 @@ const FinancialInfoComponent: FC<Props> = ({
           onTaxesClick(data);
         }}
         data={taxesData}
+      />
+      <SurchargeDropdown
+        isOpen={isDropdownOpenSurcharge}
+        onClose={() => handleOnClose(setIsDropdownOpenSurcharge)}
+        onOpen={() => handleOnOpen(setIsDropdownOpenSurcharge)}
+        data={surchargeData}
+        onClick={data => {
+          handleOnClose(setIsDropdownOpenSurcharge);
+          onSurchargeClick(data);
+        }}
       />
       <AddPaymentDropdown
         isOpen={isDropdownOpenAddPayment}

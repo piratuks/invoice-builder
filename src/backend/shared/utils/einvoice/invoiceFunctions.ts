@@ -25,6 +25,20 @@ export const getInvoiceItemAmount = (invoiceItem: InvoiceItem): number => {
   });
 };
 
+export const calculateSurcharge = (subtotalNet: number, invoice: Invoice): number => {
+  if (!invoice.surchargeType) return 0;
+
+  let surcharge = 0;
+
+  if (invoice.surchargeType === DiscountType.fixed) {
+    surcharge = Number(invoice.surchargeAmountCents);
+  } else {
+    surcharge = (subtotalNet * Number(invoice.surchargePercent)) / 100;
+  }
+
+  return surcharge;
+};
+
 export const calculateDiscount = (subtotalNet: number, invoice: Invoice): number => {
   if (!invoice.discountType) return 0;
 
@@ -59,6 +73,7 @@ export const aggregateVat = (lines: CalculatedLine[]) => {
 export const calculateInvoiceTotals = (invoice: Invoice): CalculatedInvoice => {
   const totalGrossCents = invoice.invoiceItems.reduce((sum, item) => sum + getInvoiceItemAmount(item), 0);
   const discountCents = calculateDiscount(totalGrossCents, invoice);
+  const surchargeCents = calculateSurcharge(totalGrossCents, invoice);
 
   const lines = invoice.invoiceItems.map(line =>
     calculateInvoiceLine(line, discountCents, totalGrossCents, invoice.taxRate, invoice.taxType)
@@ -70,13 +85,14 @@ export const calculateInvoiceTotals = (invoice: Invoice): CalculatedInvoice => {
 
   const vatGroups = aggregateVat(lines);
 
-  const payableTotal = subtotalNet + taxTotal + shippingTotal;
+  const payableTotal = subtotalNet + taxTotal + shippingTotal + surchargeCents;
 
   return {
     lines,
     subtotalNet,
     discountTotal: discountCents,
     shippingTotal,
+    surchargeTotal: surchargeCents,
     taxTotal,
     payableTotal,
     vatGroups

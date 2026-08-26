@@ -68,6 +68,9 @@ const OverviewComponent: FC<Props> = ({ reportDateType, groupedMeta, dates, curr
         discountAmount: Number(inv.discountAmountCents),
         discountPercent: inv.discountPercent,
         shippingFee: Number(inv.shippingFeeCents),
+        surchargeType: inv.surchargeType,
+        surchargeAmount: Number(inv.surchargeAmountCents),
+        surchargePercent: inv.surchargePercent,
         includeTax: true
       });
       const totalAmount = totalAmountCents / (inv.invoiceCurrencySnapshot?.currencySubunit ?? 0);
@@ -89,6 +92,9 @@ const OverviewComponent: FC<Props> = ({ reportDateType, groupedMeta, dates, curr
             discountAmount: Number(inv.discountAmountCents),
             discountPercent: inv.discountPercent,
             shippingFee: Number(inv.shippingFeeCents),
+            surchargeType: inv.surchargeType,
+            surchargeAmount: Number(inv.surchargeAmountCents),
+            surchargePercent: inv.surchargePercent,
             includeTax: true
           });
           const revenue = totalAmountCents / (inv.invoiceCurrencySnapshot?.currencySubunit ?? 0);

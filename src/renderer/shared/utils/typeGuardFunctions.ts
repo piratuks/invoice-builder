@@ -40,6 +40,7 @@ const isPDFText = (value: unknown): value is PDFText => {
     'pdfQUOTE',
     'subTotalLabel',
     'discountLabel',
+    'surchargeLabel',
     'incLabel',
     'taxLabel',
     'taxExclusivePerItemLabel',
@@ -914,13 +915,15 @@ export const isInvoiceFromData = (data: unknown): data is InvoiceFromData => {
     'thanksNotes',
     'termsConditionNotes',
     'discountName',
+    'surchargeName',
     'taxName',
     'invoicePrefix',
     'invoiceSuffix',
     'signatureType',
     'signatureName',
     'shippingFeeCents',
-    'discountAmountCents'
+    'discountAmountCents',
+    'surchargeAmountCents'
   ];
 
   for (const key of stringFields) {
@@ -928,7 +931,7 @@ export const isInvoiceFromData = (data: unknown): data is InvoiceFromData => {
     if (val !== undefined && val !== null && typeof val !== 'string') return false;
   }
 
-  const numberFields = ['signatureSize', 'discountPercent'];
+  const numberFields = ['signatureSize', 'discountPercent', 'surchargePercent'];
 
   for (const key of numberFields) {
     const val = d[key];
@@ -939,6 +942,7 @@ export const isInvoiceFromData = (data: unknown): data is InvoiceFromData => {
     return false;
 
   if (d.discountType !== undefined && d.discountType !== null && typeof d.discountType !== 'string') return false;
+  if (d.surchargeType !== undefined && d.surchargeType !== null && typeof d.surchargeType !== 'string') return false;
 
   if (d.taxType !== undefined && d.taxType !== null && typeof d.taxType !== 'string') return false;
 

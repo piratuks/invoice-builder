@@ -46,6 +46,18 @@ export const calcTax = (amount: number, taxRate: number, taxType?: InvoiceItemTa
   }
 };
 
+export const calcSurcharge = (data: {
+  subTotal: number;
+  surchargeType?: DiscountType;
+  surchargeAmount?: number;
+  surchargePercent?: number;
+}) => {
+  const { subTotal, surchargeType, surchargeAmount, surchargePercent } = data;
+
+  if (!surchargeType) return 0;
+  return surchargeType === DiscountType.fixed ? (surchargeAmount ?? 0) : (subTotal * (surchargePercent ?? 0)) / 100;
+};
+
 export const calcDiscount = (data: {
   subTotal: number;
   discountType?: DiscountType;
@@ -146,6 +158,9 @@ export const getInvoiceTotal = (data: {
   discountAmount?: number;
   discountPercent?: number;
   shippingFee?: number;
+  surchargeType?: DiscountType;
+  surchargeAmount?: number;
+  surchargePercent?: number;
   includeTax?: boolean;
 }) => {
   const {
@@ -156,6 +171,9 @@ export const getInvoiceTotal = (data: {
     discountAmount = 0,
     discountPercent = 0,
     shippingFee = 0,
+    surchargeAmount = 0,
+    surchargeType,
+    surchargePercent,
     includeTax = true
   } = data;
 
@@ -165,6 +183,8 @@ export const getInvoiceTotal = (data: {
     }, 0) ?? 0;
 
   const totalDiscount = calcDiscount({ subTotal, discountType, discountAmount, discountPercent });
+  const totalSurcharge = calcSurcharge({ subTotal, surchargeType, surchargeAmount, surchargePercent });
+
   const afterDiscount = subTotal - totalDiscount;
   const taxInvoice = calcTax(afterDiscount, taxRate, taxType);
   let taxItems = 0;
@@ -179,7 +199,9 @@ export const getInvoiceTotal = (data: {
   });
   const tax = includeTax ? taxInvoice + taxItems : 0;
 
-  return taxType === InvoiceTaxType.inclusive ? afterDiscount + shippingFee : afterDiscount + tax + shippingFee;
+  return taxType === InvoiceTaxType.inclusive
+    ? afterDiscount + shippingFee + totalSurcharge
+    : afterDiscount + tax + shippingFee + totalSurcharge;
 };
 
 export const getPaidAmount = (invoicePayments: InvoicePayment[]) => {
@@ -194,6 +216,9 @@ export const getBalanceDue = (data: {
   discountAmount?: number;
   discountPercent?: number;
   shippingFee?: number;
+  surchargeType?: DiscountType;
+  surchargeAmount?: number;
+  surchargePercent?: number;
   invoicePayments: InvoicePayment[];
 }) => {
   const {
@@ -204,6 +229,9 @@ export const getBalanceDue = (data: {
     discountAmount = 0,
     discountPercent = 0,
     shippingFee = 0,
+    surchargeAmount = 0,
+    surchargeType,
+    surchargePercent = 0,
     invoicePayments
   } = data;
   const balanceAmount =
@@ -214,7 +242,10 @@ export const getBalanceDue = (data: {
       discountType,
       discountAmount,
       discountPercent,
-      shippingFee
+      shippingFee,
+      surchargeAmount,
+      surchargeType,
+      surchargePercent
     }) - getPaidAmount(invoicePayments);
 
   return balanceAmount;
@@ -284,6 +315,9 @@ export const aggregateInvoicesByCurrency = (
       discountType: invoice.discountType,
       discountAmount: Number(invoice.discountAmountCents),
       discountPercent: invoice.discountPercent,
+      surchargeType: invoice.surchargeType,
+      surchargeAmount: Number(invoice.surchargeAmountCents),
+      surchargePercent: invoice.surchargePercent,
       shippingFee: Number(invoice.shippingFeeCents)
     });
     const totalAmountPaid = getInvoicePaidAmount(invoice, totalAmountCents);
@@ -394,6 +428,9 @@ export const getFinancialData = (data: {
   discountPercent?: number;
   taxRate: number;
   shippingAmount?: number;
+  surchargeAmount?: number;
+  surchargeType?: DiscountType;
+  surchargePercent?: number;
   taxType?: InvoiceTaxType;
   invoicePayments: InvoicePayment[];
 }) => {
@@ -408,6 +445,9 @@ export const getFinancialData = (data: {
     discountAmount = 0,
     discountPercent = 0,
     shippingAmount = 0,
+    surchargeAmount = 0,
+    surchargeType,
+    surchargePercent,
     taxRate,
     taxType,
     invoicePayments
@@ -468,10 +508,17 @@ export const getFinancialData = (data: {
     discountPercent,
     discountType
   });
+  const calculatedSurchargeAmount = calcSurcharge({
+    subTotal: subTotalAmount,
+    surchargeAmount,
+    surchargePercent,
+    surchargeType
+  });
+
   const totalAmountAfterDiscount = subTotalAmount - calculatedDiscountAmount;
   const invoiceLevelTax = calcTax(totalAmountAfterDiscount, taxRate, taxType);
   const taxTotalAmount = totalItemTaxAmount + invoiceLevelTax;
-  let totalAmount = totalAmountAfterDiscount + shippingAmount;
+  let totalAmount = totalAmountAfterDiscount + shippingAmount + calculatedSurchargeAmount;
 
   if (!isInclusive) {
     totalAmount += taxTotalAmount;
@@ -499,6 +546,11 @@ export const getFinancialData = (data: {
     amountCents: calculatedDiscountAmount,
     subunit: currencySubunit
   });
+  const finalSurchargeAmount = calcUnitPrice({
+    supportsSubunit,
+    amountCents: calculatedSurchargeAmount,
+    subunit: currencySubunit
+  });
   const finalTotalAmount = calcUnitPrice({
     supportsSubunit,
     amountCents: totalAmount,
@@ -520,6 +572,7 @@ export const getFinancialData = (data: {
     formattedTotalTaxAmount: format(finalTaxTotalAmount),
     discountAmountFormatted: format(finalDiscountAmount),
     shippingAmountFormatted: format(finalShippingAmount),
+    surchargeAmountFormatted: format(finalSurchargeAmount),
     totalAmountFormatted: format(finalTotalAmount),
     totalAmountPaidFormatted: format(finalPaidAmount),
     balanceDueFormatted: format(finalBalanceDue),
@@ -527,6 +580,7 @@ export const getFinancialData = (data: {
     totalTax: finalTaxTotalAmount,
     discountAmount: finalDiscountAmount,
     shippingAmount: finalShippingAmount,
+    surchargeAmount: finalSurchargeAmount,
     totalAmount: finalTotalAmount,
     totalAmountPaid: finalPaidAmount,
     balanceDue: finalBalanceDue

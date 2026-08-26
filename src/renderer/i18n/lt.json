@@ -405,6 +405,7 @@
     "addPayment": "Pridėti mokėjimą",
     "addQuote": "Pridėti pasiūlymą",
     "addSignature": "Pridėti parašą",
+    "addSurcharge": "Pridėti priemoką",
     "addTaxes": "Pridėti mokesčius",
     "attachments": "Priedai",
     "balanceDue": "Likusi mokėtina suma",
@@ -463,6 +464,8 @@
     "shippingFee": "Pristatymo mokestis",
     "sortOrder": "Rikiavimo tvarka",
     "subTotal": "Tarpinė suma",
+    "surcharge": "Priemoka",
+    "surchargePrct": "Priemoka ({{prct}}%)",
     "tax": "Mokestis ({{prct}}%)",
     "taxExclusive": "{{name}} ({{prct}}%)",
     "taxExclusivePerItem": "Mokestis (už prekę)",
@@ -543,6 +546,8 @@
     "currencyDashboard": "{{currency}} Apžvalga",
     "customRange": "Pasirinktinis laikotarpis",
     "dateRange": "Laikotarpis",
+    "dateTypeIssuedAt": "Naudoti „Išdavimo datos“ reikšmę",
+    "dateTypePaidAt": "Naudoti „Apmokėjimo datos“ reikšmę",
     "invoiceCount": "{{name}} ({{count}} sąsk.)",
     "itemsCount": "{{name}} (kiekis: {{count}})",
     "last30Days": "Paskutinės 30 dienų",
@@ -560,9 +565,7 @@
     "title": "Finansų suvestinė",
     "topClients": "Didžiausi klientai pagal pajamas",
     "topItems": "Populiariausios prekės pagal pardavimus",
-    "totalInvoices": "{{count}} sąskaitos",
-    "dateTypeIssuedAt": "Naudoti „Išdavimo datos“ reikšmę",
-    "dateTypePaidAt": "Naudoti „Apmokėjimo datos“ reikšmę"
+    "totalInvoices": "{{count}} sąskaitos"
   },
   "settingsMenuItems": {
     "descriptions": {

@@ -405,6 +405,7 @@
     "addPayment": "Zahlung hinzufügen",
     "addQuote": "Angebot hinzufügen",
     "addSignature": "Unterschrift hinzufügen",
+    "addSurcharge": "Zuschlag hinzufügen",
     "addTaxes": "Steuern hinzufügen",
     "attachments": "Anhänge",
     "balanceDue": "Offener Betrag",
@@ -463,6 +464,8 @@
     "shippingFee": "Versandkosten",
     "sortOrder": "Sortierreihenfolge",
     "subTotal": "Zwischensumme",
+    "surcharge": "Zuschlag",
+    "surchargePrct": "Zuschlag ({{prct}}%)",
     "tax": "Steuer ({{prct}}%)",
     "taxExclusive": "{{name}} ({{prct}}%)",
     "taxExclusivePerItem": "Steuer (pro Artikel)",
@@ -543,6 +546,8 @@
     "currencyDashboard": "{{currency}} Übersicht",
     "customRange": "Benutzerdefinierter Zeitraum",
     "dateRange": "Zeitraum",
+    "dateTypeIssuedAt": "Das Datum „Ausgestellt am“ verwenden",
+    "dateTypePaidAt": "Das Datum „Bezahlt am“ verwenden",
     "invoiceCount": "{{name}} ({{count}} Rech.)",
     "itemsCount": "{{name}} (Menge: {{count}})",
     "last30Days": "Letzte 30 Tage",
@@ -560,9 +565,7 @@
     "title": "Finanz-Dashboard",
     "topClients": "Top-Kunden nach Umsatz",
     "topItems": "Top-Artikel nach Verkauf",
-    "totalInvoices": "{{count}} Rechnungen",
-    "dateTypeIssuedAt": "Das Datum „Ausgestellt am“ verwenden",
-    "dateTypePaidAt": "Das Datum „Bezahlt am“ verwenden"
+    "totalInvoices": "{{count}} Rechnungen"
   },
   "settingsMenuItems": {
     "descriptions": {

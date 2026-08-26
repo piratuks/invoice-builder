@@ -13,6 +13,7 @@ export interface PDFText {
   pdfQUOTE?: string;
   subTotalLabel?: string;
   discountLabel?: string;
+  surchargeLabel?: string;
   incLabel?: string;
   taxLabel?: string;
   taxExclusivePerItemLabel?: string;

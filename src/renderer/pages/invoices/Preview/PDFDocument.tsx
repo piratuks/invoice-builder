@@ -220,6 +220,7 @@ const PDFDocumentComponent: FC<Props> = ({
               labels={{
                 subTotalLabel: pdfTexts.subTotalLabel,
                 discountLabel: pdfTexts.discountLabel,
+                surchargeLabel: pdfTexts.surchargeLabel,
                 incLabel: pdfTexts.incLabel,
                 taxLabel: pdfTexts.taxLabel,
                 taxExclusivePerItemLabel: pdfTexts.taxExclusivePerItemLabel,

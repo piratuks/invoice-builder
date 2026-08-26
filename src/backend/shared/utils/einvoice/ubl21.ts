@@ -136,10 +136,27 @@ const getXMLDiscount = (invoice: Invoice, discountCents: number) => {
 
 const getAllowances = (invoice: Invoice, calc: CalculatedInvoice) => {
   const shippingAmount = Number(invoice.shippingFeeCents) / invoice.invoiceCurrencySnapshot!.currencySubunit;
+  const surchargeAmount = Number(calc.surchargeTotal) / invoice.invoiceCurrencySnapshot!.currencySubunit;
+
   const discountXml = getXMLDiscount(invoice, calc.discountTotal);
 
   return `
     ${discountXml}
+    ${
+      calc.surchargeTotal > 0
+        ? `
+          <cac:AllowanceCharge>
+            <cbc:ChargeIndicator>true</cbc:ChargeIndicator>
+            <cbc:AllowanceChargeReason>${xmlEscape(invoice.surchargeName || 'Surcharge')}</cbc:AllowanceChargeReason>
+            <cbc:Amount currencyID="${xmlEscape(invoice.invoiceCurrencySnapshot!.currencyCode)}">${surchargeAmount}</cbc:Amount>
+            <cac:TaxCategory>
+              <cbc:ID>Z</cbc:ID>
+              <cbc:Percent>0.00</cbc:Percent>
+              <cac:TaxScheme><cbc:ID>${xmlEscape(invoice.taxName || 'VAT')}</cbc:ID></cac:TaxScheme>
+            </cac:TaxCategory>
+          </cac:AllowanceCharge>`
+        : ''
+    }
     ${
       calc.shippingTotal > 0
         ? `
@@ -291,18 +308,19 @@ const getXMLPaymentMeans = (invoice: Invoice) => {
   return paymentMeans;
 };
 
-const getXMLShippingTaxTotal = (invoice: Invoice, zeroTaxItemAmount: number) => {
+const getXMLShippingTaxTotal = (invoice: Invoice, calc: CalculatedInvoice, zeroTaxItemAmount: number) => {
   const shippingCents = Number(invoice.shippingFeeCents);
   const c = invoice.invoiceCurrencySnapshot!;
 
-  if (shippingCents <= 0 && zeroTaxItemAmount <= 0) return '';
+  if (shippingCents <= 0 && zeroTaxItemAmount <= 0 && calc.surchargeTotal <= 0) return '';
 
   const shippingAmount = shippingCents / c.currencySubunit;
+  const surchargeAmount = calc.surchargeTotal / c.currencySubunit;
   const zeroTaxAmount = zeroTaxItemAmount / c.currencySubunit;
 
   return `
     <cac:TaxSubtotal>
-      <cbc:TaxableAmount currencyID="${xmlEscape(c.currencyCode)}">${decimals2(shippingAmount + zeroTaxAmount)}</cbc:TaxableAmount>
+      <cbc:TaxableAmount currencyID="${xmlEscape(c.currencyCode)}">${decimals2(shippingAmount + zeroTaxAmount + surchargeAmount)}</cbc:TaxableAmount>
       <cbc:TaxAmount currencyID="${xmlEscape(c.currencyCode)}">0.00</cbc:TaxAmount>
       <cac:TaxCategory>
         <cbc:ID>Z</cbc:ID>
@@ -322,7 +340,7 @@ const getXMLTaxTotal = (invoice: Invoice, calc: CalculatedInvoice) => {
   const positiveTaxGroups = vatGroups.filter(g => g.rate > 0);
   const zeroTaxGroup = vatGroups.find(g => g.rate === 0);
   const zeroTaxAmount = zeroTaxGroup ? zeroTaxGroup.taxable : 0;
-  const shippingSubtotalXML = getXMLShippingTaxTotal(invoice, zeroTaxAmount);
+  const shippingSubtotalXML = getXMLShippingTaxTotal(invoice, calc, zeroTaxAmount);
 
   let runningSum = 0;
   const taxableGroupsXML = vatGroups
@@ -374,10 +392,10 @@ const getXMLLegalMonetaryTotal = (invoice: Invoice, calc: CalculatedInvoice) => 
   return `
     <cac:LegalMonetaryTotal>
       ${amountTag('LineExtensionAmount', toUnit(calc.subtotalNet + calc.discountTotal), c.currencyCode)}
-      ${amountTag('TaxExclusiveAmount', toUnit(calc.subtotalNet + calc.shippingTotal), c.currencyCode)}
-      ${amountTag('TaxInclusiveAmount', toUnit(calc.subtotalNet + calc.shippingTotal + calc.taxTotal), c.currencyCode)}
+      ${amountTag('TaxExclusiveAmount', toUnit(calc.subtotalNet + calc.shippingTotal + calc.surchargeTotal), c.currencyCode)}
+      ${amountTag('TaxInclusiveAmount', toUnit(calc.subtotalNet + calc.shippingTotal + calc.surchargeTotal + calc.taxTotal), c.currencyCode)}
       ${calc.discountTotal > 0 ? amountTag('AllowanceTotalAmount', toUnit(calc.discountTotal), c.currencyCode) : ''}
-      ${calc.shippingTotal > 0 ? amountTag('ChargeTotalAmount', toUnit(calc.shippingTotal), c.currencyCode) : ''}
+      ${calc.shippingTotal > 0 || calc.surchargeTotal > 0 ? amountTag('ChargeTotalAmount', toUnit(calc.shippingTotal + calc.surchargeTotal), c.currencyCode) : ''}
       ${paidCents > 0 ? amountTag('PrepaidAmount', toUnit(paidCents), c.currencyCode) : ''}
       ${amountTag('PayableAmount', toUnit(calc.payableTotal - paidCents), c.currencyCode)}
     </cac:LegalMonetaryTotal>
@@ -477,7 +495,6 @@ export const generateUBLInvoiceXML = (invoice: Invoice, einvoice: EInvoice.ubl21
   }
 
   const calc = calculateInvoiceTotals(invoice);
-
   const raw = `<?xml version="1.0" encoding="UTF-8"?>
       <Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
         xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"

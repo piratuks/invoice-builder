@@ -405,6 +405,7 @@
     "addPayment": "Add payment",
     "addQuote": "Add quote",
     "addSignature": "Add signature",
+    "addSurcharge": "Add surcharge",
     "addTaxes": "Add taxes",
     "attachments": "Attachments",
     "balanceDue": "Balance due",
@@ -463,6 +464,8 @@
     "shippingFee": "Shipping fees",
     "sortOrder": "Sort order",
     "subTotal": "Subtotal",
+    "surcharge": "Surcharge",
+    "surchargePrct": "Surcharge ({{prct}}%)",
     "tax": "Tax ({{prct}}%)",
     "taxExclusive": "{{name}} ({{prct}}%)",
     "taxExclusivePerItem": "Tax (Per Item)",
@@ -543,6 +546,8 @@
     "currencyDashboard": "{{currency}} Overview",
     "customRange": "Custom range",
     "dateRange": "Date range",
+    "dateTypeIssuedAt": "Use 'Issued At' date",
+    "dateTypePaidAt": "Use 'Paid At' date",
     "invoiceCount": "{{name}} ({{count}} inv)",
     "itemsCount": "{{name}} (qty: {{count}})",
     "last30Days": "Last 30 days",
@@ -560,9 +565,7 @@
     "title": "Financial dashboard",
     "topClients": "Top clients by revenue",
     "topItems": "Top items by sales",
-    "totalInvoices": "{{count}} Invoices",
-    "dateTypeIssuedAt": "Use 'Issued At' date",
-    "dateTypePaidAt": "Use 'Paid At' date"
+    "totalInvoices": "{{count}} Invoices"
   },
   "settingsMenuItems": {
     "descriptions": {

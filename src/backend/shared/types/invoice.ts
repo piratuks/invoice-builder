@@ -156,6 +156,10 @@ export interface Invoice {
   discountAmountCents: string;
   discountPercent: number;
   shippingFeeCents: string;
+  surchargeName?: string;
+  surchargeAmountCents: string;
+  surchargeType?: DiscountType;
+  surchargePercent: number;
   taxName?: string;
   taxRate: number;
   taxType?: InvoiceTaxType;

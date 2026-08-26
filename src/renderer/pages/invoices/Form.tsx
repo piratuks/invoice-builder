@@ -98,6 +98,8 @@ const InvoiceFormComponent: FC<Props> = ({
             discountAmountCents: '0',
             discountPercent: 0,
             shippingFeeCents: '0',
+            surchargeAmountCents: '0',
+            surchargePercent: 0,
             invoiceItems: [],
             invoicePayments: [],
             invoiceAttachments: [],

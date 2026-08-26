@@ -13,6 +13,7 @@ export interface CalculatedInvoice {
   subtotalNet: number;
   discountTotal: number;
   shippingTotal: number;
+  surchargeTotal: number;
   taxTotal: number;
   payableTotal: number;
   vatGroups: { rate: number; taxable: number; tax: number }[];

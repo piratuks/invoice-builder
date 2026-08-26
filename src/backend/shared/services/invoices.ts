@@ -150,6 +150,10 @@ const invoiceFields: (keyof Invoice)[] = [
   'discountAmountCents',
   'discountPercent',
   'shippingFeeCents',
+  'surchargeName',
+  'surchargeAmountCents',
+  'surchargeType',
+  'surchargePercent',
   'taxName',
   'taxRate',
   'taxType',
@@ -1107,7 +1111,8 @@ export const duplicateInvoice = async (
           "thanksNotes", "termsConditionNotes", "discountName", "language", 
           "discountType", "discountAmountCents", "discountPercent", "shippingFeeCents",
           "invoicePrefix", "invoiceSuffix", "taxName", "taxRate", "taxType", "signatureData",
-          "signatureSize", "signatureType", "signatureName", "styleProfilesId", "bankId"
+          "signatureSize", "signatureType", "signatureName", "styleProfilesId", "bankId", 
+          "surchargeName", "surchargeAmountCents", "surchargePercent", "surchargeType"
         )
         SELECT
           ?, ?, "businessId", "clientId", "currencyId",
@@ -1119,7 +1124,8 @@ export const duplicateInvoice = async (
           "thanksNotes", "termsConditionNotes", "discountName", "language", 
           "discountType", "discountAmountCents", "discountPercent", "shippingFeeCents",
           "invoicePrefix", "invoiceSuffix", "taxName", "taxRate", "taxType", "signatureData",
-          "signatureSize", "signatureType", "signatureName", "styleProfilesId", "bankId"
+          "signatureSize", "signatureType", "signatureName", "styleProfilesId", "bankId",
+          "surchargeName", "surchargeAmountCents", "surchargePercent", "surchargeType"
         FROM invoices WHERE "id" = ?
       `;
 

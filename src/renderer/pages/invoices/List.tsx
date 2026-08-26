@@ -54,7 +54,10 @@ const InvoiceListItemComponent: FC<Props> = ({ item, isSelected, onEdit }) => {
         discountType: item.discountType,
         discountAmount: Number(item.discountAmountCents),
         discountPercent: item.discountPercent,
-        shippingFee: Number(item.shippingFeeCents)
+        shippingFee: Number(item.shippingFeeCents),
+        surchargeType: item.surchargeType,
+        surchargeAmount: Number(item.surchargeAmountCents),
+        surchargePercent: item.surchargePercent
       }),
     [item]
   );
@@ -68,6 +71,9 @@ const InvoiceListItemComponent: FC<Props> = ({ item, isSelected, onEdit }) => {
         discountAmount: Number(item.discountAmountCents),
         discountPercent: item.discountPercent,
         shippingFee: Number(item.shippingFeeCents),
+        surchargeType: item.surchargeType,
+        surchargeAmount: Number(item.surchargeAmountCents),
+        surchargePercent: item.surchargePercent,
         invoicePayments: item.invoicePayments
       }),
     [item]

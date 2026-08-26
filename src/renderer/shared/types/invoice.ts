@@ -44,6 +44,7 @@ export interface PdfTexts {
   pdfQUOTE: string;
   subTotalLabel: string;
   discountLabel: string;
+  surchargeLabel: string;
   incLabel: string;
   taxLabel: string;
   taxExclusivePerItemLabel: string;
@@ -253,6 +254,12 @@ export interface DiscountForm {
   discountRate?: number;
   discountName?: string;
 }
+export interface SurchargeForm {
+  surchargeType?: DiscountType;
+  surchargeAmount?: number;
+  surchargeRate?: number;
+  surchargeName?: string;
+}
 export interface InvoicePayment {
   id?: number;
   parentInvoiceId?: number;
@@ -382,6 +389,10 @@ export interface InvoiceMeta {
   discountType?: DiscountType;
   discountAmountCents: string;
   discountPercent: number;
+  surchargeType?: DiscountType;
+  surchargeAmountCents: string;
+  surchargePercent: number;
+  surchargeName?: string;
   shippingFeeCents: string;
   taxName?: string;
   taxRate: number;
@@ -438,6 +449,10 @@ export interface InvoiceAddMeta {
   discountAmountCents?: string;
   discountPercent?: number;
   shippingFeeCents?: string;
+  surchargeName?: string;
+  surchargeAmountCents?: string;
+  surchargeType?: DiscountType;
+  surchargePercent?: number;
   taxName?: string;
   taxRate?: number;
   taxType?: InvoiceTaxType;
@@ -503,6 +518,10 @@ export interface InvoiceFromData {
   discountAmountCents?: string;
   discountPercent?: number;
   shippingFeeCents?: string;
+  surchargeName?: string;
+  surchargeAmountCents?: string;
+  surchargeType?: DiscountType;
+  surchargePercent?: number;
   taxName?: string;
   taxRate?: number;
   taxType?: InvoiceTaxType;

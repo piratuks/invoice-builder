@@ -12,6 +12,7 @@ import { DEFAULT_FONT_SIZES, FONT_SIZES, PDF_STYLES } from './constant';
 interface PropsLabels {
   subTotalLabel: string;
   discountLabel: string;
+  surchargeLabel: string;
   incLabel: string;
   taxLabel: string;
   taxExclusivePerItemLabel: string;
@@ -33,9 +34,11 @@ const FinancialInfoComponent: FC<Props> = ({ invoiceForm, storeSettings, labels 
     totalAmountFormatted,
     discountAmountFormatted,
     shippingAmountFormatted,
+    surchargeAmountFormatted,
     totalAmountPaidFormatted,
     balanceDueFormatted,
     shippingAmount,
+    surchargeAmount,
     discountAmount,
     totalTax,
     totalAmountPaid
@@ -53,6 +56,9 @@ const FinancialInfoComponent: FC<Props> = ({ invoiceForm, storeSettings, labels 
         discountPercent: invoiceForm?.discountPercent,
         taxRate: invoiceForm?.taxRate ?? 0,
         shippingAmount: Number(invoiceForm?.shippingFeeCents ?? 0),
+        surchargeType: invoiceForm?.surchargeType,
+        surchargeAmount: Number(invoiceForm?.surchargeAmountCents ?? 0),
+        surchargePercent: invoiceForm?.surchargePercent,
         taxType: invoiceForm?.taxType,
         invoicePayments: invoiceForm?.invoicePayments ?? []
       }),
@@ -62,6 +68,7 @@ const FinancialInfoComponent: FC<Props> = ({ invoiceForm, storeSettings, labels 
   const {
     subTotalLabel,
     discountLabel,
+    surchargeLabel,
     incLabel,
     taxLabel,
     taxExclusivePerItemLabel,
@@ -84,7 +91,7 @@ const FinancialInfoComponent: FC<Props> = ({ invoiceForm, storeSettings, labels 
 
   return (
     <View style={PDF_STYLES.w50}>
-      {(discountAmount > 0 || Math.abs(totalTax) > 0 || shippingAmount > 0) && (
+      {(discountAmount > 0 || Math.abs(totalTax) > 0 || shippingAmount > 0 || surchargeAmount > 0) && (
         <View style={[PDF_STYLES.row, PDF_STYLES.pb5]}>
           <View style={PDF_STYLES.flexGrow} />
           <View style={[PDF_STYLES.row, PDF_STYLES.w100, PDF_STYLES.textEnd]}>
@@ -229,7 +236,43 @@ const FinancialInfoComponent: FC<Props> = ({ invoiceForm, storeSettings, labels 
         </View>
       )}
 
-      {(discountAmount > 0 || Math.abs(totalTax) > 0 || shippingAmount > 0) && (
+      {surchargeAmount > 0 && (
+        <View style={[PDF_STYLES.row, PDF_STYLES.pb5]}>
+          <View style={PDF_STYLES.flexGrow} />
+          <View style={[PDF_STYLES.row, PDF_STYLES.w100, PDF_STYLES.textEnd]}>
+            <View
+              style={[
+                PDF_STYLES.regular,
+                PDF_STYLES.w50,
+                {
+                  fontSize: FONT_SIZES[invoiceForm?.invoiceCustomization?.fontSize ?? DEFAULT_FONT_SIZES].regular
+                }
+              ]}
+            >
+              <Text>
+                {invoiceForm?.surchargeType === DiscountType.percentage &&
+                  `${surchargeLabel} (${invoiceForm?.surchargePercent}%)`}
+
+                {invoiceForm?.surchargeType !== DiscountType.percentage && surchargeLabel}
+              </Text>
+            </View>
+            <View
+              style={[
+                PDF_STYLES.regular,
+                PDF_STYLES.w50,
+                PDF_STYLES.alignEnd,
+                {
+                  fontSize: FONT_SIZES[invoiceForm?.invoiceCustomization?.fontSize ?? DEFAULT_FONT_SIZES].regular
+                }
+              ]}
+            >
+              <Text>{surchargeAmountFormatted}</Text>
+            </View>
+          </View>
+        </View>
+      )}
+
+      {(discountAmount > 0 || Math.abs(totalTax) > 0 || shippingAmount > 0 || surchargeAmount > 0) && (
         <View style={[PDF_STYLES.row, PDF_STYLES.pt5, PDF_STYLES.pb5]}>
           <View style={PDF_STYLES.flexGrow} />
           <View style={[PDF_STYLES.border, PDF_STYLES.w100, PDF_STYLES.textEnd]} />

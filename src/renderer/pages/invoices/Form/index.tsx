@@ -25,6 +25,7 @@ import type {
   ItemForm,
   PaymentForm,
   SignatureForm,
+  SurchargeForm,
   TaxForm
 } from '../../../shared/types/invoice';
 import type { Item } from '../../../shared/types/item';
@@ -362,6 +363,7 @@ const InvoiceFormComponent: FC<Props> = ({
       });
 
       const updatedShippingFee = convert(invoiceForm?.shippingFeeCents);
+      const updatedSurchargeAmount = convert(invoiceForm?.surchargeAmountCents);
       const updatedDiscountAmount = convert(invoiceForm?.discountAmountCents);
 
       startTransition(() => {
@@ -379,6 +381,7 @@ const InvoiceFormComponent: FC<Props> = ({
           invoiceItems: updatedItems ?? invoiceForm.invoiceItems,
           invoicePayments: updatedPayments ?? invoiceForm.invoicePayments,
           shippingFeeCents: updatedShippingFee,
+          surchargeAmountCents: updatedSurchargeAmount,
           discountAmountCents: updatedDiscountAmount
         });
       });
@@ -619,6 +622,26 @@ const InvoiceFormComponent: FC<Props> = ({
     [setInvoiceForm, invoiceForm]
   );
 
+  const handleOnClickSurcharge = useCallback(
+    (data: SurchargeForm) => {
+      if (!invoiceForm) return;
+
+      const surchargeAmount = invoiceForm.invoiceCurrencySnapshot?.currencySubunit
+        ? (data.surchargeAmount ?? 0) * invoiceForm.invoiceCurrencySnapshot.currencySubunit
+        : data.surchargeAmount;
+      startTransition(() => {
+        setInvoiceForm({
+          ...invoiceForm,
+          surchargeName: data.surchargeName,
+          surchargeType: data.surchargeType,
+          surchargePercent: data.surchargeRate ?? 0,
+          surchargeAmountCents: surchargeAmount?.toString() ?? '0'
+        });
+      });
+    },
+    [setInvoiceForm, invoiceForm]
+  );
+
   const getStatus = useCallback((newInvoiceForm: InvoiceFromData) => {
     const totalAmountPaid = getPaidAmount(newInvoiceForm?.invoicePayments ?? []);
     const totalAmount = getInvoiceTotal({
@@ -628,7 +651,10 @@ const InvoiceFormComponent: FC<Props> = ({
       discountType: newInvoiceForm?.discountType,
       discountAmount: Number(newInvoiceForm?.discountAmountCents ?? 0),
       discountPercent: newInvoiceForm?.discountPercent,
-      shippingFee: Number(newInvoiceForm?.shippingFeeCents ?? 0)
+      shippingFee: Number(newInvoiceForm?.shippingFeeCents ?? 0),
+      surchargeType: newInvoiceForm?.surchargeType,
+      surchargeAmount: Number(newInvoiceForm?.surchargeAmountCents ?? 0),
+      surchargePercent: newInvoiceForm?.surchargePercent
     });
 
     if (totalAmountPaid < totalAmount && totalAmountPaid > 0) {
@@ -855,6 +881,7 @@ const InvoiceFormComponent: FC<Props> = ({
             onShippingFeesClick={handleOnClickShippingFees}
             onDiscountClick={handleOnClickDiscount}
             onTaxesClick={handleOnClickTax}
+            onSurchargeClick={handleOnClickSurcharge}
             onAddPaymentClicked={handleOnClickAddPayment}
             onRemovePaymentClicked={handleOnClickRemovePayment}
           />

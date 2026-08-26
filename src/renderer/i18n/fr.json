@@ -405,6 +405,7 @@
     "addPayment": "Ajouter un paiement",
     "addQuote": "Ajouter un devis",
     "addSignature": "Ajouter une signature",
+    "addSurcharge": "Ajouter un supplément",
     "addTaxes": "Ajouter TVA",
     "attachments": "Pièces jointes",
     "balanceDue": "Solde dû",
@@ -463,6 +464,8 @@
     "shippingFee": "Frais de livraison",
     "sortOrder": "Ordre de tri",
     "subTotal": "Sous‑total",
+    "surcharge": "Supplément",
+    "surchargePrct": "Supplément ({{prct}}%)",
     "tax": "TVA ({{prct}}%)",
     "taxExclusive": "{{name}} ({{prct}}%)",
     "taxExclusivePerItem": "TVA (par article)",
@@ -543,6 +546,8 @@
     "currencyDashboard": "Aperçu {{currency}}",
     "customRange": "Plage personnalisée",
     "dateRange": "Plage de dates",
+    "dateTypeIssuedAt": "Utiliser la date « Émise le »",
+    "dateTypePaidAt": "Utiliser la date « Payé le »",
     "invoiceCount": "{{name}} ({{count}} fact.)",
     "itemsCount": "{{name}} (qté: {{count}})",
     "last30Days": "30 derniers jours",
@@ -560,9 +565,7 @@
     "title": "Tableau de bord financier",
     "topClients": "Meilleurs clients par revenu",
     "topItems": "Meilleurs articles par ventes",
-    "totalInvoices": "{{count}} factures",
-    "dateTypeIssuedAt": "Utiliser la date « Émise le »",
-    "dateTypePaidAt": "Utiliser la date « Payé le »"
+    "totalInvoices": "{{count}} factures"
   },
   "settingsMenuItems": {
     "descriptions": {

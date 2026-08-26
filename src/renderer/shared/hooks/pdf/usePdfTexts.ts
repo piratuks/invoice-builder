@@ -24,6 +24,7 @@ export const usePdfTexts = (
       pdfQUOTE: tt('invoices.pdfQUOTE'),
       subTotalLabel: tt('invoices.subTotal'),
       discountLabel: tt('invoices.discount'),
+      surchargeLabel: tt('invoices.surcharge'),
       incLabel: tt('invoices.inc'),
       taxLabel: tt('invoices.taxLabel'),
       taxExclusivePerItemLabel: tt('invoices.taxExclusivePerItem'),
