@@ -121,5 +121,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   addBatchPreset: (data: Preset[]) => ipcRenderer.invoke('batch-add-preset', data),
 
   exportAllData: () => ipcRenderer.invoke('export-all-data'),
-  importAllData: () => ipcRenderer.invoke('import-all-data')
+  importAllData: () => ipcRenderer.invoke('import-all-data'),
+
+  printReceipt: (html: string) => ipcRenderer.invoke('print-receipt', html)
 });

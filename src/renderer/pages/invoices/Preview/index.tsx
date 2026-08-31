@@ -1,9 +1,13 @@
 import ColorLensIcon from '@mui/icons-material/ColorLens';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import PrintIcon from '@mui/icons-material/Print';
 import { Box, Fab, Tooltip } from '@mui/material';
 import { memo, useCallback, useMemo, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
+import { isWebMode } from '../../../shared/api/restApi';
+import { InvoiceType } from '../../../shared/enums/invoiceType';
 import { useExportPdf } from '../../../shared/hooks/fileExport/useExportPdf';
+import { usePrintReceipt } from '../../../shared/hooks/print/usePrintReceipt';
 import type { CustomField, CustomizationForm, InvoiceFromData } from '../../../shared/types/invoice';
 import type { SortOrder } from '../../../shared/types/sortOrder';
 import type { StyleProfileFromData } from '../../../shared/types/styleProfiles';
@@ -23,6 +27,7 @@ const InvoicesPreviewComponent: FC<Props> = ({ onSaveProfile = () => {}, setInvo
   const storeSettings = useAppSelector(selectSettings);
 
   const { exportPdf } = useExportPdf({ invoiceForm, storeSettings });
+  const { printReceipt } = usePrintReceipt({ invoiceForm, storeSettings });
 
   const [isDropdownOpenCustomization, setIsDropdownOpenCustomization] = useState<boolean>(false);
 
@@ -125,6 +130,23 @@ const InvoicesPreviewComponent: FC<Props> = ({ onSaveProfile = () => {}, setInvo
         onClick={handleOnClickCustomization}
         onSaveProfile={onSaveProfile}
       />
+      {!isWebMode() && invoiceForm?.invoiceType !== InvoiceType.quotation && (
+        <Tooltip title={t('common.printReceipt')}>
+          <Fab
+            color="primary"
+            aria-label={t('common.printReceipt')}
+            onClick={printReceipt}
+            sx={{
+              position: 'fixed',
+              bottom: 40,
+              right: 180,
+              zIndex: 1000
+            }}
+          >
+            <PrintIcon />
+          </Fab>
+        </Tooltip>
+      )}
       <Tooltip title={t('common.exportPDF')}>
         <Fab
           color="error"

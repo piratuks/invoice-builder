@@ -116,6 +116,13 @@ export const pageSlice = createSlice({
         quotesON: action.payload
       };
     },
+    setReceiptPrintingOn: (state, action: PayloadAction<boolean>) => {
+      if (!state.settings) return;
+      state.settings = {
+        ...state.settings,
+        receiptPrintingOn: action.payload
+      };
+    },
     setReports: (state, action: PayloadAction<boolean>) => {
       if (!state.settings) return;
       state.settings = {
@@ -202,7 +209,8 @@ export const {
   setUnitOptions,
   setBusinessSnapshotOptions,
   setClientSnapshotOptions,
-  setAllowed
+  setAllowed,
+  setReceiptPrintingOn
 } = pageSlice.actions;
 
 export const pageReducer = pageSlice.reducer;

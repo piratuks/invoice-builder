@@ -17,6 +17,7 @@ export interface Settings {
   styleProfilesON: boolean;
   ublON: boolean;
   xrechnungON: boolean;
+  receiptPrintingOn: boolean;
   presetsON: boolean;
   reportsON: boolean;
   createdAt: string;
@@ -34,6 +35,7 @@ export interface SettingsUpdate {
   shouldIncludeMonth?: boolean;
   shouldIncludeBusinessName?: boolean;
   quotesON?: boolean;
+  receiptPrintingOn?: boolean;
   styleProfilesON?: boolean;
   ublON?: boolean;
   xrechnungON?: boolean;

@@ -27,6 +27,7 @@ import {
   setMode,
   setPresets,
   setQuotes,
+  setReceiptPrintingOn,
   setReports,
   setStyleProfiles
 } from '../../state/pageSlice';
@@ -122,6 +123,13 @@ export const SettingsPage = () => {
   const toggleStyleProfiles = useCallback(
     (value: boolean) => {
       dispatch(setStyleProfiles(value));
+    },
+    [dispatch]
+  );
+
+  const toggleReceiptPrinting = useCallback(
+    (value: boolean) => {
+      dispatch(setReceiptPrintingOn(value));
     },
     [dispatch]
   );
@@ -251,6 +259,7 @@ export const SettingsPage = () => {
       onModeChange={onModeChange}
       toggleQuotes={toggleQuotes}
       toggleReports={toggleReports}
+      toggleReceiptPrinting={toggleReceiptPrinting}
       toggleStyleProfiles={toggleStyleProfiles}
       togglePresets={togglePresets}
       toggleUBL={toggleUBL}

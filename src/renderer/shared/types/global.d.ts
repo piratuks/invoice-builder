@@ -118,6 +118,8 @@ declare global {
 
       exportAllData: () => Promise<Response<ExportMeta>>;
       importAllData: () => Promise<Response<unknown>>;
+
+      printReceipt: (html: string) => Promise<Response<unknown>>;
     };
   }
 }

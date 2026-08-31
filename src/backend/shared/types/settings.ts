@@ -19,6 +19,7 @@ export interface Settings {
   xrechnungON: boolean;
   presetsON: boolean;
   reportsON: boolean;
+  receiptPrintingOn: boolean;
   createdAt: string;
   updatedAt: string;
 }

@@ -1,4 +1,4 @@
-import { DarkMode, Description, FileDownload, Language, LightMode } from '@mui/icons-material';
+import { DarkMode, Description, FileDownload, Language, LightMode, LocalPrintshopOutlined } from '@mui/icons-material';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import AutorenewIcon from '@mui/icons-material/Autorenew';
 import CoffeeIcon from '@mui/icons-material/Coffee';
@@ -33,6 +33,7 @@ interface Props {
   togglePresets?: (value: boolean) => void;
   toggleUBL?: (value: boolean) => void;
   toggleXRechnung?: (value: boolean) => void;
+  toggleReceiptPrinting?: (value: boolean) => void;
   onExportJSON?: () => void;
   onImportJSON?: () => void;
 }
@@ -43,6 +44,7 @@ export const Menu: FC<Props> = ({
   toggleReports = () => {},
   toggleStyleProfiles = () => {},
   togglePresets = () => {},
+  toggleReceiptPrinting = () => {},
   toggleUBL = () => {},
   onModeChange = () => {},
   onExportJSON = () => {},
@@ -158,6 +160,17 @@ export const Menu: FC<Props> = ({
           checked: storeSettings?.xrechnungON ?? true,
           onChange: () => {
             toggleXRechnung(!storeSettings?.xrechnungON);
+          }
+        },
+        {
+          text: t('settingsMenuItems.titles.turnReceiptPrinting'),
+          description: t('settingsMenuItems.descriptions.turnReceiptPrinting'),
+          icon: <LocalPrintshopOutlined />,
+          isToggle: true,
+          isSelected: false,
+          checked: storeSettings?.receiptPrintingOn ?? true,
+          onChange: () => {
+            toggleReceiptPrinting(!storeSettings?.receiptPrintingOn);
           }
         }
       ]

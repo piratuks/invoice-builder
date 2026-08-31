@@ -43,7 +43,7 @@ The **Settings** screen allows you to configure application behavior, manage dat
 From this screen you can:
 
 - Enable or disable optional layouts (**Presets**, **Style profiles**, **Quotes** and **Reports**)
-- Enable or disable optional features (**UBL 2.1**, **XRechnung**)
+- Enable or disable optional features (**UBL 2.1**, **XRechnung**, **Receipt Printing**)
 - Export all application data to **JSON**
 - Import previously exported data
 - Access project resources:
@@ -66,6 +66,16 @@ You can customize:
 - Date formatting
 
 ![Language and format](tutorial/settings_page_1.jpg)
+
+### Receipt printing
+
+Receipt printing is available in the desktop Electron app for invoices and quotes. It prints a compact 80mm receipt layout designed for retail checkout and POS-style workflows.
+
+> ℹ️ This feature is desktop-only and uses the operating system print dialog. A compatible printer must be installed and selected before printing. It is not available in the web/docker version.
+
+![Receipt printing](tutorial/printing_receipt_1.png)
+
+![Receipt printing](tutorial/printing_receipt_2.png)
 
 ### Invoice & File Naming
 

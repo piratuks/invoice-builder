@@ -11,6 +11,7 @@ import { useExportPdf } from '../../../shared/hooks/fileExport/useExportPdf';
 import { useExportPdfWithXml } from '../../../shared/hooks/fileExport/useExportPdfWithXml';
 import { useExportXML } from '../../../shared/hooks/fileExport/useExportXML';
 import { useGetEInvoiceXML } from '../../../shared/hooks/invoices/useGetEInvoiceXML';
+import { usePrintReceipt } from '../../../shared/hooks/print/usePrintReceipt';
 import type { Bank } from '../../../shared/types/bank';
 import type { Business } from '../../../shared/types/business';
 import type { Client } from '../../../shared/types/client';
@@ -93,6 +94,7 @@ const InvoiceFormComponent: FC<Props> = ({
   >(undefined);
   const { exportXML } = useExportXML({ invoiceForm, storeSettings });
   const { exportPdfWithXml } = useExportPdfWithXml({ invoiceForm, storeSettings });
+  const { printReceipt } = usePrintReceipt({ invoiceForm, storeSettings });
 
   const dispatch = useAppDispatch();
   const { execute: retrieveXML } = useGetEInvoiceXML({
@@ -985,6 +987,10 @@ const InvoiceFormComponent: FC<Props> = ({
         isPDFReady={invoiceForm?.id != undefined}
         onClose={() => handleOnClose(setMoreActionDropdown)}
         onOpen={() => handleOnOpen(setMoreActionDropdown)}
+        onPrintReceipt={() => {
+          handleOnClose(setMoreActionDropdown);
+          if (invoiceForm?.id !== undefined) printReceipt();
+        }}
         onDelete={() => {
           handleOnClose(setMoreActionDropdown);
           if (invoiceForm?.id !== undefined) handleDelete(invoiceForm.id);

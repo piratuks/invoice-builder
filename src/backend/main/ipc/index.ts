@@ -10,6 +10,7 @@ import { initImportExportHandlers } from './importExport';
 import { initInvoicesHandlers } from './invoices';
 import { initItemsHandlers } from './items';
 import { initPresetHandlers } from './presets';
+import { initReceiptHandlers } from './receipt';
 import { initSettingsHandlers } from './settings';
 import { initStyleProfilesHandlers } from './styleProfiles';
 import { initUnitsHandlers } from './units';
@@ -34,4 +35,5 @@ export const initIpcHandler = (db: DatabaseAdapter, mainWindow: BrowserWindow) =
   initUnitsHandlers(db);
   initBanksHandlers(db);
   initPresetHandlers(db);
+  initReceiptHandlers();
 };

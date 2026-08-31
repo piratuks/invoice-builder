@@ -1,5 +1,11 @@
 # Invoice Builder
 
+## [DATE], version 2.6.0
+
+New features & improvements
+
+- Added native receipt printing for invoices and quotes in Electron desktop mode, with compact 80mm paper rendering for retail checkout and POS-style printing.
+
 ## 2026-08-26, version 2.5.6
 
 New features & improvements

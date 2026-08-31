@@ -69,7 +69,8 @@ const resetIPCHandlers = () => {
     'update-preset',
     'delete-preset',
     'batch-add-preset',
-    'get-all-presets'
+    'get-all-presets',
+    'print-receipt'
   ];
 
   handlers.forEach(handler => ipcMain.removeHandler(handler));

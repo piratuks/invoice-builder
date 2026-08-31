@@ -53,6 +53,7 @@ If you value **privacy, portability, and control**, this app is built for you.
 - Invoice/Quote translations – select a language per document, independent of app settings
 - Export invoices in UBL 2.1 / Peppol BIS Billing 3.0 XML format, fully compliant for automated e-invoicing
 - Export invoices in XRechnung (UBL 2.1) XML format, fully compliant for automated e-invoicing
+- Native receipt printing for invoices and quotes in desktop Electron mode, including compact 80mm thermal receipt layouts for retail checkout workflows
 
 ### Business Data Management
 
@@ -112,7 +113,7 @@ If you value **privacy, portability, and control**, this app is built for you.
 - Leading-zero invoice/quote numbering is preserved across auto-increment (for consistent alphabetical file sorting)
 - File name customization for exported PDFs
 - Light & dark mode
-- Enable/disable UBL 2.1 Peppol BIS Billing 3.0, reports, style profiles, presets and quotes
+- Enable/disable UBL 2.1 Peppol BIS Billing 3.0, receipt printing, reports, style profiles, presets and quotes
 - Check for updates via GitHub releases
 - Presets: Predefine default Invoice/Quote data (e.g., business, client, currency, bank, style profile, notes, language, signature) to streamline document creation
 
@@ -443,24 +444,7 @@ Please open an issue before starting major work to ensure alignment.
 
 | Version | Status                |
 | ------- | --------------------- |
-| v2.5.6  | ✅ Actively supported |
-| v2.5.5  | ✅ Actively supported |
-| v2.5.4  | ✅ Actively supported |
-| v2.5.3  | ✅ Actively supported |
-| v2.5.2  | ✅ Actively supported |
-| v2.5.1  | ✅ Actively supported |
-| v2.5.0  | ✅ Actively supported |
-| v2.4.2  | ✅ Actively supported |
-| v2.4.1  | ✅ Actively supported |
-| v2.4.0  | ✅ Actively supported |
-| v2.3.0  | ✅ Actively supported |
-| v2.2.2  | ✅ Actively supported |
-| v2.2.1  | ✅ Actively supported |
-| v2.2.0  | ✅ Actively supported |
-| v2.1.1  | ✅ Actively supported |
-| v2.1.0  | ✅ Actively supported |
-| v2.0.2  | ✅ Actively supported |
-| v2.0.0  | ✅ Actively supported |
+| v2.6.0  | ✅ Actively supported |
 
 Details about supported versions and update policy will be documented here.
 
