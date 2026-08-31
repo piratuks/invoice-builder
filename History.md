@@ -1,5 +1,11 @@
 # Invoice Builder
 
+## 2026-08-31, version 2.6.1
+
+Bug fixes
+
+- Fixed invoice item row numbers always showing "1" instead of incrementing per row.
+
 ## 2026-08-31, version 2.6.0
 
 New features & improvements
