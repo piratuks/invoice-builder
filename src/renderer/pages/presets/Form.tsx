@@ -184,6 +184,14 @@ export const Form: FC<Props> = ({ handleChange = () => {}, preset }) => {
     [handleOnClose, setForm]
   );
 
+  const handleClearBank = useCallback(() => {
+    setForm(prev => ({
+      ...prev,
+      bankId: undefined,
+      bankName: undefined
+    }));
+  }, [setForm]);
+
   const handleOnClickLanguage = useCallback(
     (data: Language) => {
       handleOnClose(setIsDropdownOpenLanguages);
@@ -317,7 +325,11 @@ export const Form: FC<Props> = ({ handleChange = () => {}, preset }) => {
           />
         </Grid>
         <Grid size={{ xs: 12, md: storeSettings?.styleProfilesON ? 3 : 4 }}>
-          <BankSelector onEdit={() => handleOnOpen(setIsDropdownOpenBanks)} name={form.bankName} />
+          <BankSelector
+            onEdit={() => handleOnOpen(setIsDropdownOpenBanks)}
+            onClear={handleClearBank}
+            name={form.bankName}
+          />
         </Grid>
         {storeSettings?.styleProfilesON && (
           <Grid size={{ xs: 12, md: 3 }}>

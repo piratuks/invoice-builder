@@ -1,4 +1,4 @@
-import pako from 'pako';
+import { gzip } from 'pako';
 import type { DatabaseType } from '../enums/databaseType';
 import type { DBInitType } from '../enums/dbInitType';
 import type { EInvoice } from '../enums/einvoice';
@@ -519,7 +519,7 @@ export const webApi = () => {
           }
 
           const jsonString = JSON.stringify(parsed);
-          const compressed = pako.gzip(jsonString);
+          const compressed = gzip(jsonString);
 
           const blob = new Blob([compressed], { type: 'application/gzip' });
           const formData = new FormData();

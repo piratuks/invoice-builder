@@ -14,13 +14,15 @@ interface Props {
   onEditLanguage: () => void;
   onEditStyleProfile: () => void;
   onEditBank: () => void;
+  onClearBank?: () => void;
 }
 const TopRowComponent: FC<Props> = ({
   invoiceForm,
   onEditBank,
   onEditCurrency,
   onEditStyleProfile,
-  onEditLanguage
+  onEditLanguage,
+  onClearBank
 }) => {
   const storeSettings = useAppSelector(selectSettings);
 
@@ -35,7 +37,7 @@ const TopRowComponent: FC<Props> = ({
   return (
     <Box sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', gap: 2 }}>
       <CurrencySelector onEdit={onEditCurrency} data={currencyFormData} />
-      <BankSelector onEdit={onEditBank} name={invoiceForm?.invoiceBankSnapshot?.name} />
+      <BankSelector onEdit={onEditBank} onClear={onClearBank} name={invoiceForm?.invoiceBankSnapshot?.name} />
       {storeSettings?.styleProfilesON && (
         <StyleProfileSelector
           onEdit={onEditStyleProfile}

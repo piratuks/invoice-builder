@@ -268,6 +268,18 @@ const InvoiceFormComponent: FC<Props> = ({
     [handleOnClose, setInvoiceForm, invoiceForm]
   );
 
+  const handleClearBank = useCallback(() => {
+    if (!invoiceForm) return;
+
+    startTransition(() => {
+      setInvoiceForm({
+        ...invoiceForm,
+        bankId: undefined,
+        invoiceBankSnapshot: undefined
+      });
+    });
+  }, [setInvoiceForm, invoiceForm]);
+
   const handleOnClickStyleProfile = useCallback(
     (data: StyleProfile) => {
       handleOnClose(setIsDropdownOpenStyleProfile);
@@ -851,6 +863,7 @@ const InvoiceFormComponent: FC<Props> = ({
         onEditCurrency={() => handleOnOpen(setIsDropdownOpenCurrencies)}
         onEditLanguage={() => handleOnOpen(setIsDropdownOpenLanguages)}
         onEditStyleProfile={() => handleOnOpen(setIsDropdownOpenStyleProfile)}
+        onClearBank={handleClearBank}
         invoiceForm={invoiceForm}
       />
       <Divider flexItem />

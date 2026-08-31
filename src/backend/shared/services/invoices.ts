@@ -1063,6 +1063,9 @@ export const updateInvoice = async (db: DatabaseAdapter, data: Invoice) => {
         await rollbackOrThrow(db);
         return { success: false, key: ibs.key, message: ibs.message };
       }
+    } else if (data.bankId == undefined) {
+      // Bank was cleared from the invoice; drop the stale snapshot row.
+      await db.run('DELETE FROM invoice_bank_snapshots WHERE "parentInvoiceId" = ?;', [data.id]);
     }
     if (data.businessId != undefined && data.invoiceBusinessSnapshot) {
       const ibs = await handleInvoiceBusinessSnapshots(
