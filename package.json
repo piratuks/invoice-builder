@@ -82,7 +82,7 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
-    "@mui/icons-material": "^9.2.0",
+    "@mui/icons-material": "^9.4.0",
     "@mui/material": "^9.1.2",
     "@mui/x-date-pickers": "^9.7.0",
     "@react-pdf/renderer": "^4.5.1",
