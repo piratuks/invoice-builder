@@ -45,11 +45,31 @@ const SignatureDropdownComponent: FC<Props> = ({ isOpen, form, onClose, onOpen, 
       const url = formData.data ? await toDataUrl(formData.data, formData.type) : undefined;
 
       const canvas = sigRef.current?.getCanvas();
-      if (canvas) {
+      if (canvas && url) {
         canvas.width = canvasWidth;
         canvas.height = 200;
 
-        if (url) sigRef.current?.fromDataURL(url, { width: canvas.width, height: canvas.height });
+        const image = new Image();
+        image.onload = () => {
+          // Fit the image within the canvas while preserving its aspect ratio, centered
+          const naturalWidth = image.naturalWidth || canvas.width;
+          const naturalHeight = image.naturalHeight || canvas.height;
+          const scale = Math.min(canvas.width / naturalWidth, canvas.height / naturalHeight);
+          const width = naturalWidth * scale;
+          const height = naturalHeight * scale;
+          const xOffset = (canvas.width - width) / 2;
+          const yOffset = (canvas.height - height) / 2;
+
+          // signature_pad's fromDataURL always draws at (0, 0), so pre-compose the centered
+          // image on an offscreen canvas the same size as the visible one, then load that
+          const offscreen = document.createElement('canvas');
+          offscreen.width = canvas.width;
+          offscreen.height = canvas.height;
+          offscreen.getContext('2d')?.drawImage(image, xOffset, yOffset, width, height);
+
+          sigRef.current?.fromDataURL(offscreen.toDataURL(), { width: canvas.width, height: canvas.height });
+        };
+        image.src = url;
       }
     }
   }, [formData, canvasWidth]);
