@@ -5,10 +5,7 @@
 New features & improvements
 
 - Added native receipt printing for invoices and quotes in Electron desktop mode, with compact 80mm paper rendering for retail checkout and POS-style printing.
-
-Bug Fixes
-
-- Clearing the bank on an invoice/quote now removes its stale bank snapshot data instead of leaving it behind.
+- Allowing to clear the bank on an invoice/quote/style profiles.
 
 ## 2026-08-26, version 2.5.6
 
