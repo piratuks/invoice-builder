@@ -10,6 +10,7 @@ import type { RootState } from './configureStore';
 
 const initialState: PageState = {
   isLoading: false,
+  dbReady: false,
   toasts: [],
   settings: undefined,
   categoryOptions: [],
@@ -46,6 +47,17 @@ export const pageSlice = createSlice({
     },
     setAllowed: (state, action: PayloadAction<boolean>) => {
       state.isAllowedToLeave = action.payload;
+    },
+    setDbReady: (state, action: PayloadAction<boolean>) => {
+      state.dbReady = action.payload;
+    },
+    logout: state => {
+      state.dbReady = false;
+      state.settings = undefined;
+      state.categoryOptions = [];
+      state.unitOptions = [];
+      state.clientSnapshotOptions = [];
+      state.businessSnapshotOptions = [];
     },
     setUpdateMessage: (state, action: PayloadAction<string | undefined>) => {
       state.updateMessage = action.payload;
@@ -184,6 +196,7 @@ export const selectVersion = createSelector(selectState, state => state.version)
 export const selectNewVersion = createSelector(selectState, state => state.newVersion);
 export const selectUpdateMessage = createSelector(selectState, state => state.updateMessage);
 export const selectAllowed = createSelector(selectState, state => state.isAllowedToLeave);
+export const selectDbReady = createSelector(selectState, state => state.dbReady);
 
 export const {
   enableLoading,
@@ -210,7 +223,9 @@ export const {
   setBusinessSnapshotOptions,
   setClientSnapshotOptions,
   setAllowed,
-  setReceiptPrintingOn
+  setReceiptPrintingOn,
+  setDbReady,
+  logout
 } = pageSlice.actions;
 
 export const pageReducer = pageSlice.reducer;

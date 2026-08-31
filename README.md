@@ -54,6 +54,7 @@ If you value **privacy, portability, and control**, this app is built for you.
 - Export invoices in UBL 2.1 / Peppol BIS Billing 3.0 XML format, fully compliant for automated e-invoicing
 - Export invoices in XRechnung (UBL 2.1) XML format, fully compliant for automated e-invoicing
 - Native receipt printing for invoices and quotes in desktop Electron mode, including compact 80mm thermal receipt layouts for retail checkout workflows
+- Log out from the sidebar to return to the database selection screen and switch databases without restarting the app
 
 ### Business Data Management
 

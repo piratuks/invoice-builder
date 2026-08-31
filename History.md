@@ -6,6 +6,7 @@ New features & improvements
 
 - Added native receipt printing for invoices and quotes in Electron desktop mode, with compact 80mm paper rendering for retail checkout and POS-style printing.
 - Allowing to clear the bank on an invoice/quote/style profiles.
+- Added a "Log out" option in the sidebar to return to the database selection screen and switch databases without restarting the app.
 
 ## 2026-08-26, version 2.5.6
 

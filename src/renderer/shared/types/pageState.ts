@@ -3,6 +3,7 @@ import type { ToastMeta } from './toastMeta';
 
 export interface PageState {
   isLoading: boolean;
+  dbReady: boolean;
   toasts: ToastMeta[];
   settings?: Settings;
   categoryOptions?: Array<{ label: string; value: number }>;

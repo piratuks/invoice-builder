@@ -15,6 +15,7 @@ import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import CategoryIcon from '@mui/icons-material/Category';
 import ColorLensIcon from '@mui/icons-material/ColorLens';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import LogoutIcon from '@mui/icons-material/Logout';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import ScaleIcon from '@mui/icons-material/Scale';
 import ViewModule from '@mui/icons-material/ViewModule';
@@ -26,9 +27,10 @@ import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getApi } from '../shared/api/restApi';
 import { MenuList } from '../shared/components/lists/menuList/MenuList';
+import { Confirmation } from '../shared/components/modals/confirmation';
 import type { MenuItem } from '../shared/types/menuItem';
 import { useAppDispatch, useAppSelector } from '../state/configureStore';
-import { selectSettings, selectVersion, setVersion } from '../state/pageSlice';
+import { logout, selectSettings, selectVersion, setVersion } from '../state/pageSlice';
 const DRAWER_WIDTH = 240;
 const COLLAPSED_WIDTH = 60;
 
@@ -37,6 +39,7 @@ export const Sidebar: FC = () => {
 
   const theme = useTheme();
   const [open, setOpen] = useState(true);
+  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
 
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
   const { t } = useTranslation();
@@ -60,6 +63,19 @@ export const Sidebar: FC = () => {
     },
     [location]
   );
+
+  const handleLogoutClick = useCallback(() => {
+    setIsLogoutConfirmOpen(true);
+  }, []);
+
+  const handleLogoutCancel = useCallback(() => {
+    setIsLogoutConfirmOpen(false);
+  }, []);
+
+  const handleLogoutConfirm = useCallback(() => {
+    setIsLogoutConfirmOpen(false);
+    dispatch(logout());
+  }, [dispatch]);
 
   const menuItems = [
     {
@@ -221,6 +237,14 @@ export const Sidebar: FC = () => {
           minHeight: 50,
           isSelected: isSelected,
           onClick: onClickNavigate
+        },
+        {
+          text: t('menuItems.logout'),
+          icon: <LogoutIcon />,
+          isToggle: false,
+          minHeight: 50,
+          isSelected: () => false,
+          onClick: handleLogoutClick
         }
       ]
     }
@@ -306,6 +330,12 @@ export const Sidebar: FC = () => {
           </Typography>
         )}
       </Box>
+      <Confirmation
+        isOpen={isLogoutConfirmOpen}
+        text={t('common.logoutConfirm')}
+        onCancel={handleLogoutCancel}
+        onConfirm={handleLogoutConfirm}
+      />
     </Drawer>
   );
 };

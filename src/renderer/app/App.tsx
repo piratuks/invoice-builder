@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type FC } from 'react';
+import { useCallback, useEffect, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
 import { SpinnerOverlay } from '../shared/components/feedback/spinner/SpinnerOverlay';
@@ -10,12 +10,21 @@ import { useSettingsRetrieve } from '../shared/hooks/settings/useSettingsRetriev
 import type { Response } from '../shared/types/response';
 import type { Settings } from '../shared/types/settings';
 import { useAppDispatch, useAppSelector } from '../state/configureStore';
-import { addToast, removeToast, selectAllowed, selectIsLoading, selectToasts, setSettings } from '../state/pageSlice';
+import {
+  addToast,
+  removeToast,
+  selectAllowed,
+  selectDbReady,
+  selectIsLoading,
+  selectToasts,
+  setDbReady,
+  setSettings
+} from '../state/pageSlice';
 import { AppLayout } from './AppLayout';
 import { DatabaseChooser } from './DatabaseChooser/DatabaseChooser';
 
 export const App: FC = () => {
-  const [dbReady, setDbReady] = useState<boolean>(false);
+  const dbReady = useAppSelector(selectDbReady);
   const isLoading = useAppSelector(selectIsLoading);
   const toasts = useAppSelector(selectToasts);
   const isAllowedToLeave = useAppSelector(selectAllowed);
@@ -44,9 +53,9 @@ export const App: FC = () => {
   );
 
   const onDatabaseRead = useCallback(() => {
-    setDbReady(true);
+    dispatch(setDbReady(true));
     getSettings();
-  }, [getSettings]);
+  }, [dispatch, getSettings]);
 
   const handleConfirmLeave = useCallback(() => {
     confirmNavigation();

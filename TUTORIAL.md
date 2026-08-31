@@ -34,6 +34,10 @@ On the connection screen, you can:
 ![First screen](tutorial/server_connections.jpg)
 ![First screen](tutorial/password_enter.jpg)
 
+### Switching databases
+
+You don't need to restart the application to switch to a different database. Use the **Log out** option at the bottom of the sidebar menu to return to this database creation screen, where you can open or create another local database or connect to a different server.
+
 ## Settings screen
 
 The **Settings** screen allows you to configure application behavior, manage data, and customize document output.
