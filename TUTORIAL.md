@@ -46,7 +46,7 @@ The **Settings** screen allows you to configure application behavior, manage dat
 
 From this screen you can:
 
-- Enable or disable optional layouts (**Presets**, **Style profiles**, **Quotes** and **Reports**)
+- Enable or disable optional features (**Presets**, **Style profiles**, **Quotes** and **Reports**)
 - Enable or disable optional features (**UBL 2.1**, **XRechnung**, **Receipt Printing**)
 - Export all application data to **JSON**
 - Import previously exported data
@@ -630,6 +630,67 @@ You can:
 - Download a XLSX template for currency import
 
 ![Style profiles import/export](tutorial/style_profiles_page_5.jpg)
+
+## Layouts screen
+
+The **Layouts** screen allows you to **create, read, update, and delete (CRUD)** the JSON structures used to compose invoice and quote PDFs. Layouts control document structure, while colors, fonts, labels, table styling, and page settings remain configured in the invoice or quote customization options.
+
+Layout records can be archived and selected from invoice or quote page setup. Existing invoices and quotes keep a snapshot of the layout used when they were saved, so later layout changes do not alter historical documents.
+
+### Adding a Layout
+
+Click **Add** to create a new layout. Provide a valid layout JSON file using **Upload schema**. The JSON must contain a layout name and use the supported schema version and properties documented in the [Layout JSON reference](LAYOUT.md).
+
+![Layouts creation](tutorial/layouts_page_1.jpg)
+
+### Editing/Deleting a Layout
+
+Select a layout from the list to view its JSON schema. The schema viewer is read-only in the application. To update the layout, upload a replacement `.json` file using **Upload schema**.
+
+The upload is checked before it is applied. Invalid JSON, unsupported properties, duplicate sections, and unsupported values are rejected with validation errors. Layout JSON files are limited to 64 KB.
+
+You can also:
+
+- **Search layouts by name**
+- **Delete a layout** by clicking the red trash icon
+
+![Layouts editing](tutorial/layouts_page_2.jpg)
+
+### Filters
+
+Layouts have filters to control what is displayed. By default:
+
+- **Active**: shows all layouts except archived
+
+The **archived flag** can be toggled during creation or editing. This flag only affects filtering and does not delete the layout.
+
+![Layouts filters](tutorial/layouts_page_3.jpg)
+
+### Sorting
+
+Layouts can be sorted by:
+
+- Schema name
+- Last updated date
+
+![Layouts sort](tutorial/layouts_page_4.jpg)
+
+### Export
+
+You can export a saved layout as a `.json` file for reuse or transfer to another compatible database.
+
+Layout JSON export is available from the download icon on each layout in the list. Layouts are exported individually, not as an XLSX file.
+
+![Layouts export](tutorial/layouts_page_5.jpg)
+
+### Selecting a Layout
+
+In an invoice or quote, open page setup and select an active, non-archived layout. The selected layout determines the order and composition of the PDF sections, including the header, items table, totals, payment information, notes, signature, watermark, and page counter.
+
+![Layouts selection](tutorial/layouts_page_6.jpg)
+![Layouts selection](tutorial/layouts_page_7.jpg)
+
+For the complete JSON structure, supported sections, header blocks, composition examples, and limitations, see the [Layout JSON reference](LAYOUT.md).
 
 ## Quotes screen
 

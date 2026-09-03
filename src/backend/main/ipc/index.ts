@@ -9,6 +9,7 @@ import { initCurrenciesHandlers } from './currencies';
 import { initImportExportHandlers } from './importExport';
 import { initInvoicesHandlers } from './invoices';
 import { initItemsHandlers } from './items';
+import { initLayoutsHandlers } from './layouts';
 import { initPresetHandlers } from './presets';
 import { initReceiptHandlers } from './receipt';
 import { initSettingsHandlers } from './settings';
@@ -29,6 +30,7 @@ export const initIpcHandler = (db: DatabaseAdapter, mainWindow: BrowserWindow) =
   initClientsHandlers(db);
   initCurrenciesHandlers(db);
   initImportExportHandlers(db);
+  initLayoutsHandlers(db);
   initInvoicesHandlers(db);
   initItemsHandlers(db);
   initSettingsHandlers(db);

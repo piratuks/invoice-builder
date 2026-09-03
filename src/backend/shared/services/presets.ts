@@ -123,12 +123,13 @@ const getPresets = async (db: DatabaseAdapter, options: GetPresetsOptions) => {
           ba."qrCodeFileType" as "qrCodeFileType",
           ba."qrCodeFileName" as "qrCodeFileName",
           ba."qrCode" as "qrCode",
+          l."id" as "layoutId",
+          l."schema" as "layoutSchema",
           sp."name" as "styleProfileName",
           sp."color" as "styleProfileColor",
           sp."logoSize" as "styleProfileLogoSize",
           sp."fontSize" as "styleProfileFontSize",
           sp."fontFamily" as "styleProfileFontFamily",
-          sp."layout" as "styleProfileLayout",
           sp."tableHeaderStyle" as "styleProfileTableHeaderStyle",
           sp."tableRowStyle" as "styleProfileTableRowStyle",
           sp."pageFormat" as "styleProfilePageFormat",
@@ -148,6 +149,7 @@ const getPresets = async (db: DatabaseAdapter, options: GetPresetsOptions) => {
           sp."paidWatermarkFileData" as "styleProfilePaidWatermarkFileData"                 
         FROM presets t
         LEFT JOIN style_profiles sp ON sp."id" = t."styleProfilesId"
+        LEFT JOIN layouts l ON l."id" = sp."layoutId"
         LEFT JOIN banks ba ON ba."id" = t."bankId"
         LEFT JOIN currencies cur ON cur."id" = t."currencyId"
         LEFT JOIN clients cl ON cl."id" = t."clientId"
@@ -159,6 +161,8 @@ const getPresets = async (db: DatabaseAdapter, options: GetPresetsOptions) => {
   const final = presets.map(preset => {
     return {
       ...preset,
+      layoutSchema:
+        preset.layoutSchema && typeof preset.layoutSchema === 'string' ? JSON.parse(preset.layoutSchema) : undefined,
       styleProfileFieldSortOrders:
         preset.styleProfileFieldSortOrders && typeof preset.styleProfileFieldSortOrders === 'string'
           ? JSON.parse(preset.styleProfileFieldSortOrders)

@@ -1,10 +1,10 @@
 import type { FontFamily } from '../enums/fontFamily';
 import type { Language } from '../enums/language';
-import type { LayoutType } from '../enums/layoutType';
 import type { PageFormat } from '../enums/pageFormat';
 import type { SizeType } from '../enums/sizeType';
 import type { TableHeaderStyle } from '../enums/tableHeaderStyle';
 import type { TableRowStyle } from '../enums/tableRowStyle';
+import type { LayoutSchema } from './layouts';
 import type { PDFText } from './pdfText';
 import type { SortOrder } from './sortOrder';
 
@@ -57,12 +57,13 @@ export interface PresetMeta {
   qrCodeFileName?: string;
   //style profile
   styleProfilesId?: number;
+  layoutId?: number;
+  layoutSchema?: LayoutSchema;
   styleProfileName?: string;
   styleProfileColor?: string;
   styleProfileLogoSize?: SizeType;
   styleProfileFontSize?: SizeType;
   styleProfileFontFamily?: FontFamily;
-  styleProfileLayout?: LayoutType;
   styleProfileTableHeaderStyle?: TableHeaderStyle;
   styleProfileTableRowStyle?: TableRowStyle;
   styleProfilePageFormat?: PageFormat;
@@ -114,6 +115,8 @@ export interface PresetAddMeta {
   currencyId?: number;
   bankId?: number;
   styleProfilesId?: number;
+  layoutId?: number;
+  layoutSchema?: LayoutSchema;
   customerNotes?: string;
   thanksNotes?: string;
   termsConditionNotes?: string;
@@ -156,6 +159,8 @@ export interface PresetFromData {
   styleProfileName?: string;
   language?: Language;
   isArchived: boolean;
+  layoutId?: number;
+  layoutSchema?: LayoutSchema;
   customerNotes?: string;
   thanksNotes?: string;
   termsConditionNotes?: string;

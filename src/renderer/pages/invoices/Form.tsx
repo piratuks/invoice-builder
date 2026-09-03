@@ -6,7 +6,6 @@ import { InvoiceFormMode } from '../../shared/enums/invoiceFormMode';
 import { InvoiceStatus } from '../../shared/enums/invoiceStatus';
 import { InvoiceType } from '../../shared/enums/invoiceType';
 import { Language } from '../../shared/enums/language';
-import { LayoutType } from '../../shared/enums/layoutType';
 import { PageFormat } from '../../shared/enums/pageFormat';
 import { SizeType } from '../../shared/enums/sizeType';
 import { TableHeaderStyle } from '../../shared/enums/tableHeaderStyle';
@@ -70,6 +69,7 @@ const InvoiceFormComponent: FC<Props> = ({
       invoiceForm?.businessId !== undefined &&
       invoiceForm?.clientId !== undefined &&
       invoiceForm?.currencyId !== undefined &&
+      invoiceForm?.layoutId !== undefined &&
       invoiceForm?.issuedAt !== undefined &&
       invoiceForm?.invoiceNumber !== undefined &&
       invoiceForm?.language !== undefined &&
@@ -109,7 +109,6 @@ const InvoiceFormComponent: FC<Props> = ({
               logoSize: SizeType.medium,
               fontSize: SizeType.medium,
               fontFamily: FontFamily.roboto,
-              layout: LayoutType.classic,
               tableHeaderStyle: TableHeaderStyle.light,
               tableRowStyle: TableRowStyle.classic,
               pageFormat: PageFormat.a4,
@@ -138,6 +137,8 @@ const InvoiceFormComponent: FC<Props> = ({
 
   useEffect(() => {
     if (!preset) return;
+    const presetLayoutSchema = preset.layoutSchema ? preset.layoutSchema : undefined;
+
     startTransition(() => {
       setInvoiceForm(current => {
         if (!current) return current;
@@ -210,6 +211,15 @@ const InvoiceFormComponent: FC<Props> = ({
               }
             : undefined,
           styleProfilesId: preset.styleProfilesId ?? current.styleProfilesId,
+          layoutId: preset.layoutId ?? current.layoutId,
+          invoiceLayoutSnapshot:
+            preset.layoutId !== undefined && presetLayoutSchema
+              ? {
+                  ...current?.invoiceLayoutSnapshot,
+                  parentInvoiceId: current.id,
+                  layoutSchema: presetLayoutSchema
+                }
+              : current.invoiceLayoutSnapshot,
           invoiceStyleProfileSnapshot: preset.styleProfileName
             ? {
                 ...current?.invoiceStyleProfileSnapshot,
@@ -225,7 +235,6 @@ const InvoiceFormComponent: FC<Props> = ({
                 logoSize: preset.styleProfileLogoSize ?? current.invoiceCustomization?.logoSize,
                 fontSize: preset.styleProfileFontSize ?? current.invoiceCustomization?.fontSize,
                 fontFamily: preset.styleProfileFontFamily ?? current.invoiceCustomization?.fontFamily,
-                layout: preset.styleProfileLayout ?? current.invoiceCustomization?.layout,
                 tableHeaderStyle: preset.styleProfileTableHeaderStyle ?? current.invoiceCustomization?.tableHeaderStyle,
                 tableRowStyle: preset.styleProfileTableRowStyle ?? current.invoiceCustomization?.tableRowStyle,
                 pageFormat: preset.styleProfilePageFormat ?? current.invoiceCustomization?.pageFormat,
@@ -301,7 +310,7 @@ const InvoiceFormComponent: FC<Props> = ({
       handleChange({
         invoice: invoiceForm,
         isFormValid,
-        description: t('common.invalidForm')
+        description: invoiceForm.layoutId == null ? t('common.layoutRequired') : t('common.invalidForm')
       });
     }, 250);
 

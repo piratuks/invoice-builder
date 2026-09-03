@@ -13,6 +13,7 @@ import type { ExportMeta } from './exportMeta';
 import type { FilterData } from './filter';
 import type { CustomFieldMeta, Invoice, InvoiceAdd, InvoiceUpdate, NextSequenceData } from './invoice';
 import type { Item, ItemAdd, ItemUpdate } from './item';
+import type { Layout, LayoutAdd, LayoutUpdate } from './layouts';
 import type { PostgresConfig } from './postgresConfig';
 import type { Preset, PresetAdd, PresetUpdate } from './preset';
 import type { Response } from './response';
@@ -60,6 +61,12 @@ declare global {
       deleteStyleProfile: (id: number) => Promise<Response<unknown>>;
       addStyleProfile: (data: StyleProfileAdd) => Promise<Response<StyleProfile>>;
       addBatchStyleProfile: (data: StyleProfileAdd[]) => Promise<Response<StyleProfile[]>>;
+
+      getAllLayouts: (filter?: FilterData[]) => Promise<Response<Layout[]>>;
+      updateLayout: (data: LayoutUpdate) => Promise<Response<Layout>>;
+      deleteLayout: (id: number) => Promise<Response<unknown>>;
+      addLayout: (data: LayoutAdd) => Promise<Response<Layout>>;
+      exportLayout: (id: number) => Promise<Response<ExportMeta>>;
 
       getAllClients: (filter?: FilterData[]) => Promise<Response<Client[]>>;
       updateClient: (data: ClientUpdate) => Promise<Response<Client>>;

@@ -10,6 +10,7 @@ import type { CurrencyAdd, CurrencyUpdate } from '../renderer/shared/types/curre
 import type { FilterData } from '../renderer/shared/types/filter';
 import type { InvoiceAdd, InvoiceUpdate } from '../renderer/shared/types/invoice';
 import type { ItemAdd, ItemUpdate } from '../renderer/shared/types/item';
+import type { LayoutAdd, LayoutUpdate } from '../renderer/shared/types/layouts';
 import type { PostgresConfig } from '../renderer/shared/types/postgresConfig';
 import type { Preset, PresetAdd, PresetUpdate } from '../renderer/shared/types/preset';
 import type { SettingsUpdate } from '../renderer/shared/types/settings';
@@ -67,6 +68,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
   deleteStyleProfile: (id: number) => ipcRenderer.invoke('delete-styleProfile', id),
   addStyleProfile: (data: StyleProfileAdd) => ipcRenderer.invoke('add-styleProfile', data),
   addBatchStyleProfile: (data: StyleProfile[]) => ipcRenderer.invoke('batch-add-styleProfile', data),
+
+  getAllLayouts: (filter?: FilterData[]) => ipcRenderer.invoke('get-all-layouts', filter),
+  updateLayout: (data: LayoutUpdate) => ipcRenderer.invoke('update-layout', data),
+  deleteLayout: (id: number) => ipcRenderer.invoke('delete-layout', id),
+  addLayout: (data: LayoutAdd) => ipcRenderer.invoke('add-layout', data),
+  exportLayout: (id: number) => ipcRenderer.invoke('export-layout', id),
 
   getAllClients: (filter?: FilterData[]) => ipcRenderer.invoke('get-all-clients', filter),
   updateClient: (data: ClientUpdate) => ipcRenderer.invoke('update-client', data),

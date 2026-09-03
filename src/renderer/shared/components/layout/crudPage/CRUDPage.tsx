@@ -39,6 +39,8 @@ import { Confirmation } from '../../modals/confirmation';
 import { Content } from '../content/Content';
 import { PageAppBar } from '../pageAppBar/PageAppBar';
 
+type SortOption<T> = CustomOption<keyof T, T>;
+
 interface Props<T, TAdd, TUpdate> {
   componentId: string;
   renderCustomButtons?: () => React.ReactNode;
@@ -64,7 +66,7 @@ interface Props<T, TAdd, TUpdate> {
   useDelete?: (args: { id: number; immediate?: boolean; onDone?: (data: Response<unknown>) => void }) => {
     execute: () => void;
   };
-  searchField: keyof T;
+  searchField: keyof T | ((item: T) => string | undefined);
   validateAndNormalize?: (data: unknown) => Promise<TAdd | TUpdate | undefined>;
   form?: (args: {
     item?: T;
@@ -72,7 +74,7 @@ interface Props<T, TAdd, TUpdate> {
     onDelete?: (id: number) => void;
     onDuplicate?: (id: number) => void;
   }) => ReactNode;
-  sortOptions: { label: string; value: keyof T }[];
+  sortOptions: SortOption<T>[];
   noItemButtonText?: string;
   noItemText: string;
   leftTitle?: string;
@@ -162,7 +164,7 @@ export const CRUDPage = <T, TAdd, TUpdate>(props: Props<T, TAdd, TUpdate>) => {
     componentId
   );
   const [persistentSearch, setPersistentSearch] = usePersistentSearch('', componentId);
-  const [persistentSort, setPersistentSort] = usePersistentSort<keyof T>(
+  const [persistentSort, setPersistentSort] = usePersistentSort<keyof T, T>(
     {
       activeSort: SortType.DEFAULT,
       activeSortBy: sortOptions[0]
@@ -181,6 +183,8 @@ export const CRUDPage = <T, TAdd, TUpdate>(props: Props<T, TAdd, TUpdate>) => {
       }
     }
   });
+
+  const activeSortBy = sortOptions.find(option => option.value === persistentSort.activeSortBy.value) ?? sortOptions[0];
 
   const { execute: addItem, data: newRow } = useAdd({
     item: newItem,
@@ -278,10 +282,10 @@ export const CRUDPage = <T, TAdd, TUpdate>(props: Props<T, TAdd, TUpdate>) => {
       data: items,
       searchValue: persistentSearch,
       searchField,
-      sortField: persistentSort.activeSortBy.value,
+      sortField: activeSortBy?.getValue ?? persistentSort.activeSortBy.value,
       sortType: persistentSort.activeSort
     });
-  }, [items, persistentSearch, searchField, persistentSort]);
+  }, [activeSortBy, items, persistentSearch, searchField, persistentSort]);
 
   const totalPages = useMemo(() => {
     const pages = Math.ceil(filteredItems.length / itemsPerPage);
@@ -298,15 +302,17 @@ export const CRUDPage = <T, TAdd, TUpdate>(props: Props<T, TAdd, TUpdate>) => {
       const doSelect = () => {
         setIsModalOpen(false);
         setSelectedItem(undefined);
+        if (selectedItem === undefined) dispatch(setAllowed(true));
       };
 
       if (!skipAttempt && attemptNavigation && !isDesktop) {
         attemptNavigation(doSelect);
       } else {
         setIsModalOpen(false);
+        if (selectedItem === undefined) dispatch(setAllowed(true));
       }
     },
-    [attemptNavigation, isDesktop]
+    [attemptNavigation, dispatch, isDesktop, selectedItem]
   );
 
   const isUpdate = useCallback((item: TAdd | TUpdate): item is TUpdate => {
@@ -341,7 +347,7 @@ export const CRUDPage = <T, TAdd, TUpdate>(props: Props<T, TAdd, TUpdate>) => {
   );
 
   const onFilterSortChange = useCallback(
-    (data: { sortBy: CustomOption<keyof T>; sort: SortType }) => {
+    (data: { sortBy: CustomOption<keyof T, T>; sort: SortType }) => {
       setPersistentSort({
         activeSort: data.sort,
         activeSortBy: data.sortBy
@@ -608,10 +614,10 @@ export const CRUDPage = <T, TAdd, TUpdate>(props: Props<T, TAdd, TUpdate>) => {
             )}
             {filters.length <= 0 && <Box />}
 
-            <FilterSortBar<keyof T>
+            <FilterSortBar<keyof T, T>
               sortByOptions={sortOptions}
               activeSort={persistentSort.activeSort}
-              activeSortBy={persistentSort.activeSortBy}
+              activeSortBy={activeSortBy ?? persistentSort.activeSortBy}
               onChange={onFilterSortChange}
             />
           </Box>

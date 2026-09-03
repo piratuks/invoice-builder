@@ -290,6 +290,12 @@ const InvoiceFormComponent: FC<Props> = ({
         setInvoiceForm({
           ...invoiceForm,
           styleProfilesId: data.id,
+          layoutId: data.layoutId,
+          invoiceLayoutSnapshot: {
+            ...invoiceForm?.invoiceLayoutSnapshot,
+            parentInvoiceId: invoiceForm?.id,
+            layoutSchema: data.layoutSchema
+          },
           invoiceStyleProfileSnapshot: {
             ...invoiceForm?.invoiceStyleProfileSnapshot,
             parentInvoiceId: invoiceForm?.id,
@@ -302,7 +308,6 @@ const InvoiceFormComponent: FC<Props> = ({
             logoSize: data.logoSize ?? invoiceForm.invoiceCustomization!.logoSize,
             fontSize: data.fontSize ?? invoiceForm.invoiceCustomization!.fontSize,
             fontFamily: data.fontFamily ?? invoiceForm.invoiceCustomization!.fontFamily,
-            layout: data.layout ?? invoiceForm.invoiceCustomization!.layout,
             tableHeaderStyle: data.tableHeaderStyle ?? invoiceForm.invoiceCustomization!.tableHeaderStyle,
             tableRowStyle: data.tableRowStyle ?? invoiceForm.invoiceCustomization!.tableRowStyle,
             pageFormat: data.pageFormat ?? invoiceForm.invoiceCustomization!.pageFormat,

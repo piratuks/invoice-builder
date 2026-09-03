@@ -21,6 +21,7 @@ import type {
   NextSequenceData
 } from '../types/invoice';
 import type { Item, ItemAdd, ItemUpdate } from '../types/item';
+import type { Layout, LayoutAdd, LayoutUpdate } from '../types/layouts';
 import type { PostgresConfig } from '../types/postgresConfig';
 import type { PresetAdd, PresetUpdate, PresetUpdateWeb, PresetWeb } from '../types/preset';
 import type { Response } from '../types/response';
@@ -333,6 +334,23 @@ export const webApi = () => {
     deleteStyleProfile: (id: number) => apiDelete<Response<unknown>>(`/api/styleProfiles/${id}`),
     addBatchStyleProfile: (data: StyleProfileAdd[]) =>
       apiPost<Response<StyleProfileAdd[]>>('/api/styleProfiles/batch', data),
+
+    getAllLayouts: (filter?: FilterData[]) =>
+      apiGet<Response<Layout[]>>('/api/layouts', filter?.length ? { filter: JSON.stringify(filter) } : undefined),
+    addLayout: (data: LayoutAdd) => apiPost<Response<Layout>>('/api/layouts', data),
+    updateLayout: (data: LayoutUpdate) => apiPut<Response<Layout>>('/api/layouts', data),
+    deleteLayout: (id: number) => apiDelete<Response<unknown>>(`/api/layouts/${id}`),
+    exportLayout: async (id: number): Promise<Response<ExportMeta>> => {
+      const result = await apiGet<{ success: boolean; data?: Layout }>(`/api/layouts/export/${id}`);
+      if (!result.success || !result.data) return result as Response<ExportMeta>;
+      const blob = new Blob([JSON.stringify(result.data.schema, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `${result.data.schema.meta.name.replace(/[^a-z0-9_-]/gi, '_') || 'layout'}.json`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+      return { success: true, data: { filePath: a.download } };
+    },
 
     getAllClients: (filter?: FilterData[]) =>
       apiGet<Response<Client[]>>('/api/clients', filter?.length ? { filter: JSON.stringify(filter) } : undefined),

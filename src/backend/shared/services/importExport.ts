@@ -16,10 +16,12 @@ import type {
   InvoiceCustomization,
   InvoiceItem,
   InvoiceItemSnapshots,
+  InvoiceLayoutSnapshots,
   InvoicePayment,
   InvoiceStyleProfileSnapshots
 } from '../types/invoice';
 import type { Item } from '../types/item';
+import type { Layout } from '../types/layouts';
 import type { StyleProfile } from '../types/styleProfiles';
 import type { Unit } from '../types/unit';
 import {
@@ -50,6 +52,7 @@ export const exportAllData = async (db: DatabaseAdapter) => {
     const presets = await db.all<Bank>('SELECT * FROM presets');
     const invoiceSequences = await db.all<Bank>('SELECT * FROM invoice_sequences');
     const banks = await db.all<Bank>('SELECT * FROM banks');
+    const layouts = await db.all<Layout>('SELECT * FROM layouts');
     const styleProfiles = await db.all<StyleProfile>('SELECT * FROM style_profiles');
     const settingsRow = await db.get('SELECT * FROM settings LIMIT 1');
     const businesses = await db.all<Business>('SELECT * FROM businesses');
@@ -59,6 +62,7 @@ export const exportAllData = async (db: DatabaseAdapter) => {
     const categories = await db.all<Category>('SELECT * FROM categories');
     const currencies = await db.all<Currency>('SELECT * FROM currencies');
     const invoices = await db.all<Invoice>('SELECT * FROM invoices');
+    const invoiceLayoutSnapshots = await db.all<InvoiceLayoutSnapshots>('SELECT * FROM invoice_layout_snapshots');
     const invoiceBankSnapshots = await db.all<InvoiceBankSnapshots>('SELECT * FROM invoice_bank_snapshots');
     const invoiceBusinessSnapshots = await db.all<InvoiceBusinessSnapshots>('SELECT * FROM invoice_business_snapshots');
     const invoiceClientSnapshots = await db.all<InvoiceClientSnapshots>('SELECT * FROM invoice_client_snapshots');
@@ -92,6 +96,7 @@ export const exportAllData = async (db: DatabaseAdapter) => {
       units,
       categories,
       currencies,
+      layouts,
       invoices: invoicesModified,
       invoiceBankSnapshots: invoiceBankSnapshotsModified,
       invoiceBusinessSnapshots: invoiceBusinessSnapshotsModified,
@@ -99,6 +104,7 @@ export const exportAllData = async (db: DatabaseAdapter) => {
       invoiceClientSnapshots,
       invoiceCurrencySnapshots,
       invoiceStyleProfileSnapshots,
+      invoiceLayoutSnapshots,
       styleProfiles: styleProfilesModified,
       banks: banksModified,
       invoiceItems,
@@ -190,7 +196,7 @@ export const importAllData = async (db: DatabaseAdapter, parsed: Record<string, 
         'invoice_business_snapshots',
         'invoice_item_snapshots',
         'invoice_items',
-        'invoice_payments',
+        'invoice_layout_snapshots',
         'attachments',
         'invoices',
         'items',
@@ -200,6 +206,7 @@ export const importAllData = async (db: DatabaseAdapter, parsed: Record<string, 
         'categories',
         'currencies',
         'style_profiles',
+        'layouts',
         'banks'
       ];
 
@@ -212,6 +219,7 @@ export const importAllData = async (db: DatabaseAdapter, parsed: Record<string, 
         units: 'units',
         categories: 'categories',
         businesses: 'businesses',
+        layouts: 'layouts',
         style_profiles: 'styleProfiles',
         banks: 'banks',
         clients: 'clients',
@@ -226,6 +234,7 @@ export const importAllData = async (db: DatabaseAdapter, parsed: Record<string, 
         invoice_currency_snapshots: 'invoiceCurrencySnapshots',
         invoice_items: 'invoiceItems',
         invoice_item_snapshots: 'invoiceItemSnapshots',
+        invoice_layout_snapshots: 'invoiceLayoutSnapshots',
         invoice_payments: 'invoicePayments',
         attachments: 'attachments',
         presets: 'presets'

@@ -1,5 +1,17 @@
 # Invoice Builder
 
+## [DATE], version 2.7.0
+
+New features & improvements
+
+- Added Portuguese language support.
+- Added a Layouts page for managing JSON-defined invoice and quote PDF compositions.
+- Added validated layout JSON upload with support for section ordering, visibility, nested header rows and columns, spacing, block placement, payment sources, totals rows, watermark order, and item-table sizing.
+- Added Classic, Modern, and Compact layouts as built-in layouts, with archived legacy-compatible layouts for existing documents.
+- Added layout selection to invoice and quote page setup, with layout snapshots preserving the structure of historical documents.
+- Added individual layout JSON export for reusing and transferring saved layouts.
+- Added [LAYOUT.md](LAYOUT.md), documenting the layout JSON structure, supported variations, usage, and limitations.
+
 ## 2026-08-31, version 2.6.1
 
 Bug fixes

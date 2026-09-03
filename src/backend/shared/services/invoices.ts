@@ -16,6 +16,7 @@ import type {
   InvoiceCustomization,
   InvoiceItem,
   InvoiceItemSnapshots,
+  InvoiceLayoutSnapshots,
   InvoicePayment,
   InvoiceSequence,
   InvoiceStyleProfileSnapshots
@@ -108,7 +109,6 @@ const invoiceCustomizationFields: (keyof InvoiceCustomization)[] = [
   'logoSize',
   'fontSize',
   'fontFamily',
-  'layout',
   'tableHeaderStyle',
   'tableRowStyle',
   'pageFormat',
@@ -163,7 +163,8 @@ const invoiceFields: (keyof Invoice)[] = [
   'signatureSize',
   'signatureType',
   'signatureName',
-  'styleProfilesId'
+  'styleProfilesId',
+  'layoutId'
 ];
 const attachmentFields: (keyof InvoiceAttachment)[] = ['parentInvoiceId', 'fileSize', 'fileType', 'fileName', 'data'];
 const paymentsFields: (keyof InvoicePayment)[] = ['parentInvoiceId', 'amountCents', 'paidAt', 'paymentMethod', 'notes'];
@@ -181,7 +182,14 @@ const itemsSnapshotFields: (keyof InvoiceItemSnapshots)[] = [
   'unitPriceCents',
   'unitName'
 ];
+const layoutSnapshotFields: (keyof InvoiceLayoutSnapshots)[] = ['parentInvoiceId', 'layoutSchema'];
 const invoiceSequencesFields: (keyof InvoiceSequence)[] = ['nextSequence', 'clientId', 'businessId', 'invoiceType'];
+
+const serializeLayoutSnapshot = (snapshot: InvoiceLayoutSnapshots) => ({
+  ...snapshot,
+  layoutSchema:
+    typeof snapshot.layoutSchema === 'string' ? snapshot.layoutSchema : JSON.stringify(snapshot.layoutSchema)
+});
 
 const handleEntity =
   <T extends EntityWithId>(db: DatabaseAdapter, table: string, fields: readonly (keyof T)[]) =>
@@ -254,6 +262,11 @@ const createInvoiceHandlers = (db: DatabaseAdapter) => ({
     invoiceStyleProfileSnapshotsFields
   ),
   handleInvoiceItemSnapshots: handleEntity<InvoiceItemSnapshots>(db, 'invoice_item_snapshots', itemsSnapshotFields),
+  handleInvoiceLayoutSnapshots: handleEntity<InvoiceLayoutSnapshots>(
+    db,
+    'invoice_layout_snapshots',
+    layoutSnapshotFields
+  ),
   handleInvoicePayments: handleEntity<InvoicePayment>(db, 'invoice_payments', paymentsFields),
   handleInvoiceItems: handleEntity<InvoiceItem>(db, 'invoice_items', itemsFields),
   handleAttachments: handleEntity<InvoiceAttachment>(db, 'attachments', attachmentFields),
@@ -685,7 +698,8 @@ const getInvoices = async (db: DatabaseAdapter, options: GetInvoicesOptions) => 
     invoiceCurrencySnapshots,
     invoiceCustomization,
     invoiceStyleProfileSnapshots,
-    invoiceBankSnapshots
+    invoiceBankSnapshots,
+    invoiceLayoutSnapshots
   ] = await Promise.all([
     db.all<InvoicePayment>(`SELECT * FROM invoice_payments WHERE "parentInvoiceId" IN (${placeholders})`, invoiceIds),
     db.all<InvoiceItem>(`SELECT * FROM invoice_items WHERE "parentInvoiceId" IN (${placeholders})`, invoiceIds),
@@ -713,6 +727,10 @@ const getInvoices = async (db: DatabaseAdapter, options: GetInvoicesOptions) => 
     db.all<InvoiceBankSnapshots>(
       `SELECT * FROM invoice_bank_snapshots WHERE "parentInvoiceId" IN (${placeholders})`,
       invoiceIds
+    ),
+    db.all<InvoiceLayoutSnapshots>(
+      `SELECT * FROM invoice_layout_snapshots WHERE "parentInvoiceId" IN (${placeholders})`,
+      invoiceIds
     )
   ]);
 
@@ -725,6 +743,7 @@ const getInvoices = async (db: DatabaseAdapter, options: GetInvoicesOptions) => 
 
   return invoices.map(invoice => {
     const specificCustomization = invoiceCustomization.find(p => p.parentInvoiceId === invoice.id);
+    const layoutSnapshot = invoiceLayoutSnapshots.find(snapshot => snapshot.parentInvoiceId === invoice.id);
 
     return {
       ...invoice,
@@ -756,6 +775,15 @@ const getInvoices = async (db: DatabaseAdapter, options: GetInvoicesOptions) => 
                 : specificCustomization.fieldSortOrders
           }
         : specificCustomization,
+      invoiceLayoutSnapshot: layoutSnapshot
+        ? {
+            ...layoutSnapshot,
+            layoutSchema:
+              typeof layoutSnapshot.layoutSchema === 'string'
+                ? JSON.parse(layoutSnapshot.layoutSchema)
+                : layoutSnapshot.layoutSchema
+          }
+        : undefined,
       invoiceStyleProfileSnapshot: invoiceStyleProfileSnapshots.find(p => p.parentInvoiceId === invoice.id)
     };
   });
@@ -848,6 +876,7 @@ export const addInvoice = async (db: DatabaseAdapter, data: Invoice) => {
     handleInvoiceCurrencySnapshots,
     handleInvoiceCustomization,
     handleInvoiceStyleProfileSnapshots,
+    handleInvoiceLayoutSnapshots,
     handleInvoiceItemSnapshots,
     handleInvoicePayments,
     handleInvoiceItems,
@@ -913,6 +942,16 @@ export const addInvoice = async (db: DatabaseAdapter, data: Invoice) => {
     if (data.businessId != undefined && data.invoiceBusinessSnapshot) {
       const ibs = await handleInvoiceBusinessSnapshots({
         ...data.invoiceBusinessSnapshot,
+        parentInvoiceId: newId
+      });
+      if (!ibs.success) {
+        await rollbackOrThrow(db);
+        return { success: false, key: ibs.key, message: ibs.message };
+      }
+    }
+    if (data.layoutId != undefined && data.invoiceLayoutSnapshot) {
+      const ibs = await handleInvoiceLayoutSnapshots({
+        ...serializeLayoutSnapshot(data.invoiceLayoutSnapshot),
         parentInvoiceId: newId
       });
       if (!ibs.success) {
@@ -990,7 +1029,8 @@ export const updateInvoice = async (db: DatabaseAdapter, data: Invoice) => {
     handleInvoiceCustomization,
     handleInvoiceItems,
     handleInvoiceItemSnapshots,
-    handleSequences
+    handleSequences,
+    handleInvoiceLayoutSnapshots
   } = createInvoiceHandlers(db);
 
   try {
@@ -1091,6 +1131,23 @@ export const updateInvoice = async (db: DatabaseAdapter, data: Invoice) => {
           parentInvoiceId: data.id
         },
         data.invoiceClientSnapshot.id != undefined
+      );
+      if (!ibs.success) {
+        try {
+          await db.run('ROLLBACK');
+        } catch {
+          throw new Error(`error.rollbackFailed`);
+        }
+        return { success: false, key: ibs.key, message: ibs.message };
+      }
+    }
+    if (data.layoutId != undefined && data.invoiceLayoutSnapshot) {
+      const ibs = await handleInvoiceLayoutSnapshots(
+        {
+          ...serializeLayoutSnapshot(data.invoiceLayoutSnapshot),
+          parentInvoiceId: data.id
+        },
+        data.invoiceLayoutSnapshot.id != undefined
       );
       if (!ibs.success) {
         try {
@@ -1210,7 +1267,7 @@ export const duplicateInvoice = async (
           "discountType", "discountAmountCents", "discountPercent", "shippingFeeCents",
           "invoicePrefix", "invoiceSuffix", "taxName", "taxRate", "taxType", "signatureData",
           "signatureSize", "signatureType", "signatureName", "styleProfilesId", "bankId", 
-          "surchargeName", "surchargeAmountCents", "surchargePercent", "surchargeType"
+          "surchargeName", "surchargeAmountCents", "surchargePercent", "surchargeType", "layoutId"
         )
         SELECT
           ?, ?, "businessId", "clientId", "currencyId",
@@ -1223,7 +1280,7 @@ export const duplicateInvoice = async (
           "discountType", "discountAmountCents", "discountPercent", "shippingFeeCents",
           "invoicePrefix", "invoiceSuffix", "taxName", "taxRate", "taxType", "signatureData",
           "signatureSize", "signatureType", "signatureName", "styleProfilesId", "bankId",
-          "surchargeName", "surchargeAmountCents", "surchargePercent", "surchargeType"
+          "surchargeName", "surchargeAmountCents", "surchargePercent", "surchargeType", "layoutId"
         FROM invoices WHERE "id" = ?
       `;
 
@@ -1303,7 +1360,6 @@ export const duplicateInvoice = async (
       'logoSize',
       'fontSize',
       'fontFamily',
-      'layout',
       'tableHeaderStyle',
       'tableRowStyle',
       'pageFormat',
@@ -1323,6 +1379,7 @@ export const duplicateInvoice = async (
       'pdfTexts'
     ]);
     await duplicateSnapshot('invoice_style_profile_snapshots', ['styleProfileName']);
+    await duplicateSnapshot('invoice_layout_snapshots', ['layoutSchema']);
 
     await db.run(
       `INSERT INTO invoice_items ("parentInvoiceId", "itemId", "quantity", "taxRate", "taxType", "customField")

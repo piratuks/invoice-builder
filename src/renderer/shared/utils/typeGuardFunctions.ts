@@ -12,6 +12,13 @@ import type {
   InvoiceFromData
 } from '../types/invoice';
 import type { ItemFromData } from '../types/item';
+import {
+  parseLayoutSchema,
+  validateLayoutSchema,
+  type LayoutAdd,
+  type LayoutFormData,
+  type LayoutUpdate
+} from '../types/layouts';
 import type { PDFText } from '../types/pdfText';
 import type { SortOrder } from '../types/sortOrder';
 import type { StyleProfileFromData } from '../types/styleProfiles';
@@ -81,6 +88,22 @@ const isRecord = (value: unknown): value is Record<string, unknown> => {
   return typeof value === 'object' && value !== null;
 };
 
+export const isLayoutFormData = (data: unknown): data is LayoutFormData => {
+  if (!isRecord(data)) return false;
+  if (data.id !== undefined && typeof data.id !== 'number') return false;
+  if (typeof data.isArchived !== 'boolean') return false;
+  if (typeof data.schema !== 'string') return false;
+
+  return parseLayoutSchema(data.schema).errors.length === 0;
+};
+
+export const isLayoutData = (data: unknown): data is LayoutAdd | LayoutUpdate => {
+  if (!isRecord(data)) return false;
+  if (data.id !== undefined && typeof data.id !== 'number') return false;
+  if (typeof data.isArchived !== 'boolean' || !isRecord(data.schema)) return false;
+
+  return validateLayoutSchema(data.schema).length === 0;
+};
 const isSortOrder = (value: unknown): value is SortOrder => {
   const SORT_ORDER_KEYS = ['no', 'item', 'unit', 'quantity', 'unitCost', 'total'] as const;
   type SortOrderKey = (typeof SORT_ORDER_KEYS)[number];

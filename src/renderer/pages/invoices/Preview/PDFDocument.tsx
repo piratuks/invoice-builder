@@ -1,8 +1,8 @@
-import { Document, Font, Image, Page, View } from '@react-pdf/renderer';
-import { memo, useMemo, type FC } from 'react';
+import { Document, Font, Image, Page, Text, View } from '@react-pdf/renderer';
+import { Fragment, memo, useMemo, type FC } from 'react';
 import { InvoiceStatus } from '../../../shared/enums/invoiceStatus';
-import { LayoutType } from '../../../shared/enums/layoutType';
 import type { AttachmentURL, InvoiceFromData, PdfTexts } from '../../../shared/types/invoice';
+import type { ColumnSizing, HeaderBlock, LayoutSectionType, TotalsRowBlock } from '../../../shared/types/layouts';
 import type { Settings } from '../../../shared/types/settings';
 import Inter_18pt_Bold from './../../../assets/inter/Inter_18pt-Bold.ttf';
 import Inter_18pt_BoldItalic from './../../../assets/inter/Inter_18pt-BoldItalic.ttf';
@@ -40,9 +40,6 @@ import { createCustomFontStyles, DEFAULT_FONT_SIZES, FONT_SIZES, PDF_STYLES } fr
 import { FinancialInfo } from './FinancialInfo';
 import { HeaderInfo } from './HeaderInfo';
 import { ItemsInfo } from './ItemsInfo';
-import { ClassicLayout } from './LegacyLayout/Classic';
-import { CompactLayout } from './LegacyLayout/Compact';
-import { ModernLayout } from './LegacyLayout/Modern';
 import { NotesInfo } from './NotesInfo';
 import { PageCounterInfo } from './PageCounterInfo';
 import { PaymentInfo } from './PaymentInfo';
@@ -110,6 +107,7 @@ interface Props {
   signatureUrl?: string;
   attachmentUrls: AttachmentURL[];
   pdfTexts: PdfTexts;
+  layoutRequired: string;
   watermarkUrl?: string;
   watermarkPaidUrl?: string;
 }
@@ -121,83 +119,54 @@ const PDFDocumentComponent: FC<Props> = ({
   signatureUrl,
   attachmentUrls,
   pdfTexts,
+  layoutRequired,
   watermarkUrl,
   watermarkPaidUrl
 }) => {
+  const templateSections = invoiceForm?.invoiceLayoutSnapshot?.layoutSchema?.sections ?? [];
   const dynamicStyle = useMemo(
     () => createCustomFontStyles(invoiceForm?.invoiceCustomization?.fontFamily),
     [invoiceForm?.invoiceCustomization?.fontFamily]
   );
 
-  return (
-    <Document>
-      {invoiceForm?.id != undefined &&
-        invoiceForm?.invoiceBankSnapshot === undefined &&
-        invoiceForm?.invoiceBusinessSnapshot?.businessPaymentInformation &&
-        invoiceForm?.invoiceCustomization?.layout === LayoutType.compact && (
-          <CompactLayout
+  const renderTemplateSection = (
+    type: LayoutSectionType,
+    blocks?: HeaderBlock[],
+    columnSizing?: ColumnSizing,
+    totalsBlocks?: TotalsRowBlock[],
+    watermarkOrder?: 'default' | 'paidFirst'
+  ) => {
+    switch (type) {
+      case 'watermark':
+        return (
+          <Fragment key={type}>
+            {watermarkOrder === 'paidFirst' && invoiceForm?.status === InvoiceStatus.paid && (
+              <WatermarkPaidInfo invoiceForm={invoiceForm} watermarkPaidUrl={watermarkPaidUrl} />
+            )}
+            <WatermarkInfo invoiceForm={invoiceForm} watermarkUrl={watermarkUrl} />
+            {watermarkOrder !== 'paidFirst' && invoiceForm?.status === InvoiceStatus.paid && (
+              <WatermarkPaidInfo invoiceForm={invoiceForm} watermarkPaidUrl={watermarkPaidUrl} />
+            )}
+          </Fragment>
+        );
+      case 'header':
+        return (
+          <HeaderInfo
+            key={type}
             invoiceForm={invoiceForm}
             storeSettings={storeSettings}
             logoUrl={logoUrl}
-            signatureUrl={signatureUrl}
             pdfTexts={pdfTexts}
-            watermarkUrl={watermarkUrl}
-            watermarkPaidUrl={watermarkPaidUrl}
+            blocks={blocks ?? []}
           />
-        )}
-      {invoiceForm?.id != undefined &&
-        invoiceForm?.invoiceBankSnapshot === undefined &&
-        invoiceForm?.invoiceBusinessSnapshot?.businessPaymentInformation &&
-        invoiceForm?.invoiceCustomization?.layout === LayoutType.classic && (
-          <ClassicLayout
-            invoiceForm={invoiceForm}
-            storeSettings={storeSettings}
-            logoUrl={logoUrl}
-            signatureUrl={signatureUrl}
-            pdfTexts={pdfTexts}
-            watermarkUrl={watermarkUrl}
-            watermarkPaidUrl={watermarkPaidUrl}
-          />
-        )}
-      {invoiceForm?.id != undefined &&
-        invoiceForm?.invoiceBankSnapshot === undefined &&
-        invoiceForm?.invoiceBusinessSnapshot?.businessPaymentInformation &&
-        invoiceForm?.invoiceCustomization?.layout === LayoutType.modern && (
-          <ModernLayout
-            invoiceForm={invoiceForm}
-            storeSettings={storeSettings}
-            logoUrl={logoUrl}
-            signatureUrl={signatureUrl}
-            pdfTexts={pdfTexts}
-            watermarkUrl={watermarkUrl}
-            watermarkPaidUrl={watermarkPaidUrl}
-          />
-        )}
-
-      {!(
-        invoiceForm?.id != undefined &&
-        invoiceForm?.invoiceBankSnapshot === undefined &&
-        invoiceForm?.invoiceBusinessSnapshot?.businessPaymentInformation
-      ) && (
-        <Page
-          size={invoiceForm?.invoiceCustomization?.pageFormat}
-          style={[
-            PDF_STYLES.page,
-            dynamicStyle.customFont,
-            {
-              fontSize: FONT_SIZES[invoiceForm?.invoiceCustomization?.fontSize ?? DEFAULT_FONT_SIZES].page
-            }
-          ]}
-        >
-          {invoiceForm?.status === InvoiceStatus.paid && (
-            <WatermarkPaidInfo invoiceForm={invoiceForm} watermarkPaidUrl={watermarkPaidUrl} />
-          )}
-          <WatermarkInfo invoiceForm={invoiceForm} watermarkUrl={watermarkUrl} />
-
-          <HeaderInfo invoiceForm={invoiceForm} storeSettings={storeSettings} logoUrl={logoUrl} pdfTexts={pdfTexts} />
+        );
+      case 'itemsTable':
+        return (
           <ItemsInfo
+            key={type}
             invoiceForm={invoiceForm}
             storeSettings={storeSettings}
+            columnSizing={columnSizing}
             labels={{
               itemLabel: pdfTexts.itemLabel,
               unitLabel: pdfTexts.unitLabel,
@@ -208,7 +177,11 @@ const PDFDocumentComponent: FC<Props> = ({
               discountLabel: pdfTexts.discountLabel
             }}
           />
+        );
+      case 'financialTotals':
+        return (
           <View
+            key={type}
             wrap={false}
             style={[PDF_STYLES.row, PDF_STYLES.spaceBetween, PDF_STYLES.alignStart, PDF_STYLES.pt10]}
             minPresenceAhead={20}
@@ -232,35 +205,118 @@ const PDFDocumentComponent: FC<Props> = ({
               }}
             />
           </View>
-          <NotesInfo
-            invoiceForm={invoiceForm}
-            labels={{
-              customerNoteLabel: pdfTexts.customerNote,
-              termsConditionsLabel: pdfTexts.termsConditions
-            }}
-          />
+        );
+      case 'paymentInfo':
+        return (
           <View
+            key={type}
             wrap={false}
             style={[PDF_STYLES.row, PDF_STYLES.spaceBetween, PDF_STYLES.alignStart, PDF_STYLES.pt20]}
             minPresenceAhead={20}
           >
             <PaymentInfo invoiceForm={invoiceForm} paymentInfoLabel={pdfTexts.paymentInfo} qrCodeUrl={qrCodeUrl} />
           </View>
-
+        );
+      case 'totalsRow':
+        return (
+          <View
+            key={type}
+            wrap={false}
+            style={[PDF_STYLES.row, PDF_STYLES.spaceBetween, PDF_STYLES.alignStart, PDF_STYLES.pt10]}
+            minPresenceAhead={20}
+          >
+            {totalsBlocks?.map(block => {
+              if (block.type === 'spacer') return <View key="spacer" style={PDF_STYLES.flexGrow} />;
+              if (block.type === 'paymentInfo') {
+                return (
+                  <PaymentInfo
+                    key="paymentInfo"
+                    invoiceForm={invoiceForm}
+                    paymentInfoLabel={pdfTexts.paymentInfo}
+                    qrCodeUrl={qrCodeUrl}
+                    source={block.paymentSource}
+                  />
+                );
+              }
+              return (
+                <FinancialInfo
+                  key="financialTotals"
+                  invoiceForm={invoiceForm}
+                  storeSettings={storeSettings}
+                  labels={{
+                    subTotalLabel: pdfTexts.subTotalLabel,
+                    discountLabel: pdfTexts.discountLabel,
+                    surchargeLabel: pdfTexts.surchargeLabel,
+                    incLabel: pdfTexts.incLabel,
+                    taxLabel: pdfTexts.taxLabel,
+                    taxExclusivePerItemLabel: pdfTexts.taxExclusivePerItemLabel,
+                    taxInclusivePerItemLabel: pdfTexts.taxInclusivePerItemLabel,
+                    shippingFeeLabel: pdfTexts.shippingFeeLabel,
+                    totalLabel: pdfTexts.totalLabel,
+                    paidLabel: pdfTexts.paidLabel,
+                    balanceDueLabel: pdfTexts.balanceDueLabel
+                  }}
+                />
+              );
+            })}
+          </View>
+        );
+      case 'notes':
+        return (
+          <NotesInfo
+            key={type}
+            invoiceForm={invoiceForm}
+            labels={{ customerNoteLabel: pdfTexts.customerNote, termsConditionsLabel: pdfTexts.termsConditions }}
+          />
+        );
+      case 'signature':
+        return (
           <SignatureInfo
+            key={type}
             invoiceForm={invoiceForm}
             signatureUrl={signatureUrl}
             authorisedSignatoryLabel={pdfTexts.authorisedSignatoryLabel}
           />
+        );
+      case 'pageCounter':
+        return (
           <PageCounterInfo
+            key={type}
             invoiceForm={invoiceForm}
-            labels={{
-              ofLabel: pdfTexts.of,
-              pageLabel: pdfTexts.page
-            }}
+            labels={{ ofLabel: pdfTexts.of, pageLabel: pdfTexts.page }}
           />
-        </Page>
-      )}
+        );
+    }
+  };
+
+  return (
+    <Document>
+      <Page
+        size={invoiceForm?.invoiceCustomization?.pageFormat}
+        style={[
+          PDF_STYLES.page,
+          dynamicStyle.customFont,
+          { fontSize: FONT_SIZES[invoiceForm?.invoiceCustomization?.fontSize ?? DEFAULT_FONT_SIZES].page }
+        ]}
+      >
+        {!invoiceForm?.layoutId || !invoiceForm.invoiceLayoutSnapshot?.layoutSchema ? (
+          <View style={{ flexGrow: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <Text style={PDF_STYLES.layoutRequired}>{layoutRequired}</Text>
+          </View>
+        ) : (
+          templateSections
+            .filter(section => section.visible !== false)
+            .map(section =>
+              renderTemplateSection(
+                section.type,
+                section.blocks,
+                section.columnSizing,
+                section.totalsBlocks,
+                section.watermarkOrder
+              )
+            )
+        )}
+      </Page>
 
       {attachmentUrls.map(item => (
         <Page

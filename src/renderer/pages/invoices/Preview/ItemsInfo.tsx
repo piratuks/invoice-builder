@@ -4,10 +4,19 @@ import { memo, useMemo, type FC } from 'react';
 import { TableHeaderStyle } from '../../../shared/enums/tableHeaderStyle';
 import { TableRowStyle } from '../../../shared/enums/tableRowStyle';
 import type { CustomField, InvoiceFromData } from '../../../shared/types/invoice';
+import type { ColumnSizing } from '../../../shared/types/layouts';
 import type { Settings } from '../../../shared/types/settings';
 import { getItemFinancialData } from '../../../shared/utils/invoiceFunctions';
 import { DEFAULT_TABLE_FIELD_SORT_ORDERS } from '../../../state/constant';
-import { DEFAULT_FONT_SIZES, FIXED_COLUMNS, FONT_SIZES, FONT_WIDTH_MULTIPLIERS, PDF_STYLES } from './constant';
+import {
+  COLUMN_WEIGHTS,
+  DEFAULT_FONT_SIZES,
+  DEFAULT_USER_COLUMN_WEIGHT,
+  FIXED_COLUMNS,
+  FONT_SIZES,
+  FONT_WIDTH_MULTIPLIERS,
+  PDF_STYLES
+} from './constant';
 
 interface PropsLabels {
   itemLabel: string;
@@ -22,8 +31,9 @@ interface Props {
   invoiceForm?: InvoiceFromData;
   storeSettings?: Settings;
   labels: PropsLabels;
+  columnSizing?: ColumnSizing;
 }
-const ItemsInfoComponent: FC<Props> = ({ invoiceForm, storeSettings, labels }) => {
+const ItemsInfoComponent: FC<Props> = ({ invoiceForm, storeSettings, labels, columnSizing = 'fixedFlex' }) => {
   const { itemLabel, unitLabel, qtyLabel, unitCostLabel, totalLabel, taxLabel, discountLabel } = labels;
 
   const customFields = useMemo(() => {
@@ -42,6 +52,21 @@ const ItemsInfoComponent: FC<Props> = ({ invoiceForm, storeSettings, labels }) =
   }, [invoiceForm?.invoiceItems]);
 
   const sizes = useMemo(() => {
+    if (columnSizing === 'proportional') {
+      const weights = { ...COLUMN_WEIGHTS };
+      customFields.forEach(column => {
+        weights[column.header] = DEFAULT_USER_COLUMN_WEIGHT;
+      });
+      if (!invoiceForm?.invoiceCustomization?.showRowNo) delete weights.rowNo;
+      if (!invoiceForm?.invoiceCustomization?.showQuantity) delete weights.quantity;
+      if (!invoiceForm?.invoiceCustomization?.showUnit) delete weights.unit;
+
+      const totalWeight = Object.values(weights).reduce<number>((sum, weight) => sum + (weight ?? 0), 0);
+      return Object.fromEntries(
+        Object.entries(weights).map(([key, weight]) => [key, { width: `${((weight ?? 0) / totalWeight) * 100}%` }])
+      );
+    }
+
     const weights: Record<string, Style> = {};
 
     if (invoiceForm?.invoiceCustomization?.showRowNo) {
@@ -75,7 +100,7 @@ const ItemsInfoComponent: FC<Props> = ({ invoiceForm, storeSettings, labels }) =
     };
 
     return weights;
-  }, [customFields, invoiceForm]);
+  }, [columnSizing, customFields, invoiceForm]);
 
   const lightenHex = (data: { hex?: string; amount: number }) => {
     const { hex, amount } = data;

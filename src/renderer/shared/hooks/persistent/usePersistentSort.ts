@@ -5,15 +5,15 @@ import type { CustomOption } from '../../types/customOption';
 
 const LOCAL_STORAGE_KEY = 'pageSort';
 
-export const usePersistentSort = <T extends string | number | symbol>(
-  initialSort: { activeSort: SortType; activeSortBy: CustomOption<T> },
+export const usePersistentSort = <T extends string | number | symbol, TItem = unknown>(
+  initialSort: { activeSort: SortType; activeSortBy: CustomOption<T, TItem> },
   componentId: string
 ) => {
   const location = useLocation();
   const pageKey = location.pathname.replace(/^\/+/, '').replace(/\/+$/, '');
   const storageKey = `${pageKey}:${componentId}`;
 
-  const [sort, setSort] = useState<{ activeSort: SortType; activeSortBy: CustomOption<T> }>(() => {
+  const [sort, setSort] = useState<{ activeSort: SortType; activeSortBy: CustomOption<T, TItem> }>(() => {
     try {
       const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
       if (stored) {
@@ -28,7 +28,7 @@ export const usePersistentSort = <T extends string | number | symbol>(
   });
 
   const updateSort = useCallback(
-    (newSort: { activeSort: SortType; activeSortBy: CustomOption<T> }) => {
+    (newSort: { activeSort: SortType; activeSortBy: CustomOption<T, TItem> }) => {
       setSort(newSort);
       try {
         const stored = localStorage.getItem(LOCAL_STORAGE_KEY);

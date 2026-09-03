@@ -4,13 +4,13 @@ import type { FontFamily } from '../enums/fontFamily';
 import type { InvoiceStatus } from '../enums/invoiceStatus';
 import type { InvoiceType } from '../enums/invoiceType';
 import type { Language } from '../enums/language';
-import type { LayoutType } from '../enums/layoutType';
 import type { PageFormat } from '../enums/pageFormat';
 import type { PaymentType } from '../enums/paymentType';
 import type { SizeType } from '../enums/sizeType';
 import type { TableHeaderStyle } from '../enums/tableHeaderStyle';
 import type { TableRowStyle } from '../enums/tableRowStyle';
 import type { InvoiceItemTaxType, InvoiceTaxType } from '../enums/taxType';
+import type { LayoutSchema } from './layouts';
 import type { PDFText } from './pdfText';
 import type { SortOrder } from './sortOrder';
 
@@ -152,6 +152,12 @@ export interface InvoiceStyleProfileSnapshots {
   styleProfileName?: string;
 }
 
+export interface InvoiceLayoutSnapshots {
+  parentInvoiceId?: number;
+  id?: number;
+  layoutSchema?: LayoutSchema;
+}
+
 export interface InvoiceCustomizationMeta {
   parentInvoiceId?: number;
   id?: number;
@@ -159,7 +165,6 @@ export interface InvoiceCustomizationMeta {
   logoSize?: SizeType;
   fontSize?: SizeType;
   fontFamily?: FontFamily;
-  layout?: LayoutType;
   tableHeaderStyle?: TableHeaderStyle;
   tableRowStyle?: TableRowStyle;
   pageFormat?: PageFormat;
@@ -189,9 +194,10 @@ export interface InvoiceCustomizationWeb extends InvoiceCustomizationMeta {
 
 export interface CustomizationFormPageSetup {
   pageFormat?: PageFormat;
-  layout?: LayoutType;
   fontSize?: SizeType;
   fontFamily?: FontFamily;
+  layoutId?: number;
+  layoutSchema?: LayoutSchema;
 }
 
 export interface CustomizationFormBranding {
@@ -227,7 +233,6 @@ export interface CustomizationForm {
   logoSize?: SizeType;
   fontSize?: SizeType;
   fontFamily?: FontFamily;
-  layout?: LayoutType;
   tableHeaderStyle?: TableHeaderStyle;
   tableRowStyle?: TableRowStyle;
   pageFormat?: PageFormat;
@@ -246,6 +251,8 @@ export interface CustomizationForm {
   fieldSortOrders?: SortOrder;
   pdfTexts?: PDFText;
   customField?: CustomField[];
+  layoutId?: number;
+  layoutSchema?: LayoutSchema;
 }
 
 export interface DiscountForm {
@@ -372,6 +379,7 @@ export interface InvoiceMeta {
   businessId: number;
   bankId?: number;
   clientId: number;
+  layoutId?: number;
   currencyId: number;
   createdAt: string;
   updatedAt: string;
@@ -405,6 +413,7 @@ export interface InvoiceMeta {
   signatureType?: string;
   signatureName?: string;
   styleProfilesId?: number;
+  invoiceLayoutSnapshot?: InvoiceLayoutSnapshots;
   invoiceStyleProfileSnapshot?: InvoiceStyleProfileSnapshots;
   invoiceClientSnapshot?: InvoiceClientSnapshots;
   invoiceCurrencySnapshot?: InvoiceCurrencySnapshots;
@@ -433,6 +442,7 @@ export interface InvoiceAddMeta {
   businessId?: number;
   bankId?: number;
   clientId?: number;
+  layoutId?: number;
   currencyId?: number;
   issuedAt?: string;
   dueDate?: string;
@@ -464,6 +474,7 @@ export interface InvoiceAddMeta {
   signatureType?: string;
   signatureName?: string;
   styleProfilesId?: number;
+  invoiceLayoutSnapshot?: InvoiceLayoutSnapshots;
   invoiceStyleProfileSnapshot?: InvoiceStyleProfileSnapshots;
   invoiceClientSnapshot?: InvoiceClientSnapshots;
   invoiceCurrencySnapshot?: InvoiceCurrencySnapshots;
@@ -502,6 +513,7 @@ export interface InvoiceFromData {
   businessId?: number;
   bankId?: number;
   clientId?: number;
+  layoutId?: number;
   currencyId?: number;
   issuedAt?: string;
   dueDate?: string;
@@ -541,6 +553,7 @@ export interface InvoiceFromData {
   signatureType?: string;
   signatureName?: string;
   styleProfilesId?: number;
+  invoiceLayoutSnapshot?: InvoiceLayoutSnapshots;
   paidAt?: string;
   closedAt?: string;
 }

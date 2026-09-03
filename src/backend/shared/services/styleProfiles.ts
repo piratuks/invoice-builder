@@ -12,7 +12,7 @@ const styleProfileFields: (keyof StyleProfile)[] = [
   'logoSize',
   'fontSize',
   'fontFamily',
-  'layout',
+  'layoutId',
   'tableHeaderStyle',
   'tableRowStyle',
   'pageFormat',
@@ -52,10 +52,13 @@ export const getAllStyleProfiles = async (
   });
 
   const result = await getAll(filter ?? []);
+  const layouts = await db.all<{ id: number; schema: string }>('SELECT "id", "schema" FROM layouts');
+  const layoutSchemas = new Map(layouts.map(layout => [layout.id, JSON.parse(layout.schema)]));
   result.data = result.data
     ? result.data?.map(profile => {
         return {
           ...profile,
+          layoutSchema: profile.layoutId === undefined ? undefined : layoutSchemas.get(profile.layoutId),
           fieldSortOrders:
             profile.fieldSortOrders && typeof profile.fieldSortOrders === 'string'
               ? JSON.parse(profile.fieldSortOrders)

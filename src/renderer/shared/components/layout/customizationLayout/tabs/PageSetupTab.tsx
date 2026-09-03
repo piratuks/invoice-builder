@@ -12,11 +12,12 @@ import { useEffect, useRef, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FONT_ITEMS_ARRAY } from '../../../../../state/constant';
 import { FontFamily } from '../../../../enums/fontFamily';
-import { LayoutType } from '../../../../enums/layoutType';
 import { PageFormat } from '../../../../enums/pageFormat';
 import { SizeType } from '../../../../enums/sizeType';
 import { useForm } from '../../../../hooks/form/useForm';
+import { useLayoutsRetrieve } from '../../../../hooks/layouts/useLayoutsRetrieve';
 import type { CustomizationFormPageSetup } from '../../../../types/invoice';
+import type { Layout } from '../../../../types/layouts';
 import { TabPanel } from '../../tabPanel/TabPanel';
 
 interface Props {
@@ -27,6 +28,7 @@ interface Props {
 export const PageSetupTab: FC<Props> = ({ data, value, onChange }) => {
   const optionsFont = FONT_ITEMS_ARRAY;
   const { t } = useTranslation();
+  const { layouts } = useLayoutsRetrieve({});
   const { form, setForm, update } = useForm<CustomizationFormPageSetup>(data ?? {});
   const lastEmittedRef = useRef<CustomizationFormPageSetup | undefined>(data);
 
@@ -70,20 +72,19 @@ export const PageSetupTab: FC<Props> = ({ data, value, onChange }) => {
           </FormControl>
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
-          <FormControl component="fieldset">
-            <FormLabel component="legend">{t('common.layout')}</FormLabel>
-            <RadioGroup
-              row
-              value={form.layout ?? ''}
-              onChange={(_e, newValue) => {
-                update('layout', newValue as LayoutType);
-              }}
-            >
-              <FormControlLabel value={LayoutType.classic} control={<Radio />} label={t('common.classic')} />
-              <FormControlLabel value={LayoutType.modern} control={<Radio />} label={t('common.modern')} />
-              <FormControlLabel value={LayoutType.compact} control={<Radio />} label={t('common.compact')} />
-            </RadioGroup>
-          </FormControl>
+          <Autocomplete<Layout, false, true>
+            fullWidth
+            disableClearable
+            options={layouts.filter(layout => !layout.isArchived)}
+            getOptionLabel={layout => layout.schema.meta.name}
+            getOptionKey={layout => layout.id}
+            value={(layouts.find(layout => layout.id === form.layoutId) ?? null) as Layout}
+            onChange={(_event, layout) => {
+              update('layoutId', layout?.id);
+              update('layoutSchema', layout?.schema);
+            }}
+            renderInput={params => <TextField {...params} label={t('common.layout')} />}
+          />
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           <FormControl component="fieldset">

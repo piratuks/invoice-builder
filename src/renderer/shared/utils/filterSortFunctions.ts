@@ -5,8 +5,8 @@ import type { Filter, FilterConfig } from '../types/filter';
 export const filterAndSortArray = <T>(params: {
   data: T[];
   searchValue: string;
-  searchField: keyof T;
-  sortField?: keyof T;
+  searchField: keyof T | ((item: T) => string | undefined);
+  sortField?: keyof T | ((item: T) => string | number | undefined);
   sortType?: SortType;
 }): T[] => {
   const { data, searchValue, searchField, sortField, sortType = SortType.DEFAULT } = params;
@@ -15,15 +15,15 @@ export const filterAndSortArray = <T>(params: {
   if (searchValue) {
     const lowerSearch = searchValue.toLowerCase();
     result = result.filter(item => {
-      const value = item[searchField];
+      const value = typeof searchField === 'function' ? searchField(item) : item[searchField];
       return typeof value === 'string' && value.toLowerCase().includes(lowerSearch);
     });
   }
 
   if ((sortType === SortType.ASC || sortType === SortType.DESC) && sortField) {
     result = [...result].sort((a, b) => {
-      const aVal = a[sortField];
-      const bVal = b[sortField];
+      const aVal = typeof sortField === 'function' ? sortField(a) : a[sortField];
+      const bVal = typeof sortField === 'function' ? sortField(b) : b[sortField];
 
       if (typeof aVal === 'string' && typeof bVal === 'string') {
         return sortType === SortType.ASC ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);

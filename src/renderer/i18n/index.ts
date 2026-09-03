@@ -6,6 +6,7 @@ import de from './de.json';
 import en from './en.json';
 import fr from './fr.json';
 import lt from './lt.json';
+import pt from './pt.json';
 
 i18n
   .use(LanguageDetector)
@@ -15,7 +16,8 @@ i18n
       en: { translation: en },
       lt: { translation: lt },
       fr: { translation: fr },
-      de: { translation: de }
+      de: { translation: de },
+      pt: { translation: pt }
     },
     lng: 'en',
     fallbackLng: 'en',

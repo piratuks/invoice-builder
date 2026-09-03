@@ -1,9 +1,9 @@
 import type { FontFamily } from '../enums/fontFamily';
-import type { LayoutType } from '../enums/layoutType';
 import type { PageFormat } from '../enums/pageFormat';
 import type { SizeType } from '../enums/sizeType';
 import type { TableHeaderStyle } from '../enums/tableHeaderStyle';
 import type { TableRowStyle } from '../enums/tableRowStyle';
+import type { LayoutSchema } from './layouts';
 import type { PDFText } from './pdfText';
 import type { SortOrder } from './sortOrder';
 
@@ -14,7 +14,8 @@ export interface StyleProfile {
   logoSize?: SizeType;
   fontSize?: SizeType;
   fontFamily: FontFamily;
-  layout?: LayoutType;
+  layoutId?: number;
+  layoutSchema?: LayoutSchema;
   tableHeaderStyle?: TableHeaderStyle;
   tableRowStyle?: TableRowStyle;
   pageFormat?: PageFormat;

@@ -1,10 +1,10 @@
 import type { FontFamily } from '../enums/fontFamily';
 import type { Language } from '../enums/language';
-import type { LayoutType } from '../enums/layoutType';
 import type { PageFormat } from '../enums/pageFormat';
 import type { SizeType } from '../enums/sizeType';
 import type { TableHeaderStyle } from '../enums/tableHeaderStyle';
 import type { TableRowStyle } from '../enums/tableRowStyle';
+import type { LayoutSchema } from './layouts';
 import type { PDFText } from './pdfText';
 import type { SortOrder } from './sortOrder';
 
@@ -57,6 +57,8 @@ export interface Preset {
   qrCodeFileType?: string;
   qrCodeFileName?: string;
   qrCode?: Uint8Array;
+  layoutId?: number;
+  layoutSchema?: LayoutSchema;
   //style profile
   styleProfilesId?: number;
   styleProfileName?: string;
@@ -64,7 +66,6 @@ export interface Preset {
   styleProfileLogoSize?: SizeType;
   styleProfileFontSize?: SizeType;
   styleProfileFontFamily?: FontFamily;
-  styleProfileLayout?: LayoutType;
   styleProfileTableHeaderStyle?: TableHeaderStyle;
   styleProfileTableRowStyle?: TableRowStyle;
   styleProfilePageFormat?: PageFormat;

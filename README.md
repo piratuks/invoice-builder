@@ -47,7 +47,7 @@ If you value **privacy, portability, and control**, this app is built for you.
 - Create and manage **Invoices** and **Quotes**
 - Offline-first: works without internet
 - Database-file based (create or open a database anywhere)
-- Automatic snapshotting of business, bank, style profile, client, item, and currency data per invoice/quote
+- Automatic snapshotting of business, bank, style profile, layout, client, item, and currency data per invoice/quote
 - Multi-currency support: choose the currency for each invoice/quote individually
 - Responsive layout - usable on small and large screens, resizable windows supported
 - Invoice/Quote translations – select a language per document, independent of app settings
@@ -88,6 +88,10 @@ If you value **privacy, portability, and control**, this app is built for you.
 - Attachments: include images in PDFs
 - Signature support: upload or hand-draw signatures and apply them to PDFs
 - Style profiles are now available for invoices and quotes, enabling quick, consistent theming
+- Layouts page for importing and managing JSON-driven invoice PDF compositions
+- Layout JSON controls section order, visibility, header composition, supported block placement, spacing, and table sizing
+- Export individual layouts as reusable JSON files
+- See [LAYOUT.md](LAYOUT.md) for the complete layout JSON structure and usage guide
 - Show quantity, unit, and row number in the PDF item table
 - Custom header sections and custom values in the PDF item table
 - Ability to reorder all columns/headers in the PDF item table
@@ -108,7 +112,7 @@ If you value **privacy, portability, and control**, this app is built for you.
 
 ### Settings & Customization
 
-- Language selection: currently French, German, English and Lithuanian
+- Language selection: currently French, German, English, Lithuanian and Portuguese
 - Number & date formatting (e.g. `1,234.10` vs `1.234,10`)
 - Invoice/quote number prefix & suffix
 - Leading-zero invoice/quote numbering is preserved across auto-increment (for consistent alphabetical file sorting)
@@ -286,6 +290,7 @@ chmod +x Invoice-Builder-*.AppImage
 1. Launch the application
 2. Create a new database file or open an existing one
 3. Add at least:
+   - a Layout
    - a Business
    - a Currency
    - a Client
@@ -298,6 +303,8 @@ chmod +x Invoice-Builder-*.AppImage
 
 Detailed tutorials and usage guides are available here: [TUTORIAL](TUTORIAL.md)
 
+Layout JSON structure and supported composition options are documented in [LAYOUT.md](LAYOUT.md).
+
 ## 🧠 Data Model & Snapshots
 
 When an invoice or quote is created, snapshots of the following are stored with the document to ensure historical accuracy:
@@ -308,6 +315,7 @@ When an invoice or quote is created, snapshots of the following are stored with 
 - **Items**
 - **Currency**
 - **Style profile**
+- **Layout**
 
 Changes to these entities do **not** affect existing invoices or quotes.  
 Snapshots are updated only when editing an invoice or quote and changing the associated **client, business, item, or currency**.
@@ -318,6 +326,7 @@ You can:
 
 - **Back up and reopen** the full database file
 - **Export all data to JSON** and import it back
+- **Import and export layout JSON** files from the Layouts page
 - **Export entities to XLSX** for manual editing
 - **Import entities from XLSX**
 
@@ -438,6 +447,7 @@ Please open an issue before starting major work to ensure alignment.
 ## 📚 Documentation
 
 - [Tutorial](TUTORIAL.md)
+- [Layout JSON reference](LAYOUT.md)
 - [Privacy Policy](PRIVACY-POLICY.md)
 - [Terms of Use](TERMS-OF-USE.md)
 
@@ -445,8 +455,7 @@ Please open an issue before starting major work to ensure alignment.
 
 | Version | Status                |
 | ------- | --------------------- |
-| v2.6.1  | ✅ Actively supported |
-| v2.6.0  | ✅ Actively supported |
+| v2.7.0  | ✅ Actively supported |
 
 Details about supported versions and update policy will be documented here.
 

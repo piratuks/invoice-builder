@@ -1,4 +1,5 @@
 import DeleteIcon from '@mui/icons-material/Delete';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import {
   Box,
   Chip,
@@ -25,6 +26,7 @@ interface GenericListProps<T extends { id: number }> {
   showDeleteButton?: boolean;
   onEdit: (item: T) => void;
   onDelete: (id: number) => void;
+  onExport?: () => void;
   getShortName?: (item: T) => string;
   getName: (item: T) => string;
   getEmail?: (item: T) => string | undefined;
@@ -40,6 +42,7 @@ export const GenericList = <T extends { id: number }>({
   showDeleteButton = true,
   onEdit,
   onDelete,
+  onExport,
   getShortName,
   getName,
   getEmail,
@@ -218,22 +221,37 @@ export const GenericList = <T extends { id: number }>({
                 </Box>
               )}
 
-              {showDeleteButton && (
+              {(onExport || showDeleteButton) && (
                 <>
                   <Divider orientation="vertical" flexItem sx={{ mx: 1 }} />
                   <Box sx={{ display: 'flex', gap: 0.5 }}>
-                    <Tooltip title={t('ariaLabel.delete')}>
-                      <IconButton
-                        size="small"
-                        color="error"
-                        onClick={e => {
-                          e.stopPropagation();
-                          onDelete(item.id);
-                        }}
-                      >
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
+                    {onExport && (
+                      <Tooltip title={t('common.export')}>
+                        <IconButton
+                          size="small"
+                          onClick={e => {
+                            e.stopPropagation();
+                            onExport();
+                          }}
+                        >
+                          <FileDownloadIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                    {showDeleteButton && (
+                      <Tooltip title={t('ariaLabel.delete')}>
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={e => {
+                            e.stopPropagation();
+                            onDelete(item.id);
+                          }}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    )}
                   </Box>
                 </>
               )}

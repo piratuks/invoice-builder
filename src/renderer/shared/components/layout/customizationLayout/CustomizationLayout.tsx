@@ -38,7 +38,8 @@ export const CustomizationLayout: FC<Props> = ({
   const pageSetupData = useMemo(() => {
     return {
       pageFormat: data?.pageFormat,
-      layout: data?.layout,
+      layoutId: data?.layoutId,
+      layoutSchema: data?.layoutSchema,
       fontSize: data?.fontSize,
       fontFamily: data?.fontFamily
     };

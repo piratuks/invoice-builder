@@ -4,7 +4,6 @@ import type { FontFamily } from '../enums/fontFamily';
 import type { InvoiceStatus } from '../enums/invoiceStatus';
 import type { InvoiceType } from '../enums/invoiceType';
 import type { Language } from '../enums/language';
-import type { LayoutType } from '../enums/layoutType';
 import type { PageFormat } from '../enums/pageFormat';
 import type { SizeType } from '../enums/sizeType';
 import type { TableHeaderStyle } from '../enums/tableHeaderStyle';
@@ -110,7 +109,6 @@ export interface InvoiceCustomization {
   logoSize: SizeType;
   fontSize: SizeType;
   fontFamily: FontFamily;
-  layout: LayoutType;
   tableHeaderStyle: TableHeaderStyle;
   tableRowStyle: TableRowStyle;
   pageFormat: PageFormat;
@@ -130,12 +128,19 @@ export interface InvoiceCustomization {
   pdfTexts?: PDFText | string;
 }
 
+export interface InvoiceLayoutSnapshots {
+  parentInvoiceId: number;
+  id?: number;
+  layoutSchema: string;
+}
+
 export interface Invoice {
   id?: number;
   invoiceType: InvoiceType;
   convertedFromQuotationId?: number;
   businessId: number;
   clientId: number;
+  layoutId?: number;
   bankId?: number;
   currencyId: number;
   createdAt: string;
@@ -175,6 +180,7 @@ export interface Invoice {
   signatureName?: string;
   styleProfilesId?: number;
   invoiceStyleProfileSnapshot?: InvoiceStyleProfileSnapshots;
+  invoiceLayoutSnapshot?: InvoiceLayoutSnapshots;
   invoiceCustomization?: InvoiceCustomization;
   invoiceBankSnapshot?: InvoiceBankSnapshots;
   invoiceBusinessSnapshot?: InvoiceBusinessSnapshots;

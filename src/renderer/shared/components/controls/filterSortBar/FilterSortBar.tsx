@@ -6,18 +6,18 @@ import { useTranslation } from 'react-i18next';
 import { SortType } from '../../../enums/sortType';
 import type { CustomOption } from '../../../types/customOption';
 
-interface Props<T extends string | number | symbol> {
+interface Props<T extends string | number | symbol, TItem> {
   activeSort: SortType;
-  activeSortBy: CustomOption<T>;
-  sortByOptions: CustomOption<T>[];
-  onChange?: (value: { sortBy: CustomOption<T>; sort: SortType }) => void;
+  activeSortBy: CustomOption<T, TItem>;
+  sortByOptions: CustomOption<T, TItem>[];
+  onChange?: (value: { sortBy: CustomOption<T, TItem>; sort: SortType }) => void;
 }
-export const FilterSortBar = <T extends string | number | symbol>({
+export const FilterSortBar = <T extends string | number | symbol, TItem>({
   activeSort,
   activeSortBy,
   sortByOptions,
   onChange = () => {}
-}: Props<T>) => {
+}: Props<T, TItem>) => {
   const { t } = useTranslation();
 
   const onSortChange = (sort: SortType) => {

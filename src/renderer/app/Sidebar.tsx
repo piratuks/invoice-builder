@@ -10,6 +10,7 @@ import {
   TableChart
 } from '@mui/icons-material';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import CategoryIcon from '@mui/icons-material/Category';
@@ -107,43 +108,49 @@ export const Sidebar: FC = () => {
           : [])
       ]
     },
-    ...(storeSettings?.presetsON || storeSettings?.styleProfilesON
-      ? [
-          {
-            groupName: t('common.templates'),
-            groupIcon: <ViewModule />,
-            isOpen: true,
-            items: [
-              ...(storeSettings?.presetsON
-                ? [
-                    {
-                      text: t('menuItems.presets'),
-                      icon: <ContentCopyIcon />,
-                      path: '/presets',
-                      isToggle: false,
-                      minHeight: 50,
-                      isSelected: isSelected,
-                      onClick: onClickNavigate
-                    }
-                  ]
-                : []),
-              ...(storeSettings?.styleProfilesON
-                ? [
-                    {
-                      text: t('menuItems.styleProfiles'),
-                      icon: <ColorLensIcon />,
-                      path: '/styleProfiles',
-                      isToggle: false,
-                      minHeight: 50,
-                      isSelected: isSelected,
-                      onClick: onClickNavigate
-                    }
-                  ]
-                : [])
+
+    {
+      groupName: t('common.templates'),
+      groupIcon: <ViewModule />,
+      isOpen: true,
+      items: [
+        ...(storeSettings?.presetsON
+          ? [
+              {
+                text: t('menuItems.presets'),
+                icon: <ContentCopyIcon />,
+                path: '/presets',
+                isToggle: false,
+                minHeight: 50,
+                isSelected: isSelected,
+                onClick: onClickNavigate
+              }
             ]
-          }
-        ]
-      : []),
+          : []),
+        ...(storeSettings?.styleProfilesON
+          ? [
+              {
+                text: t('menuItems.styleProfiles'),
+                icon: <ColorLensIcon />,
+                path: '/styleProfiles',
+                isToggle: false,
+                minHeight: 50,
+                isSelected: isSelected,
+                onClick: onClickNavigate
+              }
+            ]
+          : []),
+        {
+          text: t('common.layouts'),
+          icon: <AccountTreeIcon />,
+          path: '/layouts',
+          isToggle: false,
+          minHeight: 50,
+          isSelected: isSelected,
+          onClick: onClickNavigate
+        }
+      ]
+    },
     {
       groupName: t('common.data'),
       groupIcon: <TableChart />,

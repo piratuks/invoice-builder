@@ -1,6 +1,7 @@
 import { Text, View } from '@react-pdf/renderer';
 import { memo, type FC } from 'react';
 import type { InvoiceFromData } from '../../../shared/types/invoice';
+import type { PaymentSource } from '../../../shared/types/layouts';
 import { DEFAULT_FONT_SIZES, FONT_SIZES, PDF_STYLES } from './constant';
 import { QRCodeInfo } from './QRCodeInfo';
 
@@ -8,8 +9,35 @@ interface Props {
   qrCodeUrl?: string;
   invoiceForm?: InvoiceFromData;
   paymentInfoLabel: string;
+  source?: PaymentSource;
 }
-const PaymentInfoComponent: FC<Props> = ({ invoiceForm, qrCodeUrl, paymentInfoLabel }) => {
+const PaymentInfoComponent: FC<Props> = ({ invoiceForm, qrCodeUrl, paymentInfoLabel, source = 'bank' }) => {
+  if (source === 'legacyBusiness') {
+    const paymentInformation = invoiceForm?.invoiceBusinessSnapshot?.businessPaymentInformation;
+    if (!paymentInformation) return null;
+
+    return (
+      <View style={[PDF_STYLES.alignStart, PDF_STYLES.gap4]}>
+        <Text
+          style={[
+            PDF_STYLES.regularBold,
+            { fontSize: FONT_SIZES[invoiceForm?.invoiceCustomization?.fontSize ?? DEFAULT_FONT_SIZES].regularBold }
+          ]}
+        >
+          {paymentInfoLabel}:
+        </Text>
+        <Text
+          style={[
+            PDF_STYLES.businessText,
+            { fontSize: FONT_SIZES[invoiceForm?.invoiceCustomization?.fontSize ?? DEFAULT_FONT_SIZES].businessText }
+          ]}
+        >
+          {paymentInformation}
+        </Text>
+      </View>
+    );
+  }
+
   if (!invoiceForm?.invoiceBankSnapshot) return null;
 
   return (

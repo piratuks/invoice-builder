@@ -50,11 +50,15 @@ const InvoicesPreviewComponent: FC<Props> = ({ onSaveProfile = () => {}, setInvo
 
   const handleOnClickCustomization = useCallback(
     (data: CustomizationForm) => {
-      const { customField, ...rest } = data;
+      const { customField, layoutId, layoutSchema, ...rest } = data;
       void customField;
 
       setInvoiceForm({
         ...invoiceForm,
+        layoutId: layoutId ?? invoiceForm?.layoutId,
+        invoiceLayoutSnapshot: layoutSchema
+          ? { ...invoiceForm?.invoiceLayoutSnapshot, layoutSchema: layoutSchema }
+          : invoiceForm?.invoiceLayoutSnapshot,
         invoiceCustomization: {
           ...invoiceForm?.invoiceCustomization,
           ...rest,
@@ -96,7 +100,8 @@ const InvoicesPreviewComponent: FC<Props> = ({ onSaveProfile = () => {}, setInvo
       logoSize: invoiceForm?.invoiceCustomization?.logoSize,
       fontSize: invoiceForm?.invoiceCustomization?.fontSize,
       fontFamily: invoiceForm?.invoiceCustomization?.fontFamily,
-      layout: invoiceForm?.invoiceCustomization?.layout,
+      layoutId: invoiceForm?.layoutId,
+      layoutSchema: invoiceForm?.invoiceLayoutSnapshot?.layoutSchema,
       tableHeaderStyle: invoiceForm?.invoiceCustomization?.tableHeaderStyle,
       tableRowStyle: invoiceForm?.invoiceCustomization?.tableRowStyle,
       pageFormat: invoiceForm?.invoiceCustomization?.pageFormat,
@@ -116,7 +121,12 @@ const InvoicesPreviewComponent: FC<Props> = ({ onSaveProfile = () => {}, setInvo
       pdfTexts: invoiceForm?.invoiceCustomization?.pdfTexts,
       customField: customFieldHeaders
     };
-  }, [invoiceForm?.invoiceCustomization, customFieldHeaders]);
+  }, [
+    invoiceForm?.invoiceCustomization,
+    invoiceForm?.invoiceLayoutSnapshot?.layoutSchema,
+    invoiceForm?.layoutId,
+    customFieldHeaders
+  ]);
 
   return (
     <Box sx={{ height: '100%' }}>

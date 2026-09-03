@@ -12,6 +12,7 @@ import { ClientsPage } from './pages/clients';
 import { CurrenciesPage } from './pages/currencies';
 import { InvoicesPage } from './pages/invoices';
 import { ItemsPage } from './pages/items';
+import { LayoutsPage } from './pages/layouts';
 import { PresetsPage } from './pages/presets';
 import { QuotesPage } from './pages/quotes';
 import { ReportsPage } from './pages/reports';
@@ -46,6 +47,7 @@ const createRouter = () => {
         { path: 'categories', element: <CategoriesPage /> },
         { path: 'items', element: <ItemsPage /> },
         { path: 'styleProfiles', element: <StyleProfilesPage /> },
+        { path: 'layouts', element: <LayoutsPage /> },
         { path: 'invoices', element: <InvoicesPage type={InvoiceType.invoice} /> },
         { path: 'quotes', element: <QuotesPage /> },
         { path: 'reports', element: <ReportsPage /> },

@@ -1,6 +1,5 @@
 import { Text, View } from '@react-pdf/renderer';
 import { memo, type FC } from 'react';
-import { LayoutType } from '../../../shared/enums/layoutType';
 import type { InvoiceFromData } from '../../../shared/types/invoice';
 import { DEFAULT_FONT_SIZES, FONT_SIZES, PDF_STYLES } from './constant';
 
@@ -10,13 +9,7 @@ interface Props {
 }
 const ClientInfoComponent: FC<Props> = ({ invoiceForm, billToLabel }) => {
   return (
-    <View
-      style={[
-        PDF_STYLES.alignStart,
-        PDF_STYLES.gap4,
-        invoiceForm?.invoiceCustomization?.layout === LayoutType.compact ? PDF_STYLES.w100 : PDF_STYLES.w50
-      ]}
-    >
+    <View style={[PDF_STYLES.alignStart, PDF_STYLES.gap4]}>
       <Text
         style={[
           PDF_STYLES.regularBold,

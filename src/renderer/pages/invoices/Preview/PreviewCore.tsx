@@ -1,5 +1,6 @@
 import { PDFViewer } from '@react-pdf/renderer';
 import { memo, useEffect, useMemo, useState, type FC } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   getAttachmentsUrl,
   getLogoUrl,
@@ -18,6 +19,7 @@ interface Props {
   invoiceForm?: InvoiceFromData;
 }
 const PreviewCoreComponent: FC<Props> = ({ invoiceForm }) => {
+  const { t } = useTranslation();
   const storeSettings = useAppSelector(selectSettings);
   const [logoUrl, setLogoUrl] = useState<string | undefined>();
   const [watermarkUrl, setWatermarkUrl] = useState<string | undefined>();
@@ -91,6 +93,7 @@ const PreviewCoreComponent: FC<Props> = ({ invoiceForm }) => {
         qrCodeUrl={qrCodeUrl}
         attachmentUrls={attachmentUrls}
         pdfTexts={pdfTexts}
+        layoutRequired={t('common.layoutRequired')}
         watermarkUrl={watermarkUrl}
         watermarkPaidUrl={watermarkPaidUrl}
         signatureUrl={signatureUrl}
