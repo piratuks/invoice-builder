@@ -1,6 +1,6 @@
 # Invoice Builder
 
-## [DATE], version 2.7.0
+## 2026-09-03, version 2.7.0
 
 New features & improvements
 
