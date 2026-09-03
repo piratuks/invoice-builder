@@ -12,6 +12,10 @@ New features & improvements
 - Added individual layout JSON export for reusing and transferring saved layouts.
 - Added [LAYOUT.md](LAYOUT.md), documenting the layout JSON structure, supported variations, usage, and limitations.
 
+Bug fixes
+
+- Fixed PostgreSQL migrations that previously failed.
+
 ## 2026-08-31, version 2.6.1
 
 Bug fixes

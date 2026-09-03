@@ -1,9 +1,22 @@
+import { DatabaseType } from '../enums/databaseType';
 import type { DatabaseAdapter } from '../types/DatabaseAdapter';
 import { getColumnType, getDefaultValue } from '../utils/dbHelper';
 import { mapDatabaseError } from '../utils/errorFunctions';
 
 export const up = async (db: DatabaseAdapter) => {
   try {
+    if (db.type === DatabaseType.postgre) {
+      await db.run(
+        'ALTER TABLE invoices DROP CONSTRAINT IF EXISTS "invoices_businessId_invoiceFullNumber_clientId_key"'
+      );
+      await db.run(
+        `ALTER TABLE invoices
+         ADD CONSTRAINT invoices_businessId_invoiceFullNumber_clientId_invoiceType_key
+         UNIQUE ("businessId", "invoiceFullNumber", "clientId", "invoiceType")`
+      );
+      return;
+    }
+
     await db.run('DROP TABLE IF EXISTS invoices_new;');
     await db.run(
       `
@@ -55,7 +68,7 @@ export const up = async (db: DatabaseAdapter) => {
            FOREIGN KEY("clientId") REFERENCES clients("id"),
            FOREIGN KEY("currencyId") REFERENCES currencies("id"),
            FOREIGN KEY("convertedFromQuotationId") REFERENCES invoices("id"),
-           FOREIGN KEY ("bankId") REFERENCES banks("id")
+           FOREIGN KEY ("bankId") REFERENCES banks("id"),
            UNIQUE("businessId","invoiceFullNumber", "clientId", "invoiceType"),
            CHECK (
              (
