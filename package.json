@@ -161,7 +161,7 @@
     "sort-json": "^2.0.1",
     "ts-node": "^10.9.2",
     "typescript": "~5.9.3",
-    "typescript-eslint": "^8.60.1",
+    "typescript-eslint": "^8.69.0",
     "vite": "^8.1.4",
     "vite-plugin-static-copy": "^4.1.0",
     "vite-tsconfig-paths": "^6.1.1",
