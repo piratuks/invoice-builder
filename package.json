@@ -165,7 +165,7 @@
     "vite": "^8.1.4",
     "vite-plugin-static-copy": "^4.1.0",
     "vite-tsconfig-paths": "^6.1.1",
-    "vitest": "^4.1.8",
+    "vitest": "^5.0.0",
     "wait-on": "^9.0.5"
   },
   "msw": {
