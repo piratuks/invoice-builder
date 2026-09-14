@@ -181,6 +181,20 @@ describe('V2 PDF layout rendering', () => {
 
   it('keeps fixed visual assets and page counters on a multi-page document', async () => {
     const imageSource = resolve(process.cwd(), 'src/renderer/assets/icon.png');
+    // Use a larger item set than the shared `items` fixture so the resulting page count
+    // clears the 2-page threshold with a wide margin, avoiding cross-platform font
+    // metric rounding differences flipping the count right at the boundary.
+    const manyItems = Array.from({ length: 320 }, (_, index) => ({
+      itemId: index + 1,
+      quantity: '1',
+      taxRate: 0,
+      invoiceItemSnapshot: {
+        parentInvoiceItemId: index + 1,
+        itemName: `Long invoice item ${index + 1}`,
+        unitPriceCents: '1000',
+        unitName: 'each'
+      }
+    }));
     const blob = await pdf(
       <PDFDocument
         invoiceForm={{
@@ -201,6 +215,7 @@ describe('V2 PDF layout rendering', () => {
               }
             ]
           }),
+          invoiceItems: manyItems,
           signatureData: new Uint8Array([1]),
           invoiceCustomization: {
             ...invoice({ schemaVersion: 2, meta: { name: 'Assets' }, regions: [] }).invoiceCustomization,
