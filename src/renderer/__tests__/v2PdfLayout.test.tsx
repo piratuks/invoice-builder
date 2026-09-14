@@ -1,3 +1,8 @@
+// @vitest-environment node
+// jsdom's typed-array globals don't share a realm with Node's `fs`/Buffer, which
+// intermittently breaks pdfkit's `instanceof Uint8Array` check when embedding real
+// image files (see the "keeps fixed visual assets..." test). Run this file in the
+// plain Node environment since it doesn't need DOM APIs.
 import { pdf } from '@react-pdf/renderer';
 import { resolve } from 'node:path';
 import { PDFDocument as PdfLibDocument } from 'pdf-lib';
