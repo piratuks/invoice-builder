@@ -1,11 +1,14 @@
 import type { DatabaseAdapter } from '../types/DatabaseAdapter';
-import { getColumnType, getDefaultValue, isTableExists } from '../utils/dbHelper';
+import { getColumnType, getDefaultValue, getTableColumns, isTableExists } from '../utils/dbHelper';
 import { mapDatabaseError } from '../utils/errorFunctions';
 
 export const up = async (db: DatabaseAdapter) => {
   try {
+    const cols = await getTableColumns(db, 'invoices');
+    const colInfo = cols.find(c => c.name === 'layoutId');
     const isExisting = await isTableExists(db, 'layouts');
-    if (isExisting) return;
+
+    if (isExisting && colInfo) return;
 
     await db.run(`CREATE TABLE IF NOT EXISTS layouts (
       "id" ${getColumnType('INTEGER PRIMARY KEY AUTOINCREMENT', db.type)},

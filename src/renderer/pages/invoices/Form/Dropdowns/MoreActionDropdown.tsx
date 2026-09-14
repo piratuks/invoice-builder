@@ -18,6 +18,7 @@ import {
 } from '@mui/material';
 import { memo, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
+import { isWebMode } from '../../../../shared/api/restApi';
 import { PageHeader } from '../../../../shared/components/layout/pageHeader/PageHeader';
 import { InvoiceType } from '../../../../shared/enums/invoiceType';
 import { useAppSelector } from '../../../../state/configureStore';
@@ -159,7 +160,7 @@ const MoreActionDropdownComponent: FC<Props> = ({
                 />
               </ListItem>
             </ListItemButton>
-            {storeSettings?.receiptPrintingOn && type === InvoiceType.invoice && (
+            {!isWebMode() && storeSettings?.receiptPrintingOn && type === InvoiceType.invoice && (
               <ListItemButton
                 onClick={onPrintReceipt}
                 sx={{

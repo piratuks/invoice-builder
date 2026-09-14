@@ -8,6 +8,12 @@ New features & improvements
 - Added V2 PDF pagination support for long item tables, repeated table headers, non-splitting item rows, and preserved layout snapshots for historical invoices and quotes.
 - Added validation and documentation for customizable V2 layout schemas, plus PDF regression coverage and web/Electron smoke tests while retaining V1 layout schema compatibility.
 
+Bug fixes
+
+- Fixed the invoice layouts migration failing on re-run when the `layouts` table already existed but the `invoices.layoutId` column had not yet been added.
+- Hid the "Print receipt" action in web mode, where native receipt printing is unavailable.
+- Fixed the receipt print action showing for quotes; it is now restricted to invoices only.
+
 ## 2026-09-03, version 2.7.1
 
 Bug fixes

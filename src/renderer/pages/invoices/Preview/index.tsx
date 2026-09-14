@@ -140,7 +140,7 @@ const InvoicesPreviewComponent: FC<Props> = ({ onSaveProfile = () => {}, setInvo
         onClick={handleOnClickCustomization}
         onSaveProfile={onSaveProfile}
       />
-      {!isWebMode() && invoiceForm?.invoiceType !== InvoiceType.quotation && (
+      {!isWebMode() && invoiceForm?.invoiceType === InvoiceType.invoice && (
         <Tooltip title={t('common.printReceipt')}>
           <Fab
             color="primary"
