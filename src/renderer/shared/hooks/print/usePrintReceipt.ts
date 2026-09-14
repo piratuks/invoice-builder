@@ -2,10 +2,34 @@ import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAppDispatch } from '../../../state/configureStore';
 import { addToast } from '../../../state/pageSlice';
+import { isWebMode } from '../../api/restApi';
 import type { InvoiceFromData } from '../../types/invoice';
+import type { Response } from '../../types/response';
 import type { Settings } from '../../types/settings';
 import { buildReceiptHtml } from '../../utils/receiptFunctions';
 import { usePdfTexts } from '../pdf/usePdfTexts';
+
+// Web/Docker mode has no native print API, so the receipt HTML is opened in a new tab and printed via the
+// browser's own print dialog, which lets the user pick "Save as PDF" as the destination.
+const printReceiptInBrowser = (html: string): Response<unknown> => {
+  const printWindow = window.open('', '_blank');
+
+  if (!printWindow) {
+    return { success: false, key: 'error.printFailed', message: 'Unable to open print window' };
+  }
+
+  printWindow.document.open();
+  printWindow.document.write(html);
+  printWindow.document.close();
+
+  printWindow.onload = () => {
+    printWindow.focus();
+    printWindow.print();
+  };
+  printWindow.onafterprint = () => printWindow.close();
+
+  return { success: true };
+};
 
 export const usePrintReceipt = (data: { invoiceForm?: InvoiceFromData; storeSettings?: Settings }) => {
   const { invoiceForm, storeSettings } = data;
@@ -25,12 +49,14 @@ export const usePrintReceipt = (data: { invoiceForm?: InvoiceFromData; storeSett
   }, [invoiceForm, pdfTextsDefaults]);
 
   const printReceipt = useCallback(async () => {
-    if (!invoiceForm || !storeSettings || !window.electronAPI?.printReceipt) return;
+    if (!invoiceForm || !storeSettings) return;
+    if (!isWebMode() && !window.electronAPI?.printReceipt) return;
 
     try {
       const html = buildReceiptHtml({
         invoiceForm,
         storeSettings,
+        isWeb: isWebMode(),
         texts: {
           invoiceLabel: pdfTexts.invoiceNo,
           quoteLabel: pdfTexts.quoteNo,
@@ -53,7 +79,7 @@ export const usePrintReceipt = (data: { invoiceForm?: InvoiceFromData; storeSett
         }
       });
 
-      const result = await window.electronAPI.printReceipt(html);
+      const result = isWebMode() ? printReceiptInBrowser(html) : await window.electronAPI!.printReceipt(html);
 
       if (!result.success) {
         const message = result.message;

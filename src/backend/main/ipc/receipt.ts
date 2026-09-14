@@ -15,9 +15,12 @@ export const initReceiptHandlers = () => {
       await printWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`);
 
       const printResult = await new Promise<{ success: boolean; failureReason?: string }>(resolve => {
-        printWindow!.webContents.print({ silent: false, printBackground: true }, (success, failureReason) => {
-          resolve({ success, failureReason });
-        });
+        printWindow!.webContents.print(
+          { silent: false, printBackground: true, header: '', footer: '' },
+          (success, failureReason) => {
+            resolve({ success, failureReason });
+          }
+        );
       });
 
       if (!printResult.success) {

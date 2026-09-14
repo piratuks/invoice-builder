@@ -51,8 +51,9 @@ export const buildReceiptHtml = (data: {
   invoiceForm: InvoiceFromData;
   storeSettings: Settings;
   texts: ReceiptTexts;
+  isWeb?: boolean;
 }) => {
-  const { invoiceForm, storeSettings, texts } = data;
+  const { invoiceForm, storeSettings, texts, isWeb = false } = data;
 
   const {
     formattedTotalTaxAmount,
@@ -181,16 +182,20 @@ export const buildReceiptHtml = (data: {
 
   const invoiceFullNumber = `${invoiceForm.invoicePrefix ?? ''}${invoiceForm.invoiceNumber ?? ''}${invoiceForm.invoiceSuffix ?? ''}`;
   const issuedAt = invoiceForm.issuedAt ? formatDate(invoiceForm.issuedAt, storeSettings.dateFormat) : '';
+  // Distinct from the business name printed in the body, so the browser's print header doesn't duplicate it.
+  const documentTitle =
+    `${invoiceForm.invoiceType === InvoiceType.quotation ? texts.quoteLabel : texts.invoiceLabel} ${invoiceFullNumber}`.trim();
 
   return `<!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>${escapeHtml(businessName)}</title>
+    <title>${escapeHtml(documentTitle)}</title>
     <style>
       @page {
         size: 80mm auto;
-        margin: 4mm;
+        /* Web print only: top/bottom margin cleared for the browser's own print header/footer (URL, date, page count). Electron's native print suppresses that header/footer, so it keeps the tighter default margin. */
+        margin: ${isWeb ? '15mm 4mm' : '4mm'};
       }
       * { 
         box-sizing: border-box;

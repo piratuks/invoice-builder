@@ -73,9 +73,14 @@ You can customize:
 
 ### Receipt printing
 
-Receipt printing is available in the desktop Electron app for invoices and quotes. It prints a compact 80mm receipt layout designed for retail checkout and POS-style workflows.
+Receipt printing produces a compact 80mm receipt layout for invoices, designed for retail checkout and POS-style workflows. It is available in both the desktop Electron app and the web/Docker version, but the two work differently:
 
-> ℹ️ This feature is desktop-only and uses the operating system print dialog. A compatible printer must be installed and selected before printing. It is not available in the web/docker version.
+| Mode                   | How it works                                                                                                          | Output                                                                                                                                              |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Desktop (Electron)** | Uses the operating system's native print dialog. A compatible printer must be installed and selected before printing. | Physical printout (e.g. on an 80mm thermal receipt printer), no browser chrome, no header/footer.                                                   |
+| **Web / Docker**       | Opens the receipt in a new browser tab and triggers the browser's own print dialog.                                   | Any destination the browser offers, including **"Save as PDF"** to get a receipt PDF, since there is no OS-level print API available to a web page. |
+
+> ℹ️ In web/Docker mode, the browser's print dialog may add its own header/footer (page URL, date, page count). This is a browser preference, not something the app can turn off by default — uncheck **"Headers and footers"** under **More settings** in the print dialog for a cleaner printout; the browser remembers this choice for future prints.
 
 ![Receipt printing](tutorial/printing_receipt_1.png)
 

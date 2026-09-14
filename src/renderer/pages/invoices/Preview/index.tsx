@@ -4,7 +4,6 @@ import PrintIcon from '@mui/icons-material/Print';
 import { Box, Fab, Tooltip } from '@mui/material';
 import { memo, useCallback, useMemo, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { isWebMode } from '../../../shared/api/restApi';
 import { InvoiceType } from '../../../shared/enums/invoiceType';
 import { useExportPdf } from '../../../shared/hooks/fileExport/useExportPdf';
 import { usePrintReceipt } from '../../../shared/hooks/print/usePrintReceipt';
@@ -140,7 +139,7 @@ const InvoicesPreviewComponent: FC<Props> = ({ onSaveProfile = () => {}, setInvo
         onClick={handleOnClickCustomization}
         onSaveProfile={onSaveProfile}
       />
-      {!isWebMode() && invoiceForm?.invoiceType === InvoiceType.invoice && (
+      {invoiceForm?.invoiceType === InvoiceType.invoice && (
         <Tooltip title={t('common.printReceipt')}>
           <Fab
             color="primary"
