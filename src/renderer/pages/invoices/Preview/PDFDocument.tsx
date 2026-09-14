@@ -1,8 +1,15 @@
 import { Document, Font, Image, Page, Text, View } from '@react-pdf/renderer';
-import { Fragment, memo, useMemo, type FC } from 'react';
+import { Fragment, memo, useMemo, type FC, type ReactNode } from 'react';
 import { InvoiceStatus } from '../../../shared/enums/invoiceStatus';
 import type { AttachmentURL, InvoiceFromData, PdfTexts } from '../../../shared/types/invoice';
-import type { ColumnSizing, HeaderBlock, LayoutSectionType, TotalsRowBlock } from '../../../shared/types/layouts';
+import type {
+  ColumnSizing,
+  HeaderBlock,
+  LayoutNode,
+  LayoutSchemaV2,
+  LayoutSectionType,
+  TotalsRowBlock
+} from '../../../shared/types/layouts';
 import type { Settings } from '../../../shared/types/settings';
 import Inter_18pt_Bold from './../../../assets/inter/Inter_18pt-Bold.ttf';
 import Inter_18pt_BoldItalic from './../../../assets/inter/Inter_18pt-BoldItalic.ttf';
@@ -123,7 +130,9 @@ const PDFDocumentComponent: FC<Props> = ({
   watermarkUrl,
   watermarkPaidUrl
 }) => {
-  const templateSections = invoiceForm?.invoiceLayoutSnapshot?.layoutSchema?.sections ?? [];
+  const templateLayout = invoiceForm?.invoiceLayoutSnapshot?.layoutSchema;
+  const templateSections = templateLayout?.schemaVersion === 1 ? (templateLayout.sections ?? []) : [];
+  const templateRegions = templateLayout?.schemaVersion === 2 ? templateLayout.regions : [];
   const dynamicStyle = useMemo(
     () => createCustomFontStyles(invoiceForm?.invoiceCustomization?.fontFamily),
     [invoiceForm?.invoiceCustomization?.fontFamily]
@@ -289,10 +298,79 @@ const PDFDocumentComponent: FC<Props> = ({
     }
   };
 
+  const renderRegion = (region: LayoutSchemaV2['regions'][number]) => (
+    <View
+      key={region.id}
+      wrap={region.overflow !== 'keepTogether'}
+      minPresenceAhead={region.overflow === 'keepTogether' ? 40 : undefined}
+      style={{
+        width: region.width,
+        flexDirection: region.direction === 'column' ? 'column' : 'row',
+        flexWrap: region.direction === 'grid' ? 'wrap' : 'nowrap',
+        alignContent: 'flex-start'
+      }}
+    >
+      {region.blocks && (
+        <HeaderInfo
+          invoiceForm={invoiceForm}
+          storeSettings={storeSettings}
+          logoUrl={logoUrl}
+          pdfTexts={pdfTexts}
+          blocks={region.blocks}
+        />
+      )}
+      {region.sections?.map(section => renderTemplateSection(section))}
+      {region.children?.map((node, index) => renderLayoutNode(node, `${region.id}-${index}`))}
+    </View>
+  );
+
+  const renderLayoutNode = (node: LayoutNode, key: string): ReactNode => {
+    if (node.type === 'block') {
+      return (
+        <HeaderInfo
+          key={key}
+          invoiceForm={invoiceForm}
+          storeSettings={storeSettings}
+          logoUrl={logoUrl}
+          pdfTexts={pdfTexts}
+          blocks={[node.block]}
+        />
+      );
+    }
+    if (node.type === 'section') {
+      if (node.section.visible === false) return null;
+      return (
+        <View key={key}>
+          {renderTemplateSection(
+            node.section.type,
+            node.section.blocks,
+            node.section.columnSizing,
+            node.section.totalsBlocks,
+            node.section.watermarkOrder
+          )}
+        </View>
+      );
+    }
+    return (
+      <View
+        key={key}
+        style={{
+          width: node.width,
+          flexDirection: node.type === 'column' ? 'column' : 'row',
+          flexWrap: node.type === 'grid' ? 'wrap' : 'nowrap',
+          gap: node.gap
+        }}
+      >
+        {node.children.map((child, index) => renderLayoutNode(child, `${key}-${index}`))}
+      </View>
+    );
+  };
+
   return (
     <Document>
       <Page
         size={invoiceForm?.invoiceCustomization?.pageFormat}
+        orientation={templateLayout?.schemaVersion === 2 ? templateLayout.orientation : undefined}
         style={[
           PDF_STYLES.page,
           dynamicStyle.customFont,
@@ -302,6 +380,10 @@ const PDFDocumentComponent: FC<Props> = ({
         {!invoiceForm?.layoutId || !invoiceForm.invoiceLayoutSnapshot?.layoutSchema ? (
           <View style={{ flexGrow: 1, justifyContent: 'center', alignItems: 'center' }}>
             <Text style={PDF_STYLES.layoutRequired}>{layoutRequired}</Text>
+          </View>
+        ) : templateLayout?.schemaVersion === 2 ? (
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', width: '100%' }}>
+            {templateRegions.map(renderRegion)}
           </View>
         ) : (
           templateSections
@@ -322,6 +404,7 @@ const PDFDocumentComponent: FC<Props> = ({
         <Page
           key={item.id}
           size={invoiceForm?.invoiceCustomization?.pageFormat}
+          orientation={templateLayout?.schemaVersion === 2 ? templateLayout.orientation : undefined}
           style={[
             PDF_STYLES.page,
             dynamicStyle.customFont,

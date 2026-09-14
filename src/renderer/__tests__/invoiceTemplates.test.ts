@@ -7,8 +7,160 @@ const valid = JSON.stringify({
   sections: [{ type: 'header', visible: true }]
 });
 
+const validV2 = JSON.stringify({
+  schemaVersion: 2,
+  meta: { name: 'Sidebar invoice' },
+  orientation: 'landscape',
+  regions: [
+    {
+      id: 'sidebar',
+      width: '30%',
+      direction: 'column',
+      blocks: [{ type: 'row', children: [{ type: 'logo' }, { type: 'businessInfo' }] }]
+    },
+    { id: 'main', width: '70%', direction: 'column', sections: ['itemsTable', 'financialTotals'] }
+  ]
+});
+
 describe('invoice template schema', () => {
   it('accepts a strict valid v1 template', () => expect(parseLayoutSchema(valid).errors).toEqual([]));
+  it('accepts a valid v2 template with independent regions', () => {
+    const result = parseLayoutSchema(validV2);
+
+    expect(result.errors).toEqual([]);
+    expect(result.schema?.schemaVersion).toBe(2);
+  });
+  it('accepts quarter-based V2 sidebar widths', () => {
+    expect(
+      parseLayoutSchema(
+        JSON.stringify({
+          schemaVersion: 2,
+          meta: { name: 'Landscape sidebar' },
+          regions: [
+            { id: 'sidebar', width: '25%', direction: 'column', sections: ['header'] },
+            { id: 'main', width: '75%', direction: 'column', sections: ['itemsTable'] }
+          ]
+        })
+      ).errors
+    ).toEqual([]);
+  });
+  it('rejects invalid v2 region definitions', () => {
+    const result = parseLayoutSchema(
+      JSON.stringify({
+        schemaVersion: 2,
+        meta: { name: 'Invalid regions' },
+        regions: [
+          { id: 'main', width: '45%', direction: 'column', sections: ['itemsTable'] },
+          { id: 'main', width: '70%', direction: 'diagonal', sections: ['itemsTable', 'unknown'] },
+          { id: 'empty', width: '100%', direction: 'grid' }
+        ]
+      })
+    );
+
+    expect(result.errors.map(error => error.path)).toEqual(
+      expect.arrayContaining([
+        'regions[0].width',
+        'regions[1].id',
+        'regions[1].direction',
+        'regions[1].sections[0]',
+        'regions[1].sections[1]',
+        'regions[2]'
+      ])
+    );
+  });
+  it('rejects regions whose combined widths exceed the page', () => {
+    const result = parseLayoutSchema(
+      JSON.stringify({
+        schemaVersion: 2,
+        meta: { name: 'Too wide' },
+        regions: [
+          { id: 'main', width: '70%', direction: 'column', sections: ['itemsTable'] },
+          { id: 'sidebar', width: '50%', direction: 'column', sections: ['notes'] }
+        ]
+      })
+    );
+
+    expect(result.errors.map(error => error.path)).toContain('regions');
+  });
+  it('accepts recursive V2 nodes with configured sections and overflow policy', () => {
+    const result = parseLayoutSchema(
+      JSON.stringify({
+        schemaVersion: 2,
+        meta: { name: 'Nested composition' },
+        regions: [
+          {
+            id: 'main',
+            width: '100%',
+            direction: 'column',
+            overflow: 'continue',
+            children: [
+              {
+                type: 'row',
+                gap: 10,
+                children: [
+                  { type: 'block', block: { type: 'logo' } },
+                  {
+                    type: 'section',
+                    section: { type: 'itemsTable', visible: true, columnSizing: 'proportional' }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      })
+    );
+
+    expect(result.errors).toEqual([]);
+  });
+  it('rejects invalid recursive V2 nodes and duplicate configured sections', () => {
+    const result = parseLayoutSchema(
+      JSON.stringify({
+        schemaVersion: 2,
+        meta: { name: 'Invalid nested composition' },
+        regions: [
+          {
+            id: 'main',
+            width: '100%',
+            direction: 'column',
+            children: [
+              { type: 'unknown', children: [] },
+              { type: 'section', section: { type: 'notes', visible: true } },
+              { type: 'section', section: { type: 'notes', visible: true } }
+            ]
+          }
+        ]
+      })
+    );
+
+    expect(result.errors.map(error => error.path)).toEqual(
+      expect.arrayContaining(['regions[0].children[0].type', 'regions[0].children[2].section.type'])
+    );
+  });
+  it('rejects duplicate sections and unsupported region children', () => {
+    const result = parseLayoutSchema(
+      JSON.stringify({
+        schemaVersion: 2,
+        meta: { name: 'Invalid content' },
+        regions: [
+          { id: 'one', width: '50%', direction: 'row', sections: ['notes'] },
+          { id: 'two', width: '50%', direction: 'row', sections: ['notes'] },
+          { id: 'three', width: '100%', direction: 'column', blocks: [{ type: 'script' }] }
+        ]
+      })
+    );
+
+    expect(result.errors.map(error => error.path)).toEqual(
+      expect.arrayContaining(['regions[1].sections[0]', 'regions[2].blocks[0].type'])
+    );
+  });
+  it('keeps invalid schema versions rejected through the v1 validator', () => {
+    const result = parseLayoutSchema(
+      JSON.stringify({ schemaVersion: 3, meta: { name: 'Invalid version' }, executable: 'alert()' })
+    );
+
+    expect(result.errors.map(error => error.path)).toEqual(expect.arrayContaining(['$.executable', 'schemaVersion']));
+  });
   it('rejects unsupported executable-shaped properties', () =>
     expect(parseLayoutSchema(valid.replace('"meta"', '"script":"alert()","meta"')).errors[0]).toMatchObject({
       path: '$.script'

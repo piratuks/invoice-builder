@@ -4,7 +4,7 @@ import type { PageFormat } from '../enums/pageFormat';
 import type { SizeType } from '../enums/sizeType';
 import type { TableHeaderStyle } from '../enums/tableHeaderStyle';
 import type { TableRowStyle } from '../enums/tableRowStyle';
-import type { LayoutSchema } from './layouts';
+import type { LayoutSchemaAny } from './layouts';
 import type { PDFText } from './pdfText';
 import type { SortOrder } from './sortOrder';
 
@@ -58,7 +58,7 @@ export interface PresetMeta {
   //style profile
   styleProfilesId?: number;
   layoutId?: number;
-  layoutSchema?: LayoutSchema;
+  layoutSchema?: LayoutSchemaAny;
   styleProfileName?: string;
   styleProfileColor?: string;
   styleProfileLogoSize?: SizeType;
@@ -116,7 +116,7 @@ export interface PresetAddMeta {
   bankId?: number;
   styleProfilesId?: number;
   layoutId?: number;
-  layoutSchema?: LayoutSchema;
+  layoutSchema?: LayoutSchemaAny;
   customerNotes?: string;
   thanksNotes?: string;
   termsConditionNotes?: string;
@@ -160,7 +160,7 @@ export interface PresetFromData {
   language?: Language;
   isArchived: boolean;
   layoutId?: number;
-  layoutSchema?: LayoutSchema;
+  layoutSchema?: LayoutSchemaAny;
   customerNotes?: string;
   thanksNotes?: string;
   termsConditionNotes?: string;

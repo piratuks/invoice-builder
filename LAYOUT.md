@@ -39,6 +39,72 @@ An invoice stores a snapshot of the selected layout. Later changes to the saved 
 
 Only `schemaVersion`, `meta`, and `sections` are allowed at the top level. Each section type may occur at most once.
 
+## V2 Page Regions
+
+V2 layouts compose the complete page from explicit regions. V2 keeps content types whitelisted and continues to use invoice customization for fonts, colors, labels, table styles, and page format.
+
+```json
+{
+  "schemaVersion": 2,
+  "meta": { "name": "Sidebar invoice" },
+  "orientation": "landscape",
+  "regions": [
+    {
+      "id": "sidebar",
+      "width": "30%",
+      "direction": "column",
+      "blocks": [{ "type": "logo" }, { "type": "businessInfo" }, { "type": "paymentInfo" }]
+    },
+    {
+      "id": "main",
+      "width": "70%",
+      "direction": "column",
+      "sections": ["header", "itemsTable", "financialTotals", "notes"]
+    }
+  ]
+}
+```
+
+| Property             | Required    | Description                                                                                                                                                                                                                                                  |
+| -------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `schemaVersion`      | Yes         | Must be `2`.                                                                                                                                                                                                                                                 |
+| `meta.name`          | Yes         | Non-empty layout name, up to 120 characters.                                                                                                                                                                                                                 |
+| `meta.description`   | No          | Optional description.                                                                                                                                                                                                                                        |
+| `orientation`        | No          | `portrait` or `landscape`; defaults to the selected page format orientation.                                                                                                                                                                                 |
+| `regions`            | Yes         | Ordered page regions. Each region must have unique `id`, a supported percentage `width`, and `direction` of `row`, `column`, or `grid`. Supported region widths are `20%`, `25%`, `30%`, `35%`, `40%`, `50%`, `60%`, `65%`, `70%`, `75%`, `80%`, and `100%`. |
+| `regions[].blocks`   | Conditional | A whitelisted header-block tree. A region cannot define both `blocks` and `sections`.                                                                                                                                                                        |
+| `regions[].sections` | Conditional | References to supported invoice sections. Each section may be referenced only once across the layout.                                                                                                                                                        |
+
+- `regions[].children` is a recursive list of `row`, `column`, `grid`, `block`, or `section` nodes. Use `section` nodes for per-region section settings.
+- `regions[].overflow` is either `continue` or `keepTogether`.
+
+For V2, region widths must total no more than 100%. Use `children` when a region needs nested rows, columns, grids, or per-section configuration. A region must use exactly one content form: `blocks`, `sections`, or `children`.
+
+```json
+{
+  "type": "row",
+  "children": [
+    { "type": "block", "block": { "type": "logo" } },
+    { "type": "section", "section": { "type": "itemsTable", "visible": true, "columnSizing": "proportional" } }
+  ]
+}
+```
+
+Regions with `continue` flow across pages, while `keepTogether` requests a single region placement when the PDF renderer has enough space. Item-table headers repeat on continuation pages and individual item rows remain together. Financial and payment sections are kept together. Unsupported properties, executable content, duplicate region IDs, invalid widths, oversized combined widths, unsupported blocks, and duplicate sections are rejected before saving.
+
+For a configured section, use a `section` node:
+
+```json
+{
+  "type": "section",
+  "section": {
+    "type": "totalsRow",
+    "visible": true,
+    "totalsBlocks": [{ "type": "financialTotals" }, { "type": "spacer" }]
+  }
+}
+```
+
 ## Sections
 
 Every section has this shape:
@@ -302,7 +368,7 @@ The following remain outside the layout schema and are configured elsewhere in i
 
 - Translated labels and invoice text.
 - Colors, fonts, font sizes, borders, and table styling.
-- Page format, orientation, margins, and other page setup.
+- Page format, margins, and other page setup. V2 may select `portrait` or `landscape` orientation for its composition.
 - Invoice data, business data, client data, and payment values.
 - Thermal receipt printing.
 - Arbitrary React components, JavaScript, HTML, or CSS.
@@ -312,7 +378,7 @@ The following remain outside the layout schema and are configured elsewhere in i
 The application rejects a layout when:
 
 - The JSON is invalid or larger than 64 KB.
-- `schemaVersion` is not `1`.
+- `schemaVersion` is not `1` or `2`.
 - `meta.name` is missing, empty, or longer than 120 characters.
 - A property is not listed in this document.
 - A section or block type is unsupported.
@@ -320,5 +386,7 @@ The application rejects a layout when:
 - A container has no valid `children` array.
 - A block uses `children`, `paymentSource`, or another property in an unsupported location.
 - An enum value such as `visible`, `width`, `align`, `columnSizing`, or `watermarkOrder` is invalid.
+- A V2 region has invalid content ownership, duplicate region IDs, unsupported overflow behavior, or region widths totaling more than 100%.
+- A V2 recursive node has an unsupported type, invalid children, invalid spacing, or nesting deeper than the allowed limit.
 
 When adding new capabilities, the schema version and validator may be extended with a backwards-compatible field or a new version.

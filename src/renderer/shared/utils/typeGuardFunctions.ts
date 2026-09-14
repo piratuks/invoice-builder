@@ -15,6 +15,7 @@ import type { ItemFromData } from '../types/item';
 import {
   parseLayoutSchema,
   validateLayoutSchema,
+  validateLayoutSchemaV2,
   type LayoutAdd,
   type LayoutFormData,
   type LayoutUpdate
@@ -102,7 +103,10 @@ export const isLayoutData = (data: unknown): data is LayoutAdd | LayoutUpdate =>
   if (data.id !== undefined && typeof data.id !== 'number') return false;
   if (typeof data.isArchived !== 'boolean' || !isRecord(data.schema)) return false;
 
-  return validateLayoutSchema(data.schema).length === 0;
+  const schema = data.schema as { schemaVersion?: unknown };
+  return (
+    (schema.schemaVersion === 2 ? validateLayoutSchemaV2(data.schema) : validateLayoutSchema(data.schema)).length === 0
+  );
 };
 const isSortOrder = (value: unknown): value is SortOrder => {
   const SORT_ORDER_KEYS = ['no', 'item', 'unit', 'quantity', 'unitCost', 'total'] as const;

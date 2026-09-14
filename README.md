@@ -89,6 +89,7 @@ If you value **privacy, portability, and control**, this app is built for you.
 - Signature support: upload or hand-draw signatures and apply them to PDFs
 - Style profiles are now available for invoices and quotes, enabling quick, consistent theming
 - Layouts page for importing and managing JSON-driven invoice PDF compositions
+- Customizable V1 and V2 JSON layout schemas, including page-level regions, sidebars, landscape compositions, recursive rows/columns/grids, and controlled content flow
 - Layout JSON controls section order, visibility, header composition, supported block placement, spacing, and table sizing
 - Export individual layouts as reusable JSON files
 - See [LAYOUT.md](LAYOUT.md) for the complete layout JSON structure and usage guide
@@ -455,6 +456,7 @@ Please open an issue before starting major work to ensure alignment.
 
 | Version | Status                |
 | ------- | --------------------- |
+| v2.8.0  | ✅ Actively supported |
 | v2.7.1  | ✅ Actively supported |
 | v2.7.0  | ✅ Actively supported |
 

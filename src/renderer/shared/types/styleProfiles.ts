@@ -3,7 +3,7 @@ import type { PageFormat } from '../enums/pageFormat';
 import type { SizeType } from '../enums/sizeType';
 import type { TableHeaderStyle } from '../enums/tableHeaderStyle';
 import type { TableRowStyle } from '../enums/tableRowStyle';
-import type { LayoutSchema } from './layouts';
+import type { LayoutSchemaAny } from './layouts';
 import type { PDFText } from './pdfText';
 import type { SortOrder } from './sortOrder';
 
@@ -15,7 +15,7 @@ export interface StyleProfileMeta {
   fontSize?: SizeType;
   fontFamily?: FontFamily;
   layoutId?: number;
-  layoutSchema?: LayoutSchema;
+  layoutSchema?: LayoutSchemaAny;
   tableHeaderStyle?: TableHeaderStyle;
   tableRowStyle?: TableRowStyle;
   pageFormat?: PageFormat;
@@ -55,7 +55,7 @@ export interface StyleProfileAddMeta {
   fontSize?: SizeType;
   fontFamily?: FontFamily;
   layoutId?: number;
-  layoutSchema?: LayoutSchema;
+  layoutSchema?: LayoutSchemaAny;
   tableHeaderStyle?: TableHeaderStyle;
   tableRowStyle?: TableRowStyle;
   pageFormat?: PageFormat;
@@ -100,7 +100,7 @@ export interface StyleProfileFromData {
   fontSize?: SizeType;
   fontFamily?: FontFamily;
   layoutId?: number;
-  layoutSchema?: LayoutSchema;
+  layoutSchema?: LayoutSchemaAny;
   tableHeaderStyle?: TableHeaderStyle;
   tableRowStyle?: TableRowStyle;
   pageFormat?: PageFormat;

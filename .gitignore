@@ -42,3 +42,5 @@ data/*.db
 dist-fe
 dist-be
 dist-electron
+test-results
+data/e2e-*.sqlite

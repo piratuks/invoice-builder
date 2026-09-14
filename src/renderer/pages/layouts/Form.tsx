@@ -5,7 +5,13 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useForm } from '../../shared/hooks/form/useForm';
 import { useFormDirtyCheck } from '../../shared/hooks/form/useFormDirtyCheck';
-import { parseLayoutSchema, type Layout, type LayoutAdd, type LayoutFormData } from '../../shared/types/layouts';
+import {
+  parseLayoutSchema,
+  type Layout,
+  type LayoutAdd,
+  type LayoutFormData,
+  type LayoutSchemaAny
+} from '../../shared/types/layouts';
 import '../../shared/utils/monacoEnvironment';
 
 loader.config({ monaco });
@@ -25,6 +31,7 @@ export const Form = ({
   const translateRef = useRef(t);
   const initialFormRef = useRef<LayoutFormData | undefined>(undefined);
   const schemaInputRef = useRef<HTMLInputElement>(null);
+  const editorContainerRef = useRef<HTMLDivElement>(null);
   const { form, setForm, update } = useForm<LayoutFormData>({
     id: item?.id,
     schema: formatSchema(item?.schema),
@@ -61,7 +68,7 @@ export const Form = ({
       layout: {
         ...(item?.id !== undefined ? { id: item.id } : {}),
         isArchived: form.isArchived,
-        schema: result.schema ?? { schemaVersion: 1, meta: { name: '' } }
+        schema: (result.schema as LayoutSchemaAny | undefined) ?? { schemaVersion: 1, meta: { name: '' } }
       },
       isFormValid: valid,
       description:
@@ -76,18 +83,25 @@ export const Form = ({
   useEffect(() => {
     if (!editor) return;
 
-    const frame = requestAnimationFrame(() => editor.layout());
-    const timeout = window.setTimeout(() => editor.layout(), 300);
+    const container = editorContainerRef.current;
+    if (!container) return;
+
+    const layoutEditor = () => editor.layout();
+    const resizeObserver = new ResizeObserver(layoutEditor);
+    resizeObserver.observe(container);
+    window.addEventListener('resize', layoutEditor);
+    const frame = requestAnimationFrame(layoutEditor);
 
     return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', layoutEditor);
       cancelAnimationFrame(frame);
-      window.clearTimeout(timeout);
     };
   }, [editor]);
 
   return (
     <Grid container spacing={2}>
-      <Grid size={12}>
+      <Grid ref={editorContainerRef} size={12}>
         <input
           ref={schemaInputRef}
           type="file"

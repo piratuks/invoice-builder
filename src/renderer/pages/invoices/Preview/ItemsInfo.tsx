@@ -207,6 +207,7 @@ const ItemsInfoComponent: FC<Props> = ({ invoiceForm, storeSettings, labels, col
   return (
     <>
       <View
+        fixed
         style={[
           PDF_STYLES.row,
           {
@@ -436,6 +437,7 @@ const ItemsInfoComponent: FC<Props> = ({ invoiceForm, storeSettings, labels, col
         return (
           <View
             key={`invoice-item-prev-${item.itemId}-${index1}`}
+            wrap={false}
             style={[
               PDF_STYLES.row,
               {

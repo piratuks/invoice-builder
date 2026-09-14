@@ -34,23 +34,64 @@ export interface HeaderBlock {
   paymentSource?: PaymentSource;
 }
 
+export interface LayoutSection {
+  type: LayoutSectionType;
+  visible: LayoutVisibility;
+  blocks?: HeaderBlock[];
+  totalsBlocks?: TotalsRowBlock[];
+  watermarkOrder?: WatermarkOrder;
+  columnSizing?: ColumnSizing;
+}
+
 export interface LayoutSchema {
   schemaVersion: 1;
   meta: { name: string; description?: string };
-  sections?: Array<{
-    type: LayoutSectionType;
-    visible: LayoutVisibility;
-    blocks?: HeaderBlock[];
-    totalsBlocks?: TotalsRowBlock[];
-    watermarkOrder?: WatermarkOrder;
-    columnSizing?: ColumnSizing;
-  }>;
+  sections?: LayoutSection[];
 }
+
+export type RegionDirection = 'row' | 'column' | 'grid';
+export type RegionWidth =
+  '20%' | '25%' | '30%' | '35%' | '40%' | '50%' | '60%' | '65%' | '70%' | '75%' | '80%' | '100%';
+export type RegionOverflow = 'continue' | 'keepTogether';
+export type LayoutNodeType = 'row' | 'column' | 'grid' | 'block' | 'section';
+export interface LayoutContainerNode {
+  type: 'row' | 'column' | 'grid';
+  children: LayoutNode[];
+  width?: RegionWidth;
+  gap?: 5 | 10;
+}
+export interface LayoutBlockNode {
+  type: 'block';
+  block: HeaderBlock;
+}
+export interface LayoutSectionNode {
+  type: 'section';
+  section: LayoutSection;
+}
+export type LayoutNode = LayoutContainerNode | LayoutBlockNode | LayoutSectionNode;
+export interface LayoutRegion {
+  id: string;
+  width: RegionWidth;
+  direction: RegionDirection;
+  blocks?: HeaderBlock[];
+  sections?: LayoutSectionType[];
+  children?: LayoutNode[];
+  overflow?: RegionOverflow;
+}
+
+export interface LayoutSchemaV2 {
+  schemaVersion: 2;
+  meta: { name: string; description?: string };
+  regions: LayoutRegion[];
+  orientation?: 'portrait' | 'landscape';
+}
+
+export type LayoutSchemaAny = LayoutSchema | LayoutSchemaV2;
 
 export interface Layout {
   id: number;
   isArchived: boolean;
-  schema: LayoutSchema | string;
+  schema: LayoutSchemaAny | string;
   invoiceCount: number;
   quotesCount: number;
   createdAt: string;

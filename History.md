@@ -1,5 +1,13 @@
 # Invoice Builder
 
+## 2026-09-14, version 2.8.0
+
+New features & improvements
+
+- Added customizable V2 JSON layout schemas for page-level invoice composition with independent regions, sidebars, landscape orientation, recursive rows/columns/grids, configured sections, and controlled region overflow.
+- Added V2 PDF pagination support for long item tables, repeated table headers, non-splitting item rows, and preserved layout snapshots for historical invoices and quotes.
+- Added validation and documentation for customizable V2 layout schemas, plus PDF regression coverage and web/Electron smoke tests while retaining V1 layout schema compatibility.
+
 ## 2026-09-03, version 2.7.1
 
 Bug fixes

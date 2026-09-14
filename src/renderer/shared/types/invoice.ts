@@ -10,7 +10,7 @@ import type { SizeType } from '../enums/sizeType';
 import type { TableHeaderStyle } from '../enums/tableHeaderStyle';
 import type { TableRowStyle } from '../enums/tableRowStyle';
 import type { InvoiceItemTaxType, InvoiceTaxType } from '../enums/taxType';
-import type { LayoutSchema } from './layouts';
+import type { LayoutSchemaAny } from './layouts';
 import type { PDFText } from './pdfText';
 import type { SortOrder } from './sortOrder';
 
@@ -155,7 +155,7 @@ export interface InvoiceStyleProfileSnapshots {
 export interface InvoiceLayoutSnapshots {
   parentInvoiceId?: number;
   id?: number;
-  layoutSchema?: LayoutSchema;
+  layoutSchema?: LayoutSchemaAny;
 }
 
 export interface InvoiceCustomizationMeta {
@@ -197,7 +197,7 @@ export interface CustomizationFormPageSetup {
   fontSize?: SizeType;
   fontFamily?: FontFamily;
   layoutId?: number;
-  layoutSchema?: LayoutSchema;
+  layoutSchema?: LayoutSchemaAny;
 }
 
 export interface CustomizationFormBranding {
@@ -252,7 +252,7 @@ export interface CustomizationForm {
   pdfTexts?: PDFText;
   customField?: CustomField[];
   layoutId?: number;
-  layoutSchema?: LayoutSchema;
+  layoutSchema?: LayoutSchemaAny;
 }
 
 export interface DiscountForm {

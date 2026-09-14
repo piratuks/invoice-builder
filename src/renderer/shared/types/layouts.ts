@@ -34,23 +34,64 @@ export interface HeaderBlock {
   paymentSource?: PaymentSource;
 }
 
+export interface LayoutSection {
+  type: LayoutSectionType;
+  visible: LayoutVisibility;
+  blocks?: HeaderBlock[];
+  totalsBlocks?: TotalsRowBlock[];
+  watermarkOrder?: WatermarkOrder;
+  columnSizing?: ColumnSizing;
+}
+
 export interface LayoutSchema {
   schemaVersion: 1;
   meta: { name: string; description?: string };
-  sections?: Array<{
-    type: LayoutSectionType;
-    visible: LayoutVisibility;
-    blocks?: HeaderBlock[];
-    totalsBlocks?: TotalsRowBlock[];
-    watermarkOrder?: WatermarkOrder;
-    columnSizing?: ColumnSizing;
-  }>;
+  sections?: LayoutSection[];
 }
+
+export type RegionDirection = 'row' | 'column' | 'grid';
+export type RegionWidth =
+  '20%' | '25%' | '30%' | '35%' | '40%' | '50%' | '60%' | '65%' | '70%' | '75%' | '80%' | '100%';
+export type RegionOverflow = 'continue' | 'keepTogether';
+export type LayoutNodeType = 'row' | 'column' | 'grid' | 'block' | 'section';
+export interface LayoutContainerNode {
+  type: 'row' | 'column' | 'grid';
+  children: LayoutNode[];
+  width?: RegionWidth;
+  gap?: 5 | 10;
+}
+export interface LayoutBlockNode {
+  type: 'block';
+  block: HeaderBlock;
+}
+export interface LayoutSectionNode {
+  type: 'section';
+  section: LayoutSection;
+}
+export type LayoutNode = LayoutContainerNode | LayoutBlockNode | LayoutSectionNode;
+export interface LayoutRegion {
+  id: string;
+  width: RegionWidth;
+  direction: RegionDirection;
+  blocks?: HeaderBlock[];
+  sections?: LayoutSectionType[];
+  children?: LayoutNode[];
+  overflow?: RegionOverflow;
+}
+
+export interface LayoutSchemaV2 {
+  schemaVersion: 2;
+  meta: { name: string; description?: string };
+  regions: LayoutRegion[];
+  orientation?: 'portrait' | 'landscape';
+}
+
+export type LayoutSchemaAny = LayoutSchema | LayoutSchemaV2;
 
 export interface Layout {
   id: number;
   isArchived: boolean;
-  schema: LayoutSchema;
+  schema: LayoutSchemaAny;
   invoiceCount: number;
   quotesCount: number;
   createdAt: string;
@@ -228,13 +269,164 @@ export const validateLayoutSchema = (value: unknown): LayoutValidationError[] =>
   return errors;
 };
 
-export const parseLayoutSchema = (text: string): { schema?: LayoutSchema; errors: LayoutValidationError[] } => {
+const regionDirections: RegionDirection[] = ['row', 'column', 'grid'];
+const regionWidths: RegionWidth[] = [
+  '20%',
+  '25%',
+  '30%',
+  '35%',
+  '40%',
+  '50%',
+  '60%',
+  '65%',
+  '70%',
+  '75%',
+  '80%',
+  '100%'
+];
+
+const validateV2Section = (
+  value: unknown,
+  path: string,
+  seenSections: Set<string>,
+  errors: LayoutValidationError[]
+) => {
+  if (!isObject(value)) {
+    errors.push({ path, message: 'layouts.validation.object' });
+    return;
+  }
+  hasOnly(value, ['type', 'visible', 'blocks', 'totalsBlocks', 'watermarkOrder', 'columnSizing'], path, errors);
+  if (!sectionTypes.includes(value.type as LayoutSectionType))
+    errors.push({ path: `${path}.type`, message: 'layouts.validation.sectionType' });
+  else if (seenSections.has(value.type as string))
+    errors.push({ path: `${path}.type`, message: 'layouts.validation.duplicate' });
+  else seenSections.add(value.type as string);
+  if (value.visible !== true && value.visible !== false && value.visible !== 'auto')
+    errors.push({ path: `${path}.visible`, message: 'layouts.validation.visible' });
+  if (value.type === 'header' && value.blocks !== undefined)
+    validateHeaderBlocks(value.blocks, `${path}.blocks`, errors);
+  if (value.type !== 'header' && value.blocks !== undefined)
+    errors.push({ path: `${path}.blocks`, message: 'layouts.validation.blocks' });
+  if (value.type === 'totalsRow' && value.totalsBlocks !== undefined)
+    validateTotalsBlocks(value.totalsBlocks, `${path}.totalsBlocks`, errors);
+  if (value.type !== 'totalsRow' && value.totalsBlocks !== undefined)
+    errors.push({ path: `${path}.totalsBlocks`, message: 'layouts.validation.totalsBlocks' });
+  enumValue(value.watermarkOrder, ['default', 'paidFirst'], `${path}.watermarkOrder`, errors);
+  enumValue(value.columnSizing, ['fixedFlex', 'proportional'], `${path}.columnSizing`, errors);
+};
+
+const validateLayoutNodes = (
+  value: unknown,
+  path: string,
+  seenSections: Set<string>,
+  errors: LayoutValidationError[],
+  depth: number
+) => {
+  if (!Array.isArray(value)) {
+    errors.push({ path, message: 'layouts.validation.array' });
+    return;
+  }
+  if (depth > 12) {
+    errors.push({ path, message: 'layouts.validation.nesting' });
+    return;
+  }
+  value.forEach((node, index) => {
+    const nodePath = `${path}[${index}]`;
+    if (!isObject(node)) {
+      errors.push({ path: nodePath, message: 'layouts.validation.object' });
+      return;
+    }
+    hasOnly(node, ['type', 'children', 'block', 'section', 'width', 'gap'], nodePath, errors);
+    if (node.type === 'row' || node.type === 'column' || node.type === 'grid') {
+      enumValue(node.width, regionWidths, `${nodePath}.width`, errors);
+      if (node.gap !== undefined && node.gap !== 5 && node.gap !== 10)
+        errors.push({ path: `${nodePath}.gap`, message: 'layouts.validation.spacing' });
+      validateLayoutNodes(node.children, `${nodePath}.children`, seenSections, errors, depth + 1);
+    } else if (node.type === 'block') {
+      if (!isObject(node.block)) errors.push({ path: `${nodePath}.block`, message: 'layouts.validation.object' });
+      else validateHeaderBlocks([node.block], `${nodePath}.block`, errors);
+    } else if (node.type === 'section') {
+      validateV2Section(node.section, `${nodePath}.section`, seenSections, errors);
+    } else {
+      errors.push({ path: `${nodePath}.type`, message: 'layouts.validation.nodeType' });
+    }
+  });
+};
+
+export const validateLayoutSchemaV2 = (value: unknown): LayoutValidationError[] => {
+  const errors: LayoutValidationError[] = [];
+  if (!isObject(value)) return [{ path: '$', message: 'layouts.validation.layoutObject' }];
+  hasOnly(value, ['schemaVersion', 'meta', 'regions', 'orientation'], '$', errors);
+  if (value.schemaVersion !== 2) errors.push({ path: 'schemaVersion', message: 'layouts.validation.version' });
+  if (!isObject(value.meta)) errors.push({ path: 'meta', message: 'layouts.validation.requiredObject' });
+  else {
+    hasOnly(value.meta, ['name', 'description'], 'meta', errors);
+    if (typeof value.meta.name !== 'string' || !value.meta.name.trim() || value.meta.name.length > 120)
+      errors.push({ path: 'meta.name', message: 'layouts.validation.name' });
+    if (value.meta.description !== undefined && typeof value.meta.description !== 'string')
+      errors.push({ path: 'meta.description', message: 'layouts.validation.string' });
+  }
+  if (!Array.isArray(value.regions)) {
+    errors.push({ path: 'regions', message: 'layouts.validation.array' });
+    return errors;
+  }
+  enumValue(value.orientation, ['portrait', 'landscape'], 'orientation', errors);
+  const seenRegionIds = new Set<string>();
+  const seenSections = new Set<string>();
+  let totalWidth = 0;
+  value.regions.forEach((region, index) => {
+    const path = `regions[${index}]`;
+    if (!isObject(region)) {
+      errors.push({ path, message: 'layouts.validation.object' });
+      return;
+    }
+    hasOnly(region, ['id', 'width', 'direction', 'blocks', 'sections', 'children', 'overflow'], path, errors);
+    if (typeof region.id !== 'string' || !region.id.trim())
+      errors.push({ path: `${path}.id`, message: 'layouts.validation.regionId' });
+    else if (seenRegionIds.has(region.id)) errors.push({ path: `${path}.id`, message: 'layouts.validation.duplicate' });
+    else seenRegionIds.add(region.id);
+    if (typeof region.width !== 'string' || !regionWidths.includes(region.width as RegionWidth))
+      errors.push({ path: `${path}.width`, message: 'layouts.validation.regionWidth' });
+    else totalWidth += Number.parseInt(region.width, 10);
+    if (typeof region.direction !== 'string' || !regionDirections.includes(region.direction as RegionDirection))
+      errors.push({ path: `${path}.direction`, message: 'layouts.validation.regionDirection' });
+    enumValue(region.overflow, ['continue', 'keepTogether'], `${path}.overflow`, errors);
+    const contentKinds = [
+      region.blocks !== undefined,
+      region.sections !== undefined,
+      region.children !== undefined
+    ].filter(Boolean).length;
+    if (contentKinds > 1) errors.push({ path, message: 'layouts.validation.regionContent' });
+    else if (contentKinds === 0) errors.push({ path, message: 'layouts.validation.regionContent' });
+    if (region.blocks !== undefined) validateHeaderBlocks(region.blocks, `${path}.blocks`, errors);
+    if (region.sections !== undefined) {
+      if (!Array.isArray(region.sections))
+        errors.push({ path: `${path}.sections`, message: 'layouts.validation.array' });
+      else
+        region.sections.forEach((sectionType, sectionIndex) => {
+          const sectionPath = `${path}.sections[${sectionIndex}]`;
+          if (!sectionTypes.includes(sectionType as LayoutSectionType))
+            errors.push({ path: sectionPath, message: 'layouts.validation.sectionType' });
+          else if (seenSections.has(sectionType as string))
+            errors.push({ path: sectionPath, message: 'layouts.validation.duplicate' });
+          else seenSections.add(sectionType as string);
+        });
+    }
+    if (region.children !== undefined)
+      validateLayoutNodes(region.children, `${path}.children`, seenSections, errors, 0);
+  });
+  if (totalWidth > 100) errors.push({ path: 'regions', message: 'layouts.validation.regionWidthsTotal' });
+  return errors;
+};
+
+export const parseLayoutSchema = (text: string): { schema?: LayoutSchemaAny; errors: LayoutValidationError[] } => {
   if (new TextEncoder().encode(text).byteLength > MAX_LAYOUT_BYTES)
     return { errors: [{ path: '$', message: 'layouts.validation.tooLarge' }] };
   try {
     const value: unknown = JSON.parse(text);
-    const errors = validateLayoutSchema(value);
-    return errors.length ? { errors } : { schema: value as LayoutSchema, errors };
+    if (!isObject(value)) return { errors: [{ path: '$', message: 'layouts.validation.layoutObject' }] };
+    const errors = value.schemaVersion === 2 ? validateLayoutSchemaV2(value) : validateLayoutSchema(value);
+    return errors.length ? { errors } : { schema: value as unknown as LayoutSchemaAny, errors };
   } catch {
     return { errors: [{ path: '$', message: 'layouts.validation.invalidJson' }] };
   }

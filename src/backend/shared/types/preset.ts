@@ -4,7 +4,7 @@ import type { PageFormat } from '../enums/pageFormat';
 import type { SizeType } from '../enums/sizeType';
 import type { TableHeaderStyle } from '../enums/tableHeaderStyle';
 import type { TableRowStyle } from '../enums/tableRowStyle';
-import type { LayoutSchema } from './layouts';
+import type { LayoutSchemaAny } from './layouts';
 import type { PDFText } from './pdfText';
 import type { SortOrder } from './sortOrder';
 
@@ -58,7 +58,7 @@ export interface Preset {
   qrCodeFileName?: string;
   qrCode?: Uint8Array;
   layoutId?: number;
-  layoutSchema?: LayoutSchema;
+  layoutSchema?: LayoutSchemaAny;
   //style profile
   styleProfilesId?: number;
   styleProfileName?: string;

@@ -635,6 +635,13 @@ You can:
 
 The **Layouts** screen allows you to **create, read, update, and delete (CRUD)** the JSON structures used to compose invoice and quote PDFs. Layouts control document structure, while colors, fonts, labels, table styling, and page settings remain configured in the invoice or quote customization options.
 
+Layouts support two schema versions:
+
+- **V1**: ordered invoice sections with nested header rows and columns.
+- **V2**: customizable page-level JSON composition with independent regions, sidebars, landscape orientation, recursive rows/columns/grids, configured sections, and controlled region overflow.
+
+V2 layout schemas continue to use the application's whitelisted content blocks and sections. They do not contain React, JavaScript, HTML, CSS, custom fonts, or arbitrary executable content. See [LAYOUT.md](LAYOUT.md) for V1 and V2 examples and validation rules.
+
 Layout records can be archived and selected from invoice or quote page setup. Existing invoices and quotes keep a snapshot of the layout used when they were saved, so later layout changes do not alter historical documents.
 
 ### Adding a Layout
