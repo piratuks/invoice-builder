@@ -514,6 +514,8 @@
   },
   "layouts": {
     "add": "Pridėti maketuotę",
+    "addBlock": "Pridėti bloką",
+    "addSection": "Pridėti skyrių",
     "filter": {
       "activeDesc": "Nearchyvuotos maketuotės",
       "activeText": "Aktyvios maketuotės",
@@ -531,9 +533,17 @@
       "noInvoicesDesc": "Maketuotės be sąskaitų",
       "noInvoicesText": "Maketuotės, neturinčios sąskaitų"
     },
+    "jsonTab": "JSON",
+    "moveDown": "Perkelti žemyn",
+    "moveInto": "Perkelti į...",
+    "moveUp": "Perkelti aukštyn",
     "noItem": "Pasirinkite maketuotę, kad matytumėte detales.",
+    "noSections": "Skyrių nėra.",
     "readOnlySchema": "Ši schema yra tik skaitoma.",
+    "remove": "Pašalinti",
     "schema": "Schema",
+    "sectionActions": "Skyriaus veiksmai",
+    "sections": "Skyriai",
     "uploadSchema": "Įkelti schemą",
     "validation": {
       "array": "Turi būti masyvas",
@@ -566,7 +576,8 @@
       "unsupportedValue": "Nepalaikoma reikšmė: {{value}}",
       "version": "Nepalaikoma schemos versija",
       "visible": "Būtina loginė reikšmė arba 'auto'"
-    }
+    },
+    "visualTab": "Vaizdas"
   },
   "menuItems": {
     "banks": "Bankai",

@@ -33,7 +33,6 @@ export interface HeaderBlock {
   showInvoiceLabel?: boolean;
   paymentSource?: PaymentSource;
 }
-
 export interface LayoutSection {
   type: LayoutSectionType;
   visible: LayoutVisibility;
@@ -42,13 +41,11 @@ export interface LayoutSection {
   watermarkOrder?: WatermarkOrder;
   columnSizing?: ColumnSizing;
 }
-
 export interface LayoutSchema {
   schemaVersion: 1;
   meta: { name: string; description?: string };
   sections?: LayoutSection[];
 }
-
 export type RegionDirection = 'row' | 'column' | 'grid';
 export type RegionWidth =
   '20%' | '25%' | '30%' | '35%' | '40%' | '50%' | '60%' | '65%' | '70%' | '75%' | '80%' | '100%';
@@ -78,16 +75,13 @@ export interface LayoutRegion {
   children?: LayoutNode[];
   overflow?: RegionOverflow;
 }
-
 export interface LayoutSchemaV2 {
   schemaVersion: 2;
   meta: { name: string; description?: string };
   regions: LayoutRegion[];
   orientation?: 'portrait' | 'landscape';
 }
-
 export type LayoutSchemaAny = LayoutSchema | LayoutSchemaV2;
-
 export interface Layout {
   id: number;
   isArchived: boolean;
@@ -97,16 +91,13 @@ export interface Layout {
   createdAt: string;
   updatedAt: string;
 }
-
 export interface LayoutFormData {
   id?: number;
   isArchived: boolean;
   schema: string;
 }
-
 export type LayoutAdd = Pick<Layout, 'isArchived' | 'schema'>;
 export type LayoutUpdate = Partial<LayoutAdd> & Pick<Layout, 'id'>;
-
 export interface LayoutValidationError {
   path: string;
   message: string;
@@ -114,7 +105,7 @@ export interface LayoutValidationError {
 }
 
 const MAX_LAYOUT_BYTES = 64 * 1024;
-const sectionTypes: LayoutSectionType[] = [
+export const validLayoutSectionTypes: LayoutSectionType[] = [
   'watermark',
   'header',
   'itemsTable',
@@ -125,25 +116,7 @@ const sectionTypes: LayoutSectionType[] = [
   'signature',
   'pageCounter'
 ];
-
-const isObject = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null && !Array.isArray(value);
-const hasOnly = (value: Record<string, unknown>, keys: string[], path: string, errors: LayoutValidationError[]) => {
-  Object.keys(value)
-    .filter(key => !keys.includes(key))
-    .forEach(key =>
-      errors.push({ path: `${path}.${key}`, message: 'layouts.validation.unknownProperty', params: { property: key } })
-    );
-};
-const enumValue = (value: unknown, values: string[], path: string, errors: LayoutValidationError[]) => {
-  if (value !== undefined && !values.includes(value as string))
-    errors.push({
-      path,
-      message: 'layouts.validation.unsupportedValue',
-      params: { value: String(value) }
-    });
-};
-const headerBlockTypes: HeaderBlockType[] = [
+export const validHeaderBlockTypes: HeaderBlockType[] = [
   'row',
   'column',
   'title',
@@ -153,7 +126,19 @@ const headerBlockTypes: HeaderBlockType[] = [
   'invoiceMeta',
   'paymentInfo'
 ];
-const totalsRowBlockTypes: TotalsRowBlockType[] = ['paymentInfo', 'financialTotals', 'spacer'];
+export const validTotalsRowBlockTypes: TotalsRowBlockType[] = ['paymentInfo', 'financialTotals', 'spacer'];
+const isObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+const hasOnly = (value: Record<string, unknown>, keys: string[], path: string, errors: LayoutValidationError[]) =>
+  Object.keys(value)
+    .filter(key => !keys.includes(key))
+    .forEach(key =>
+      errors.push({ path: `${path}.${key}`, message: 'layouts.validation.unknownProperty', params: { property: key } })
+    );
+const enumValue = (value: unknown, values: string[], path: string, errors: LayoutValidationError[]) => {
+  if (value !== undefined && !values.includes(value as string))
+    errors.push({ path, message: 'layouts.validation.unsupportedValue', params: { value: String(value) } });
+};
 const validateTotalsBlocks = (value: unknown, path: string, errors: LayoutValidationError[]) => {
   if (!Array.isArray(value)) {
     errors.push({ path, message: 'layouts.validation.totalsArray' });
@@ -166,7 +151,7 @@ const validateTotalsBlocks = (value: unknown, path: string, errors: LayoutValida
       return;
     }
     hasOnly(block, ['type', 'paymentSource'], blockPath, errors);
-    if (!totalsRowBlockTypes.includes(block.type as TotalsRowBlockType))
+    if (!validTotalsRowBlockTypes.includes(block.type as TotalsRowBlockType))
       errors.push({ path: `${blockPath}.type`, message: 'layouts.validation.totalsType' });
     enumValue(block.paymentSource, ['bank', 'legacyBusiness'], `${blockPath}.paymentSource`, errors);
   });
@@ -201,14 +186,14 @@ const validateHeaderBlocks = (value: unknown, path: string, errors: LayoutValida
       blockPath,
       errors
     );
-    if (!headerBlockTypes.includes(block.type as HeaderBlockType))
+    if (!validHeaderBlockTypes.includes(block.type as HeaderBlockType))
       errors.push({ path: `${blockPath}.type`, message: 'layouts.validation.headerType' });
     enumValue(block.width, ['20%', '40%', '50%', '60%', '100%'], `${blockPath}.width`, errors);
     enumValue(block.align, ['start', 'center', 'end'], `${blockPath}.align`, errors);
     enumValue(block.justify, ['between'], `${blockPath}.justify`, errors);
     enumValue(block.paymentSource, ['bank', 'legacyBusiness'], `${blockPath}.paymentSource`, errors);
-    [block.paddingTop, block.paddingBottom, block.gap].forEach(value => {
-      if (value !== undefined && typeof value !== 'number')
+    [block.paddingTop, block.paddingBottom, block.gap].forEach(item => {
+      if (item !== undefined && typeof item !== 'number')
         errors.push({ path: blockPath, message: 'layouts.validation.spacing' });
     });
     ['boxed', 'showTitle', 'showInvoiceLabel'].forEach(key => {
@@ -221,7 +206,6 @@ const validateHeaderBlocks = (value: unknown, path: string, errors: LayoutValida
       errors.push({ path: `${blockPath}.children`, message: 'layouts.validation.children' });
   });
 };
-
 export const validateLayoutSchema = (value: unknown): LayoutValidationError[] => {
   const errors: LayoutValidationError[] = [];
   if (!isObject(value)) return [{ path: '$', message: 'layouts.validation.layoutObject' }];
@@ -246,7 +230,7 @@ export const validateLayoutSchema = (value: unknown): LayoutValidationError[] =>
           return;
         }
         hasOnly(section, ['type', 'visible', 'blocks', 'totalsBlocks', 'watermarkOrder', 'columnSizing'], path, errors);
-        if (!sectionTypes.includes(section.type as LayoutSectionType))
+        if (!validLayoutSectionTypes.includes(section.type as LayoutSectionType))
           errors.push({ path: `${path}.type`, message: 'layouts.validation.sectionType' });
         else if (seen.has(section.type as string))
           errors.push({ path: `${path}.type`, message: 'layouts.validation.duplicate' });
@@ -268,7 +252,6 @@ export const validateLayoutSchema = (value: unknown): LayoutValidationError[] =>
   }
   return errors;
 };
-
 const regionDirections: RegionDirection[] = ['row', 'column', 'grid'];
 const regionWidths: RegionWidth[] = [
   '20%',
@@ -284,7 +267,6 @@ const regionWidths: RegionWidth[] = [
   '80%',
   '100%'
 ];
-
 const validateV2Section = (
   value: unknown,
   path: string,
@@ -296,7 +278,7 @@ const validateV2Section = (
     return;
   }
   hasOnly(value, ['type', 'visible', 'blocks', 'totalsBlocks', 'watermarkOrder', 'columnSizing'], path, errors);
-  if (!sectionTypes.includes(value.type as LayoutSectionType))
+  if (!validLayoutSectionTypes.includes(value.type as LayoutSectionType))
     errors.push({ path: `${path}.type`, message: 'layouts.validation.sectionType' });
   else if (seenSections.has(value.type as string))
     errors.push({ path: `${path}.type`, message: 'layouts.validation.duplicate' });
@@ -314,7 +296,6 @@ const validateV2Section = (
   enumValue(value.watermarkOrder, ['default', 'paidFirst'], `${path}.watermarkOrder`, errors);
   enumValue(value.columnSizing, ['fixedFlex', 'proportional'], `${path}.columnSizing`, errors);
 };
-
 const validateLayoutNodes = (
   value: unknown,
   path: string,
@@ -345,14 +326,10 @@ const validateLayoutNodes = (
     } else if (node.type === 'block') {
       if (!isObject(node.block)) errors.push({ path: `${nodePath}.block`, message: 'layouts.validation.object' });
       else validateHeaderBlocks([node.block], `${nodePath}.block`, errors);
-    } else if (node.type === 'section') {
-      validateV2Section(node.section, `${nodePath}.section`, seenSections, errors);
-    } else {
-      errors.push({ path: `${nodePath}.type`, message: 'layouts.validation.nodeType' });
-    }
+    } else if (node.type === 'section') validateV2Section(node.section, `${nodePath}.section`, seenSections, errors);
+    else errors.push({ path: `${nodePath}.type`, message: 'layouts.validation.nodeType' });
   });
 };
-
 export const validateLayoutSchemaV2 = (value: unknown): LayoutValidationError[] => {
   const errors: LayoutValidationError[] = [];
   if (!isObject(value)) return [{ path: '$', message: 'layouts.validation.layoutObject' }];
@@ -396,8 +373,7 @@ export const validateLayoutSchemaV2 = (value: unknown): LayoutValidationError[] 
       region.sections !== undefined,
       region.children !== undefined
     ].filter(Boolean).length;
-    if (contentKinds > 1) errors.push({ path, message: 'layouts.validation.regionContent' });
-    else if (contentKinds === 0) errors.push({ path, message: 'layouts.validation.regionContent' });
+    if (contentKinds > 1 || contentKinds === 0) errors.push({ path, message: 'layouts.validation.regionContent' });
     if (region.blocks !== undefined) validateHeaderBlocks(region.blocks, `${path}.blocks`, errors);
     if (region.sections !== undefined) {
       if (!Array.isArray(region.sections))
@@ -405,7 +381,7 @@ export const validateLayoutSchemaV2 = (value: unknown): LayoutValidationError[] 
       else
         region.sections.forEach((sectionType, sectionIndex) => {
           const sectionPath = `${path}.sections[${sectionIndex}]`;
-          if (!sectionTypes.includes(sectionType as LayoutSectionType))
+          if (!validLayoutSectionTypes.includes(sectionType as LayoutSectionType))
             errors.push({ path: sectionPath, message: 'layouts.validation.sectionType' });
           else if (seenSections.has(sectionType as string))
             errors.push({ path: sectionPath, message: 'layouts.validation.duplicate' });
@@ -418,7 +394,6 @@ export const validateLayoutSchemaV2 = (value: unknown): LayoutValidationError[] 
   if (totalWidth > 100) errors.push({ path: 'regions', message: 'layouts.validation.regionWidthsTotal' });
   return errors;
 };
-
 export const parseLayoutSchema = (text: string): { schema?: LayoutSchemaAny; errors: LayoutValidationError[] } => {
   if (new TextEncoder().encode(text).byteLength > MAX_LAYOUT_BYTES)
     return { errors: [{ path: '$', message: 'layouts.validation.tooLarge' }] };

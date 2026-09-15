@@ -514,6 +514,8 @@
   },
   "layouts": {
     "add": "Adicionar layout",
+    "addBlock": "Adicionar bloco",
+    "addSection": "Adicionar seção",
     "filter": {
       "activeDesc": "Layouts que não estão arquivados",
       "activeText": "Layouts ativos",
@@ -531,9 +533,17 @@
       "noInvoicesDesc": "Layouts sem faturas",
       "noInvoicesText": "Layouts que não têm faturas"
     },
+    "jsonTab": "JSON",
+    "moveDown": "Mover para baixo",
+    "moveInto": "Mover para...",
+    "moveUp": "Mover para cima",
     "noItem": "Selecione um layout para ver os detalhes.",
+    "noSections": "Nenhuma seção definida.",
     "readOnlySchema": "Este esquema é somente leitura.",
+    "remove": "Remover",
     "schema": "Esquema",
+    "sectionActions": "Ações da seção",
+    "sections": "Seções",
     "uploadSchema": "Carregar esquema",
     "validation": {
       "array": "Deve ser uma matriz",
@@ -566,7 +576,8 @@
       "unsupportedValue": "Valor não suportado: {{value}}",
       "version": "Versão do esquema não suportada",
       "visible": "Valor booleano ou 'auto' obrigatório"
-    }
+    },
+    "visualTab": "Visual"
   },
   "menuItems": {
     "banks": "Bancos",

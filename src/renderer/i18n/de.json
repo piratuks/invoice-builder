@@ -514,6 +514,8 @@
   },
   "layouts": {
     "add": "Layout hinzufügen",
+    "addBlock": "Block hinzufügen",
+    "addSection": "Abschnitt hinzufügen",
     "filter": {
       "activeDesc": "Layouts, die nicht archiviert sind",
       "activeText": "Aktive Layouts",
@@ -531,9 +533,17 @@
       "noInvoicesDesc": "Layouts ohne Rechnungen",
       "noInvoicesText": "Layouts ohne Rechnungen"
     },
+    "jsonTab": "JSON",
+    "moveDown": "Nach unten",
+    "moveInto": "Verschieben nach...",
+    "moveUp": "Nach oben",
     "noItem": "Wählen Sie ein Layout aus, um Details anzuzeigen.",
+    "noSections": "Keine Abschnitte definiert.",
     "readOnlySchema": "Dieses Schema ist schreibgeschützt.",
+    "remove": "Entfernen",
     "schema": "Schema",
+    "sectionActions": "Abschnittsaktionen",
+    "sections": "Abschnitte",
     "uploadSchema": "Schema hochladen",
     "validation": {
       "array": "Muss ein Array sein",
@@ -566,7 +576,8 @@
       "unsupportedValue": "Nicht unterstützter Wert: {{value}}",
       "version": "Nicht unterstützte Schema-Version",
       "visible": "Erforderlicher Wahrheitswert oder 'auto'"
-    }
+    },
+    "visualTab": "Visuell"
   },
   "menuItems": {
     "banks": "Banken",

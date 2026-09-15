@@ -514,6 +514,8 @@
   },
   "layouts": {
     "add": "Add layout",
+    "addBlock": "Add block",
+    "addSection": "Add section",
     "filter": {
       "activeDesc": "Layouts that are not archived",
       "activeText": "Active layouts",
@@ -531,9 +533,17 @@
       "noInvoicesDesc": "Layouts with no invoices",
       "noInvoicesText": "Layouts who do not have invoices"
     },
+    "jsonTab": "JSON",
+    "moveDown": "Move down",
+    "moveInto": "Move into...",
+    "moveUp": "Move up",
     "noItem": "Selected a layout to view details.",
+    "noSections": "No sections defined.",
     "readOnlySchema": "This schema is read-only.",
+    "remove": "Remove",
     "schema": "Schema",
+    "sectionActions": "Section actions",
+    "sections": "Sections",
     "uploadSchema": "Upload schema",
     "validation": {
       "array": "Must be an array",
@@ -566,7 +576,8 @@
       "unsupportedValue": "Unsupported value: {{value}}",
       "version": "Unsupported schema version",
       "visible": "Required boolean or 'auto'"
-    }
+    },
+    "visualTab": "Visual"
   },
   "menuItems": {
     "banks": "Banks",

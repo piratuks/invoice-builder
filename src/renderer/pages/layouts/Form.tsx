@@ -1,5 +1,5 @@
 import Editor, { loader } from '@monaco-editor/react';
-import { Button, FormControlLabel, Grid, Switch, Typography, useTheme } from '@mui/material';
+import { Button, FormControlLabel, Grid, Stack, Switch, Tab, Tabs, Typography, useTheme } from '@mui/material';
 import * as monaco from 'monaco-editor';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -13,10 +13,17 @@ import {
   type LayoutSchemaAny
 } from '../../shared/types/layouts';
 import '../../shared/utils/monacoEnvironment';
+import { LayoutBuilder } from './LayoutBuilder';
 
 loader.config({ monaco });
 
-const formatSchema = (schema?: Layout['schema']) => (schema ? JSON.stringify(schema, null, 2) : '');
+const createEmptyLayoutSchema = (): LayoutSchemaAny => ({
+  schemaVersion: 1,
+  meta: { name: 'New layout' },
+  sections: []
+});
+
+const formatSchema = (schema?: Layout['schema']) => JSON.stringify(schema ?? createEmptyLayoutSchema(), null, 2);
 
 export const Form = ({
   item,
@@ -32,13 +39,14 @@ export const Form = ({
   const initialFormRef = useRef<LayoutFormData | undefined>(undefined);
   const schemaInputRef = useRef<HTMLInputElement>(null);
   const editorContainerRef = useRef<HTMLDivElement>(null);
+  const [tab, setTab] = useState<'visual' | 'json'>('visual');
+  const [uploadErrors, setUploadErrors] = useState<string[]>([]);
+  const [editor, setEditor] = useState<monaco.editor.IStandaloneCodeEditor>();
   const { form, setForm, update } = useForm<LayoutFormData>({
     id: item?.id,
     schema: formatSchema(item?.schema),
     isArchived: item?.isArchived ?? false
   });
-  const [uploadErrors, setUploadErrors] = useState<string[]>([]);
-  const [editor, setEditor] = useState<monaco.editor.IStandaloneCodeEditor>();
   const schemaResult = parseLayoutSchema(form.schema);
   const hasSchemaInput = form.schema.trim() !== '';
 
@@ -63,7 +71,6 @@ export const Form = ({
   useEffect(() => {
     const result = parseLayoutSchema(form.schema);
     const valid = form.schema.trim() !== '' && result.errors.length === 0;
-
     handleChangeRef.current({
       layout: {
         ...(item?.id !== undefined ? { id: item.id } : {}),
@@ -82,16 +89,13 @@ export const Form = ({
 
   useEffect(() => {
     if (!editor) return;
-
     const container = editorContainerRef.current;
     if (!container) return;
-
     const layoutEditor = () => editor.layout();
     const resizeObserver = new ResizeObserver(layoutEditor);
     resizeObserver.observe(container);
     window.addEventListener('resize', layoutEditor);
     const frame = requestAnimationFrame(layoutEditor);
-
     return () => {
       resizeObserver.disconnect();
       window.removeEventListener('resize', layoutEditor);
@@ -110,8 +114,7 @@ export const Form = ({
           onChange={async event => {
             const file = event.target.files?.[0];
             if (file) {
-              const text = await file.text();
-              const result = parseLayoutSchema(text);
+              const result = parseLayoutSchema(await file.text());
               if (result.errors.length) {
                 setUploadErrors(result.errors.map(error => `${error.path}: ${t(error.message, error.params)}`));
               } else {
@@ -122,51 +125,61 @@ export const Form = ({
             event.target.value = '';
           }}
         />
-        <Button variant="outlined" onClick={() => schemaInputRef.current?.click()}>
-          {t('layouts.uploadSchema')}
-        </Button>
+        <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+          <Tabs value={tab} onChange={(_, nextTab) => setTab(nextTab)}>
+            <Tab label={t('layouts.visualTab')} value="visual" />
+            <Tab label={t('layouts.jsonTab')} value="json" />
+          </Tabs>
+          <Button variant="outlined" onClick={() => schemaInputRef.current?.click()}>
+            {t('layouts.uploadSchema')}
+          </Button>
+        </Stack>
       </Grid>
-      {uploadErrors.length > 0 && (
+      {uploadErrors.map(error => (
+        <Grid size={12} key={error}>
+          <Typography color="error" variant="caption">
+            {error}
+          </Typography>
+        </Grid>
+      ))}
+      {tab === 'visual' ? (
         <Grid size={12}>
-          {uploadErrors.map(error => (
-            <Typography key={error} color="error" variant="caption" sx={{ display: 'block' }}>
-              {error}
-            </Typography>
-          ))}
+          <LayoutBuilder schema={form.schema} onSchemaChange={schema => update('schema', schema)} t={t} />
+        </Grid>
+      ) : (
+        <Grid size={12}>
+          <Editor
+            onMount={setEditor}
+            height="600px"
+            defaultLanguage="json"
+            theme={theme.palette.mode === 'dark' ? 'vs-dark' : 'vs'}
+            value={form.schema}
+            onChange={value => update('schema', value ?? '')}
+            options={{
+              automaticLayout: false,
+              fontSize: 14,
+              minimap: { enabled: false },
+              readOnly: false,
+              scrollBeyondLastLine: false,
+              tabSize: 2
+            }}
+          />
+          {hasSchemaInput &&
+            schemaResult.errors.map(error => (
+              <Typography
+                key={`${error.path}-${error.message}`}
+                color="error"
+                variant="caption"
+                sx={{ display: 'block' }}
+              >
+                {error.path}: {t(error.message, error.params)}
+              </Typography>
+            ))}
         </Grid>
       )}
       <Grid size={12}>
-        <Editor
-          onMount={setEditor}
-          height="600px"
-          defaultLanguage="json"
-          theme={theme.palette.mode === 'dark' ? 'vs-dark' : 'vs'}
-          value={form.schema}
-          options={{
-            automaticLayout: false,
-            fontSize: 14,
-            minimap: { enabled: false },
-            readOnly: true,
-            readOnlyMessage: { value: t('layouts.readOnlySchema') },
-            scrollBeyondLastLine: false,
-            tabSize: 2
-          }}
-        />
-        {hasSchemaInput &&
-          schemaResult.errors.map(error => (
-            <Typography
-              key={`${error.path}-${error.message}`}
-              color="error"
-              variant="caption"
-              sx={{ display: 'block' }}
-            >
-              {error.path}: {t(error.message, error.params)}
-            </Typography>
-          ))}
-      </Grid>
-      <Grid size={{ xs: 12, md: 12 }}>
         <FormControlLabel
-          control={<Switch checked={form.isArchived} onChange={e => update('isArchived', e.target.checked)} />}
+          control={<Switch checked={form.isArchived} onChange={event => update('isArchived', event.target.checked)} />}
           label={t('common.archived')}
         />
       </Grid>
