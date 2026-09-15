@@ -126,7 +126,32 @@ export const validHeaderBlockTypes: HeaderBlockType[] = [
   'invoiceMeta',
   'paymentInfo'
 ];
+export const validV2ContainerNodeTypes = ['row', 'column', 'grid'] as const;
+export const validV2NodeTypes = [...validV2ContainerNodeTypes, 'block', 'section'] as const;
 export const validTotalsRowBlockTypes: TotalsRowBlockType[] = ['paymentInfo', 'financialTotals', 'spacer'];
+export const validRegionDirections: RegionDirection[] = ['row', 'column', 'grid'];
+export const validRegionWidths: RegionWidth[] = [
+  '20%',
+  '25%',
+  '30%',
+  '35%',
+  '40%',
+  '50%',
+  '60%',
+  '65%',
+  '70%',
+  '75%',
+  '80%',
+  '100%'
+];
+export const validRegionOverflows: RegionOverflow[] = ['continue', 'keepTogether'];
+export const validHeaderBlockWidths: NonNullable<HeaderBlock['width']>[] = ['20%', '40%', '50%', '60%', '100%'];
+export const validHeaderBlockAlignments: NonNullable<HeaderBlock['align']>[] = ['start', 'center', 'end'];
+export const validHeaderBlockGaps: NonNullable<HeaderBlock['gap']>[] = [5, 10];
+export const validHeaderBlockPaddingTops: NonNullable<HeaderBlock['paddingTop']>[] = [10, 20];
+export const validHeaderBlockPaddingBottoms: NonNullable<HeaderBlock['paddingBottom']>[] = [20];
+export const validHeaderBlockJustifications: NonNullable<HeaderBlock['justify']>[] = ['between'];
+export const validHeaderBooleanProperties = ['boxed', 'showTitle', 'showInvoiceLabel'] as const;
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 const hasOnly = (value: Record<string, unknown>, keys: string[], path: string, errors: LayoutValidationError[]) =>
@@ -252,21 +277,8 @@ export const validateLayoutSchema = (value: unknown): LayoutValidationError[] =>
   }
   return errors;
 };
-const regionDirections: RegionDirection[] = ['row', 'column', 'grid'];
-const regionWidths: RegionWidth[] = [
-  '20%',
-  '25%',
-  '30%',
-  '35%',
-  '40%',
-  '50%',
-  '60%',
-  '65%',
-  '70%',
-  '75%',
-  '80%',
-  '100%'
-];
+const regionDirections = validRegionDirections;
+const regionWidths = validRegionWidths;
 const validateV2Section = (
   value: unknown,
   path: string,

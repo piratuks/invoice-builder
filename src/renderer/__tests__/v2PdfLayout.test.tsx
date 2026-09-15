@@ -15,8 +15,9 @@ import { InvoiceType } from '../shared/enums/invoiceType';
 import { PageFormat } from '../shared/enums/pageFormat';
 import { SizeType } from '../shared/enums/sizeType';
 import type { InvoiceFromData, PdfTexts } from '../shared/types/invoice';
-import type { LayoutSchemaV2 } from '../shared/types/layouts';
+import { parseLayoutSchema, type LayoutSchemaV2 } from '../shared/types/layouts';
 import type { Settings } from '../shared/types/settings';
+import { addLayoutBuilderV2Node, createLayoutBuilderV2State } from '../shared/utils/visualBuilder';
 
 vi.mock('@react-pdf/renderer', async () => {
   const actual = await vi.importActual<typeof import('@react-pdf/renderer')>('@react-pdf/renderer');
@@ -132,6 +133,24 @@ const pageContent = (document: PdfLibDocument, pageIndex: number) => {
 };
 
 describe('V2 PDF layout rendering', () => {
+  it('renders a schema produced by the visual builder', async () => {
+    const initialLayout: LayoutSchemaV2 = {
+      schemaVersion: 2,
+      meta: { name: 'Builder parity' },
+      regions: [{ id: 'main', width: '100%', direction: 'column', children: [] }]
+    };
+    const withRow = addLayoutBuilderV2Node(initialLayout, 'main', undefined, 'row');
+    const rowId = createLayoutBuilderV2State(withRow).regions[0].children[0].id;
+    const withLogo = addLayoutBuilderV2Node(withRow, 'main', rowId, 'logo');
+    const builtLayout = addLayoutBuilderV2Node(withLogo, 'main', undefined, 'section', 'itemsTable');
+
+    expect(parseLayoutSchema(JSON.stringify(builtLayout)).errors).toEqual([]);
+    const document = await renderPdf(builtLayout);
+
+    expect(document.getPageCount()).toBeGreaterThan(0);
+    expect(pageContent(document, 0).length).toBeGreaterThan(0);
+  });
+
   it('flows a recursive items table across multiple pages', async () => {
     const layoutSchema: LayoutSchemaV2 = {
       schemaVersion: 2,

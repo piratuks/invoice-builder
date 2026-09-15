@@ -56,6 +56,7 @@ export const LayoutsPage: FC = () => {
       useAdd={useLayoutCRUDAdd}
       useUpdate={useLayoutCRUDUpdate}
       useDelete={useLayoutDelete}
+      inlineOnAdd={true}
       searchField={layout => layout.schema.meta.name}
       sortOptions={[
         { label: t('common.name'), value: 'schema', getValue: layout => layout.schema.meta.name },

@@ -15,6 +15,8 @@ import {
   reparentLayoutSection,
   supportedHeaderBlockTypes,
   supportedTotalsRowBlockTypes,
+  updateLayoutSection,
+  updateTotalsRowBlock,
   type LayoutVisualBuilderSection
 } from '../shared/utils/visualBuilder';
 
@@ -150,6 +152,33 @@ describe('invoice template schema', () => {
     const removed = removeBuilderNode(removedTotals, nestedBlockId);
     expect(removed.sections?.[0].blocks?.[0].children).toEqual([]);
     expect(parseLayoutSchema(JSON.stringify(removed)).errors).toEqual([]);
+  });
+
+  it('updates V1 section properties and totals payment source', () => {
+    const schema = {
+      schemaVersion: 1,
+      meta: { name: 'Section properties' },
+      sections: [
+        { type: 'watermark', visible: true },
+        { type: 'itemsTable', visible: true },
+        { type: 'totalsRow', visible: true, totalsBlocks: [{ type: 'paymentInfo' }] }
+      ]
+    } satisfies LayoutVisualBuilderSection;
+    const updated = updateLayoutSection(schema, 0, section => ({
+      ...section,
+      visible: 'auto',
+      watermarkOrder: 'paidFirst'
+    }));
+    const sized = updateLayoutSection(updated, 1, section => ({ ...section, columnSizing: 'proportional' }));
+    const withPaymentSource = updateTotalsRowBlock(sized, 2, 0, block => ({
+      ...block,
+      paymentSource: 'legacyBusiness'
+    }));
+
+    expect(withPaymentSource.sections?.[0]).toMatchObject({ visible: 'auto', watermarkOrder: 'paidFirst' });
+    expect(withPaymentSource.sections?.[1]).toMatchObject({ columnSizing: 'proportional' });
+    expect(withPaymentSource.sections?.[2].totalsBlocks?.[0].paymentSource).toBe('legacyBusiness');
+    expect(parseLayoutSchema(JSON.stringify(withPaymentSource)).errors).toEqual([]);
   });
 
   it('rejects invalid block reparenting without changing the layout', () => {

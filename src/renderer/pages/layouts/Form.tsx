@@ -41,6 +41,7 @@ export const Form = ({
   const editorContainerRef = useRef<HTMLDivElement>(null);
   const [tab, setTab] = useState<'visual' | 'json'>('visual');
   const [uploadErrors, setUploadErrors] = useState<string[]>([]);
+  const [builderValid, setBuilderValid] = useState(true);
   const [editor, setEditor] = useState<monaco.editor.IStandaloneCodeEditor>();
   const { form, setForm, update } = useForm<LayoutFormData>({
     id: item?.id,
@@ -77,7 +78,7 @@ export const Form = ({
         isArchived: form.isArchived,
         schema: (result.schema as LayoutSchemaAny | undefined) ?? { schemaVersion: 1, meta: { name: '' } }
       },
-      isFormValid: valid,
+      isFormValid: valid && builderValid,
       description:
         (hasSchemaInput
           ? result.errors
@@ -85,7 +86,7 @@ export const Form = ({
               .join(' | ')
           : '') || translateRef.current('common.invalidForm')
     });
-  }, [form, hasSchemaInput, item?.id]);
+  }, [builderValid, form, hasSchemaInput, item?.id]);
 
   useEffect(() => {
     if (!editor) return;
@@ -144,7 +145,12 @@ export const Form = ({
       ))}
       {tab === 'visual' ? (
         <Grid size={12}>
-          <LayoutBuilder schema={form.schema} onSchemaChange={schema => update('schema', schema)} t={t} />
+          <LayoutBuilder
+            schema={form.schema}
+            onSchemaChange={schema => update('schema', schema)}
+            onValidityChange={setBuilderValid}
+            t={t}
+          />
         </Grid>
       ) : (
         <Grid size={12}>
@@ -159,7 +165,8 @@ export const Form = ({
               automaticLayout: false,
               fontSize: 14,
               minimap: { enabled: false },
-              readOnly: false,
+              readOnly: true,
+              readOnlyMessage: { value: t('layouts.readOnlySchema') },
               scrollBeyondLastLine: false,
               tabSize: 2
             }}
