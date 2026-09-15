@@ -62,11 +62,15 @@ describe('V2 LayoutBuilder controls', () => {
     view.rerender(latestSchema(view.onSchemaChange));
     fireEvent.mouseDown(screen.getAllByRole('combobox')[1]);
     fireEvent.click(screen.getByText('40%'));
+    view.rerender(latestSchema(view.onSchemaChange));
+    fireEvent.mouseDown(screen.getAllByRole('combobox')[3]);
+    fireEvent.click(screen.getByText('10'));
 
     const schema = latestSchema(view.onSchemaChange);
     expect(schema?.schemaVersion).toBe(2);
     expect(schema?.orientation).toBe('landscape');
     expect(schema?.regions[0].width).toBe('40%');
+    expect(schema?.regions[0].gap).toBe(10);
   });
 
   it('upgrades a V1 layout and shows the upgrade notice', () => {
@@ -84,6 +88,7 @@ describe('V2 LayoutBuilder controls', () => {
     expect(schema?.orientation).toBe('landscape');
     expect(schema?.regions).toHaveLength(1);
     expect(screen.getByRole('alert')).toHaveTextContent('layouts.upgradedToV2');
+    expect(screen.getByRole('alert')).toHaveTextContent('layouts.upgradedToV2Details');
   });
 
   it('upgrades V1 when selecting Add region from the V2 feature menu', () => {

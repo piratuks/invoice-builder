@@ -3,6 +3,7 @@ import { parseLayoutSchema } from '../shared/types/layouts';
 import {
   addLayoutBuilderV2Node,
   addLayoutBuilderV2Region,
+  canAddLayoutBuilderV2Region,
   createLayoutBuilderV2State,
   moveLayoutBuilderV2Node,
   renameLayoutBuilderV2Region,
@@ -13,7 +14,7 @@ import {
   updateLayoutBuilderV2Node,
   updateLayoutBuilderV2Region,
   upgradeLayoutToV2
-} from '../shared/utils/visualBuilder';
+} from '../shared/utils/visualBuilderV2';
 
 const layout = {
   schemaVersion: 2 as const,
@@ -54,17 +55,104 @@ describe('V2 visual builder', () => {
     expect(parseLayoutSchema(JSON.stringify(serialized)).errors).toEqual([]);
   });
 
+  it('round-trips blocks nested inside a V2 header section node', () => {
+    const headerLayout = {
+      schemaVersion: 2 as const,
+      meta: { name: 'Header section blocks' },
+      regions: [
+        {
+          id: 'main',
+          width: '100%' as const,
+          direction: 'column' as const,
+          children: [
+            {
+              type: 'section' as const,
+              section: {
+                type: 'header' as const,
+                visible: true,
+                blocks: [{ type: 'row' as const, children: [{ type: 'logo' as const, align: 'center' as const }] }]
+              }
+            }
+          ]
+        }
+      ]
+    };
+    const state = createLayoutBuilderV2State(headerLayout);
+    const serialized = serializeLayoutBuilderV2State(state);
+
+    expect(serialized).toEqual(headerLayout);
+    expect(parseLayoutSchema(JSON.stringify(serialized)).errors).toEqual([]);
+  });
+
+  it('adds a block inside a V2 header section node', () => {
+    const headerLayout = {
+      schemaVersion: 2 as const,
+      meta: { name: 'Editable header section' },
+      regions: [
+        {
+          id: 'main',
+          width: '100%' as const,
+          direction: 'column' as const,
+          children: [{ type: 'section' as const, section: { type: 'header' as const, visible: true, blocks: [] } }]
+        }
+      ]
+    };
+    const state = createLayoutBuilderV2State(headerLayout);
+    const headerId = state.regions[0].children[0].id;
+    const updated = addLayoutBuilderV2Node(headerLayout, 'main', headerId, 'logo');
+
+    expect(updated.regions[0].children?.[0]).toMatchObject({
+      type: 'section',
+      section: { type: 'header', blocks: [{ type: 'logo' }] }
+    });
+    expect(parseLayoutSchema(JSON.stringify(updated)).errors).toEqual([]);
+  });
+
+  it('rejects non-block nodes inside V2 header containers without changing the layout', () => {
+    const headerLayout = {
+      schemaVersion: 2 as const,
+      meta: { name: 'Header nesting rules' },
+      regions: [
+        {
+          id: 'main',
+          width: '100%' as const,
+          direction: 'column' as const,
+          children: [
+            {
+              type: 'section' as const,
+              section: {
+                type: 'header' as const,
+                visible: true,
+                blocks: [{ type: 'row' as const, children: [{ type: 'logo' as const }] }]
+              }
+            },
+            { type: 'section' as const, section: { type: 'itemsTable' as const, visible: true } }
+          ]
+        }
+      ]
+    };
+    const state = createLayoutBuilderV2State(headerLayout);
+    const headerRowId = state.regions[0].children[0].children[0].id;
+    const itemsSectionId = state.regions[0].children[1].id;
+
+    const unchanged = reparentLayoutBuilderV2Node(headerLayout, itemsSectionId, headerRowId);
+
+    expect(unchanged).toEqual(headerLayout);
+    expect(parseLayoutSchema(JSON.stringify(unchanged)).errors).toEqual([]);
+  });
+
   it('updates orientation, region settings, and adds regions', () => {
     const landscape = setLayoutBuilderV2Orientation(layout, 'portrait');
     const updated = updateLayoutBuilderV2Region(landscape, 'body', {
       width: '50%',
       direction: 'grid',
+      gap: 10,
       overflow: 'continue'
     });
     const withRegion = addLayoutBuilderV2Region(updated);
 
     expect(withRegion.orientation).toBe('portrait');
-    expect(withRegion.regions[1]).toMatchObject({ width: '50%', direction: 'grid', overflow: 'continue' });
+    expect(withRegion.regions[1]).toMatchObject({ width: '50%', direction: 'grid', gap: 10, overflow: 'continue' });
     expect(withRegion.regions).toHaveLength(3);
     expect(parseLayoutSchema(JSON.stringify(withRegion)).errors).toEqual([]);
   });
@@ -78,6 +166,39 @@ describe('V2 visual builder', () => {
 
     expect(withRegion.regions.map(region => region.width)).toEqual(['80%', '20%']);
     expect(withRegion.regions[1].id).toBe('region-1');
+    expect(parseLayoutSchema(JSON.stringify(withRegion)).errors).toEqual([]);
+  });
+
+  it('reports when no supported width is available for another region', () => {
+    const fullLayout = {
+      schemaVersion: 2 as const,
+      meta: { name: 'Full region layout' },
+      regions: [
+        { id: 'one', width: '20%' as const, direction: 'column' as const, children: [] },
+        { id: 'two', width: '20%' as const, direction: 'column' as const, children: [] },
+        { id: 'three', width: '20%' as const, direction: 'column' as const, children: [] },
+        { id: 'four', width: '20%' as const, direction: 'column' as const, children: [] },
+        { id: 'five', width: '20%' as const, direction: 'column' as const, children: [] }
+      ]
+    };
+
+    expect(canAddLayoutBuilderV2Region(fullLayout)).toBe(false);
+  });
+
+  it('rebalances the largest region before adding at minimum width', () => {
+    const fullLayout = {
+      schemaVersion: 2 as const,
+      meta: { name: 'Rebalanced regions' },
+      regions: [
+        { id: 'main', width: '75%' as const, direction: 'column' as const, children: [] },
+        { id: 'aside', width: '25%' as const, direction: 'column' as const, children: [] }
+      ]
+    };
+
+    const withRegion = addLayoutBuilderV2Region(fullLayout);
+
+    expect(withRegion.regions.map(region => region.width)).toEqual(['50%', '25%', '20%']);
+    expect(canAddLayoutBuilderV2Region(fullLayout)).toBe(true);
     expect(parseLayoutSchema(JSON.stringify(withRegion)).errors).toEqual([]);
   });
 
@@ -136,6 +257,24 @@ describe('V2 visual builder', () => {
     const unchanged = addLayoutBuilderV2Node(layout, 'body', undefined, 'section');
 
     expect(unchanged).toEqual(layout);
+    expect(parseLayoutSchema(JSON.stringify(unchanged)).errors).toEqual([]);
+  });
+
+  it('rejects duplicate sections across different V2 regions', () => {
+    const twoRegionLayout = {
+      schemaVersion: 2 as const,
+      meta: { name: 'Cross-region section uniqueness' },
+      regions: [
+        { id: 'left', width: '50%' as const, direction: 'column' as const, children: [] },
+        { id: 'right', width: '50%' as const, direction: 'column' as const, children: [] }
+      ]
+    };
+    const withItems = addLayoutBuilderV2Node(twoRegionLayout, 'left', undefined, 'section', 'itemsTable');
+    const unchanged = addLayoutBuilderV2Node(withItems, 'right', undefined, 'section', 'itemsTable');
+
+    expect(unchanged).toEqual(withItems);
+    expect(unchanged.regions[0].children).toHaveLength(1);
+    expect(unchanged.regions[1].children).toHaveLength(0);
     expect(parseLayoutSchema(JSON.stringify(unchanged)).errors).toEqual([]);
   });
 
@@ -233,6 +372,20 @@ describe('V2 visual builder', () => {
     });
 
     expect(upgraded.regions[0]).toMatchObject({ id: 'main', width: '100%', direction: 'column' });
+    expect(parseLayoutSchema(JSON.stringify(upgraded)).errors).toEqual([]);
+  });
+
+  it('preserves watermark order when upgrading V1 to V2', () => {
+    const upgraded = upgradeLayoutToV2({
+      schemaVersion: 1,
+      meta: { name: 'Watermark upgrade' },
+      sections: [{ type: 'watermark', visible: 'auto', watermarkOrder: 'paidFirst' }]
+    });
+
+    expect(upgraded.regions[0].children?.[0]).toMatchObject({
+      type: 'section',
+      section: { type: 'watermark', visible: 'auto', watermarkOrder: 'paidFirst' }
+    });
     expect(parseLayoutSchema(JSON.stringify(upgraded)).errors).toEqual([]);
   });
 

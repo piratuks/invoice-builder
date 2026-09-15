@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 2,
+  "meta": {
+    "name": "Nested Header Rows",
+    "description": "A stable nested composition with two header rows followed by the invoice content."
+  },
+  "orientation": "landscape",
+  "regions": [
+    {
+      "id": "catalog",
+      "width": "100%",
+      "direction": "column",
+      "overflow": "continue",
+      "children": [
+        {
+          "type": "row",
+          "width": "100%",
+          "gap": 10,
+          "children": [
+            {
+              "type": "column",
+              "width": "50%",
+              "children": [
+                {
+                  "type": "block",
+                  "block": {
+                    "type": "logo"
+                  }
+                },
+                {
+                  "type": "block",
+                  "block": {
+                    "type": "businessInfo"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "column",
+              "width": "50%",
+              "children": [
+                {
+                  "type": "block",
+                  "block": {
+                    "type": "clientInfo"
+                  }
+                },
+                {
+                  "type": "block",
+                  "block": {
+                    "type": "invoiceMeta",
+                    "showInvoiceLabel": true
+                  }
+                },
+                {
+                  "type": "block",
+                  "block": {
+                    "type": "paymentInfo",
+                    "paymentSource": "bank"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "section",
+          "section": {
+            "type": "itemsTable",
+            "visible": true,
+            "columnSizing": "fixedFlex"
+          }
+        },
+        {
+          "type": "section",
+          "section": {
+            "type": "financialTotals",
+            "visible": true
+          }
+        },
+        {
+          "type": "section",
+          "section": {
+            "type": "notes",
+            "visible": "auto"
+          }
+        },
+        {
+          "type": "section",
+          "section": {
+            "type": "signature",
+            "visible": "auto"
+          }
+        }
+      ]
+    }
+  ]
+}

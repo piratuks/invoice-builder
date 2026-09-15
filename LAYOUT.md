@@ -15,6 +15,8 @@ Layouts are intentionally declarative and restricted. JSON can choose which supp
 
 The upload is validated before it replaces the displayed schema. Invalid JSON or unsupported properties are rejected. The maximum layout size is 64 KB.
 
+Ready-made layout examples, including V2 region, sidebar, nested-header, and receipt-style compositions, are available in [`examples/layouts`](examples/layouts).
+
 An invoice stores a snapshot of the selected layout. Later changes to the saved layout do not change invoices that already have a snapshot.
 
 ## Top-Level Structure
@@ -72,11 +74,13 @@ V2 layouts compose the complete page from explicit regions. V2 keeps content typ
 | `meta.description`   | No          | Optional description.                                                                                                                                                                                                                                        |
 | `orientation`        | No          | `portrait` or `landscape`; defaults to the selected page format orientation.                                                                                                                                                                                 |
 | `regions`            | Yes         | Ordered page regions. Each region must have unique `id`, a supported percentage `width`, and `direction` of `row`, `column`, or `grid`. Supported region widths are `20%`, `25%`, `30%`, `35%`, `40%`, `50%`, `60%`, `65%`, `70%`, `75%`, `80%`, and `100%`. |
+| `regions[].gap`      | No          | Optional spacing after the region, `5` or `10`.                                                                                                                                                                                                              |
 | `regions[].blocks`   | Conditional | A whitelisted header-block tree. A region cannot define both `blocks` and `sections`.                                                                                                                                                                        |
 | `regions[].sections` | Conditional | References to supported invoice sections. Each section may be referenced only once across the layout.                                                                                                                                                        |
 
 - `regions[].children` is a recursive list of `row`, `column`, `grid`, `block`, or `section` nodes. Use `section` nodes for per-region section settings.
 - `regions[].overflow` is either `continue` or `keepTogether`.
+- `regions[].gap` accepts `5` or `10` and adds spacing after the region when rendered beside another region.
 
 For V2, region widths must total no more than 100%. Use `children` when a region needs nested rows, columns, grids, or per-section configuration. A region must use exactly one content form: `blocks`, `sections`, or `children`.
 
@@ -114,8 +118,10 @@ The Visual tab exposes the same values accepted by the schema validator. The lab
 | Orientation           | `portrait`, `landscape`                                                                                                 | Selects the PDF page orientation for the V2 composition. `Default` leaves orientation unset so the selected page format supplies it.                                          |
 | Region width          | `20%`, `25%`, `30%`, `35%`, `40%`, `50%`, `60%`, `65%`, `70%`, `75%`, `80%`, `100%`                                     | The region's share of the page width. Combined region widths cannot exceed `100%`.                                                                                            |
 | Region direction      | `row`, `column`, `grid`                                                                                                 | `row` lays children horizontally, `column` lays children vertically, and `grid` lays children horizontally with wrapping.                                                     |
+| Region gap            | `5`, `10`                                                                                                               | Adds supported spacing after the region. The empty/default choice leaves the region gap unset.                                                                                |
 | Region overflow       | `continue`, `keepTogether`                                                                                              | `Wrap` leaves the default flowing behavior. `continue` allows the region to flow across pages; `keepTogether` requests that the region stay together when space allows.       |
 | Section visibility    | `true`, `false`, `auto`                                                                                                 | `Visible` always renders the section, `Hidden` suppresses it, and `auto` lets the section decide whether it has content.                                                      |
+| Section alignment     | `start`, `center`, `end`                                                                                                | Controls the supported horizontal alignment of section output, currently used by `financialTotals`. The empty/default choice leaves alignment unset.                          |
 | Watermark order       | `default`, `paidFirst`                                                                                                  | `Default` uses the normal watermark order. `paidFirst` places the paid watermark before the normal watermark when applicable.                                                 |
 | Table sizing          | `fixedFlex`, `proportional`                                                                                             | `Table default` leaves the section's sizing unset. `fixedFlex` uses the standard fixed/flexible columns; `proportional` uses proportional column widths.                      |
 | Header block          | `title`, `logo`, `businessInfo`, `clientInfo`, `invoiceMeta`, `paymentInfo`                                             | Adds the selected header content block. The builder does not add an unspecified block type automatically.                                                                     |
@@ -149,6 +155,8 @@ Every section has this shape:
 - `true`: always render the section.
 - `false`: never render the section.
 - `"auto"`: let the content component decide whether there is content to render. This is useful for optional notes, signatures, payment information, and watermarks.
+
+Sections may also define `align` with `"start"`, `"center"`, or `"end"`. This currently affects `financialTotals`; other section types ignore it.
 
 The supported section types are:
 
@@ -204,9 +212,10 @@ Column labels, colors, borders, fonts, and table styling come from invoice custo
 ### `financialTotals`
 
 Renders subtotal, discounts, taxes, shipping, total, paid, and balance due using the current invoice values and customization labels.
+Optional `align` controls the horizontal placement and text alignment of the financial summary: `"start"`, `"center"`, or `"end"`. The default is `"end"`.
 
 ```json
-{ "type": "financialTotals", "visible": true }
+{ "type": "financialTotals", "visible": true, "align": "start" }
 ```
 
 ### `paymentInfo`

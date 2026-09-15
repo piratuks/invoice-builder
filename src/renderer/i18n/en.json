@@ -518,6 +518,7 @@
     "addGrid": "Add grid",
     "addNode": "Add node",
     "addRegion": "Add region",
+    "noRegionWidthAvailable": "No supported width is available for another region",
     "addSection": "Add section",
     "align": "Alignment",
     "boxed": "Boxed",
@@ -547,6 +548,7 @@
     "justify": "Justification",
     "moveDown": "Move down",
     "moveInto": "Move into...",
+    "moveBefore": "Move before...",
     "moveUp": "Move up",
     "noItem": "Selected a layout to view details.",
     "noSections": "No sections defined.",
@@ -566,6 +568,7 @@
     "uniqueRegionId": "Region ID must be unique and non-empty",
     "upgradeToV2": "Upgrade to V2",
     "upgradedToV2": "Layout upgraded to V2.",
+    "upgradedToV2Details": "V2 adds page regions, nested rows, columns and grids, plus overflow controls for continuing or keeping content together.",
     "uploadSchema": "Upload schema",
     "v2Feature": "V2 feature",
     "validation": {

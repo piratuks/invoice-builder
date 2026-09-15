@@ -17,7 +17,7 @@ import { SizeType } from '../shared/enums/sizeType';
 import type { InvoiceFromData, PdfTexts } from '../shared/types/invoice';
 import { parseLayoutSchema, type LayoutSchemaV2 } from '../shared/types/layouts';
 import type { Settings } from '../shared/types/settings';
-import { addLayoutBuilderV2Node, createLayoutBuilderV2State } from '../shared/utils/visualBuilder';
+import { addLayoutBuilderV2Node, createLayoutBuilderV2State } from '../shared/utils/visualBuilderV2';
 
 vi.mock('@react-pdf/renderer', async () => {
   const actual = await vi.importActual<typeof import('@react-pdf/renderer')>('@react-pdf/renderer');

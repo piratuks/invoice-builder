@@ -518,6 +518,7 @@
     "addGrid": "Pridėti tinklelį",
     "addNode": "Pridėti mazgą",
     "addRegion": "Pridėti regioną",
+    "noRegionWidthAvailable": "Nėra tinkamo pločio papildomam regionui",
     "addSection": "Pridėti skyrių",
     "align": "Lygiavimas",
     "boxed": "Įrėminta",
@@ -547,6 +548,7 @@
     "justify": "Lygiavimas",
     "moveDown": "Perkelti žemyn",
     "moveInto": "Perkelti į...",
+    "moveBefore": "Perkelti prieš...",
     "moveUp": "Perkelti aukštyn",
     "noItem": "Pasirinkite maketuotę, kad matytumėte detales.",
     "noSections": "Skyrių nėra.",
@@ -566,6 +568,7 @@
     "uniqueRegionId": "Regiono ID turi būti unikalus ir netuščias",
     "upgradeToV2": "Atnaujinti į V2",
     "upgradedToV2": "Maketas atnaujintas į V2.",
+    "upgradedToV2Details": "V2 prideda puslapio regionus, įdėtas eilutes, stulpelius ir tinklelius bei perpildymo parinktis turiniui tęsti arba išlaikyti kartu.",
     "uploadSchema": "Įkelti schemą",
     "v2Feature": "V2 funkcija",
     "validation": {

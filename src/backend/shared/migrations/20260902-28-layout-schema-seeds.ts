@@ -45,7 +45,11 @@ const headerBlocks = (name: string) => {
     case 'Legacy Classic':
       return [
         row([
-          { type: 'column', width: '50%', children: [row([logo, business], { gap: 5 })] },
+          {
+            type: 'column',
+            width: '50%',
+            children: [row([logo, { ...business, width: '50%' }], { gap: 5, justify: undefined })]
+          },
           { type: 'column', width: '50%', children: [meta({ showTitle: true })] }
         ]),
         row(
@@ -86,13 +90,20 @@ const headerBlocks = (name: string) => {
     case 'Classic':
       return [
         row([
-          { type: 'column', width: '50%', children: [row([logo, business], { gap: 5 })] },
+          {
+            type: 'column',
+            width: '50%',
+            children: [row([logo, { ...business, width: '50%' }], { gap: 5, justify: undefined })]
+          },
           { type: 'column', width: '50%', children: [meta({ showTitle: true })] }
         ]),
         row([client], { paddingTop: 20 })
       ];
     default:
-      return [row([row([logo, business]), meta({ showTitle: true })]), row([client], { paddingTop: 20 })];
+      return [
+        row([row([logo, { ...business, width: '50%' }], { gap: 5, justify: undefined }), meta({ showTitle: true })]),
+        row([client], { paddingTop: 20 })
+      ];
   }
 };
 

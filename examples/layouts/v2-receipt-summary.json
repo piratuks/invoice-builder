@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 2,
+  "meta": {
+    "name": "Receipt Summary",
+    "description": "A receipt-like composition with left-aligned identity, client, invoice, payment, and financial summary information."
+  },
+  "orientation": "portrait",
+  "regions": [
+    {
+      "id": "receipt",
+      "width": "100%",
+      "direction": "column",
+      "overflow": "continue",
+      "children": [
+        {
+          "type": "block",
+          "block": {
+            "type": "businessInfo",
+            "align": "start",
+            "paddingBottom": 20
+          }
+        },
+        {
+          "type": "block",
+          "block": {
+            "type": "invoiceMeta",
+            "align": "start",
+            "paddingBottom": 20
+          }
+        },
+        {
+          "type": "block",
+          "block": {
+            "type": "clientInfo",
+            "align": "start",
+            "paddingBottom": 20
+          }
+        },
+        {
+          "type": "block",
+          "block": {
+            "type": "paymentInfo",
+            "align": "start",
+            "paymentSource": "bank",
+            "paddingBottom": 20
+          }
+        },
+        {
+          "type": "section",
+          "section": {
+            "type": "financialTotals",
+            "visible": true,
+            "align": "start"
+          }
+        },
+        {
+          "type": "section",
+          "section": {
+            "type": "notes",
+            "visible": "auto"
+          }
+        }
+      ]
+    }
+  ]
+}

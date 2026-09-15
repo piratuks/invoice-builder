@@ -18,7 +18,7 @@ import {
   updateLayoutSection,
   updateTotalsRowBlock,
   type LayoutVisualBuilderSection
-} from '../shared/utils/visualBuilder';
+} from '../shared/utils/visualBuilderV1';
 
 const valid = JSON.stringify({
   schemaVersion: 1,

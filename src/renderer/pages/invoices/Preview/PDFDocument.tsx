@@ -143,7 +143,8 @@ const PDFDocumentComponent: FC<Props> = ({
     blocks?: HeaderBlock[],
     columnSizing?: ColumnSizing,
     totalsBlocks?: TotalsRowBlock[],
-    watermarkOrder?: 'default' | 'paidFirst'
+    watermarkOrder?: 'default' | 'paidFirst',
+    align?: 'start' | 'center' | 'end'
   ) => {
     switch (type) {
       case 'watermark':
@@ -192,13 +193,23 @@ const PDFDocumentComponent: FC<Props> = ({
           <View
             key={type}
             wrap={false}
-            style={[PDF_STYLES.row, PDF_STYLES.spaceBetween, PDF_STYLES.alignStart, PDF_STYLES.pt10]}
+            style={[
+              PDF_STYLES.row,
+              align === 'start'
+                ? { justifyContent: 'flex-start' }
+                : align === 'center'
+                  ? { justifyContent: 'center' }
+                  : PDF_STYLES.spaceBetween,
+              PDF_STYLES.alignStart,
+              PDF_STYLES.pt10
+            ]}
             minPresenceAhead={20}
           >
-            <View style={PDF_STYLES.flexGrow} />
+            {align !== 'start' && <View style={PDF_STYLES.flexGrow} />}
             <FinancialInfo
               invoiceForm={invoiceForm}
               storeSettings={storeSettings}
+              align={align}
               labels={{
                 subTotalLabel: pdfTexts.subTotalLabel,
                 discountLabel: pdfTexts.discountLabel,
@@ -307,7 +318,8 @@ const PDFDocumentComponent: FC<Props> = ({
         width: region.width,
         flexDirection: region.direction === 'column' ? 'column' : 'row',
         flexWrap: region.direction === 'grid' ? 'wrap' : 'nowrap',
-        alignContent: 'flex-start'
+        alignContent: 'flex-start',
+        marginRight: region.gap
       }}
     >
       {region.blocks && (
@@ -346,7 +358,8 @@ const PDFDocumentComponent: FC<Props> = ({
             node.section.blocks,
             node.section.columnSizing,
             node.section.totalsBlocks,
-            node.section.watermarkOrder
+            node.section.watermarkOrder,
+            node.section.align
           )}
         </View>
       );
@@ -394,7 +407,8 @@ const PDFDocumentComponent: FC<Props> = ({
                 section.blocks,
                 section.columnSizing,
                 section.totalsBlocks,
-                section.watermarkOrder
+                section.watermarkOrder,
+                section.align
               )
             )
         )}

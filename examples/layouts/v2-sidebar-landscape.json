@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 2,
+  "meta": {
+    "name": "Sidebar Landscape",
+    "description": "A polished landscape invoice with a grouped business sidebar, main invoice content, totals, notes, and signature."
+  },
+  "orientation": "landscape",
+  "regions": [
+    {
+      "id": "sidebar",
+      "width": "35%",
+      "direction": "column",
+      "gap": 10,
+      "overflow": "keepTogether",
+      "children": [
+        {
+          "type": "column",
+          "width": "100%",
+          "gap": 10,
+          "children": [
+            {
+              "type": "block",
+              "block": {
+                "type": "logo",
+                "align": "center"
+              }
+            },
+            {
+              "type": "block",
+              "block": {
+                "type": "invoiceMeta",
+                "align": "end",
+                "boxed": true,
+                "showInvoiceLabel": true
+              }
+            },
+            {
+              "type": "block",
+              "block": {
+                "type": "businessInfo",
+                "align": "end",
+                "boxed": true
+              }
+            },
+            {
+              "type": "block",
+              "block": {
+                "type": "clientInfo",
+                "align": "end",
+                "boxed": true
+              }
+            },
+            {
+              "type": "block",
+              "block": {
+                "type": "paymentInfo",
+                "align": "end",
+                "paymentSource": "bank",
+                "boxed": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "main",
+      "width": "60%",
+      "direction": "column",
+      "overflow": "continue",
+      "sections": [
+        "itemsTable",
+        "financialTotals",
+        "notes",
+        "signature"
+      ]
+    }
+  ]
+}

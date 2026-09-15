@@ -518,6 +518,7 @@
     "addGrid": "Raster hinzufügen",
     "addNode": "Knoten hinzufügen",
     "addRegion": "Region hinzufügen",
+    "noRegionWidthAvailable": "Keine unterstützte Breite für eine weitere Region verfügbar",
     "addSection": "Abschnitt hinzufügen",
     "align": "Ausrichtung",
     "boxed": "Umrahmt",
@@ -547,6 +548,7 @@
     "justify": "Ausrichtung",
     "moveDown": "Nach unten",
     "moveInto": "Verschieben nach...",
+    "moveBefore": "Verschieben vor...",
     "moveUp": "Nach oben",
     "noItem": "Wählen Sie ein Layout aus, um Details anzuzeigen.",
     "noSections": "Keine Abschnitte definiert.",
@@ -566,6 +568,7 @@
     "uniqueRegionId": "Die Regions-ID muss eindeutig und nicht leer sein",
     "upgradeToV2": "Auf V2 aktualisieren",
     "upgradedToV2": "Layout auf V2 aktualisiert.",
+    "upgradedToV2Details": "V2 bietet Seitenbereiche, verschachtelte Zeilen, Spalten und Raster sowie Überlaufoptionen zum Fortsetzen oder Zusammenhalten von Inhalten.",
     "uploadSchema": "Schema hochladen",
     "v2Feature": "V2-Funktion",
     "validation": {

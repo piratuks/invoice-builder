@@ -518,6 +518,7 @@
     "addGrid": "Adicionar grade",
     "addNode": "Adicionar nó",
     "addRegion": "Adicionar região",
+    "noRegionWidthAvailable": "Não há largura suportada disponível para outra região",
     "addSection": "Adicionar seção",
     "align": "Alinhamento",
     "boxed": "Com moldura",
@@ -547,6 +548,7 @@
     "justify": "Justificação",
     "moveDown": "Mover para baixo",
     "moveInto": "Mover para...",
+    "moveBefore": "Mover antes de...",
     "moveUp": "Mover para cima",
     "noItem": "Selecione um layout para ver os detalhes.",
     "noSections": "Nenhuma seção definida.",
@@ -566,6 +568,7 @@
     "uniqueRegionId": "O ID da região deve ser exclusivo e não vazio",
     "upgradeToV2": "Atualizar para V2",
     "upgradedToV2": "Layout atualizado para V2.",
+    "upgradedToV2Details": "A V2 adiciona regiões de página, linhas, colunas e grelhas aninhadas, além de opções de overflow para continuar ou manter o conteúdo junto.",
     "uploadSchema": "Carregar esquema",
     "v2Feature": "Recurso V2",
     "validation": {

@@ -26,8 +26,13 @@ interface Props {
   invoiceForm?: InvoiceFromData;
   storeSettings?: Settings;
   labels: PropsLabels;
+  align?: 'start' | 'center' | 'end';
 }
-const FinancialInfoComponent: FC<Props> = ({ invoiceForm, storeSettings, labels }) => {
+const FinancialInfoComponent: FC<Props> = ({ invoiceForm, storeSettings, labels, align = 'end' }) => {
+  const financialTextAlign = {
+    textAlign: align === 'start' ? 'left' : align === 'center' ? 'center' : 'right'
+  } as const;
+  const financialValueAlign = align === 'end' ? PDF_STYLES.alignEnd : PDF_STYLES.alignStart;
   const {
     formattedTotalTaxAmount,
     formattedSubTotalAmount,
@@ -94,7 +99,7 @@ const FinancialInfoComponent: FC<Props> = ({ invoiceForm, storeSettings, labels 
       {(discountAmount > 0 || Math.abs(totalTax) > 0 || shippingAmount > 0 || surchargeAmount > 0) && (
         <View style={[PDF_STYLES.row, PDF_STYLES.pb5]}>
           <View style={PDF_STYLES.flexGrow} />
-          <View style={[PDF_STYLES.row, PDF_STYLES.w100, PDF_STYLES.textEnd]}>
+          <View style={[PDF_STYLES.row, PDF_STYLES.w100, financialTextAlign]}>
             <View
               style={[
                 PDF_STYLES.regularBold,
@@ -110,7 +115,7 @@ const FinancialInfoComponent: FC<Props> = ({ invoiceForm, storeSettings, labels 
               style={[
                 PDF_STYLES.regularBold,
                 PDF_STYLES.w50,
-                PDF_STYLES.alignEnd,
+                financialValueAlign,
                 {
                   fontSize: FONT_SIZES[invoiceForm?.invoiceCustomization?.fontSize ?? DEFAULT_FONT_SIZES].regularBold
                 }
@@ -125,7 +130,7 @@ const FinancialInfoComponent: FC<Props> = ({ invoiceForm, storeSettings, labels 
       {discountAmount > 0 && (
         <View style={[PDF_STYLES.row, PDF_STYLES.pb5]}>
           <View style={PDF_STYLES.flexGrow} />
-          <View style={[PDF_STYLES.row, PDF_STYLES.w100, PDF_STYLES.textEnd]}>
+          <View style={[PDF_STYLES.row, PDF_STYLES.w100, financialTextAlign]}>
             <View
               style={[
                 PDF_STYLES.regular,
@@ -146,7 +151,7 @@ const FinancialInfoComponent: FC<Props> = ({ invoiceForm, storeSettings, labels 
               style={[
                 PDF_STYLES.regular,
                 PDF_STYLES.w50,
-                PDF_STYLES.alignEnd,
+                financialValueAlign,
                 {
                   fontSize: FONT_SIZES[invoiceForm?.invoiceCustomization?.fontSize ?? DEFAULT_FONT_SIZES].regular
                 }
@@ -161,7 +166,7 @@ const FinancialInfoComponent: FC<Props> = ({ invoiceForm, storeSettings, labels 
       {Math.abs(totalTax) > 0 && (
         <View style={[PDF_STYLES.row, PDF_STYLES.pb5]}>
           <View style={PDF_STYLES.flexGrow} />
-          <View style={[PDF_STYLES.row, PDF_STYLES.w100, PDF_STYLES.textEnd]}>
+          <View style={[PDF_STYLES.row, PDF_STYLES.w100, financialTextAlign]}>
             <View
               style={[
                 PDF_STYLES.regular,
@@ -193,7 +198,7 @@ const FinancialInfoComponent: FC<Props> = ({ invoiceForm, storeSettings, labels 
               style={[
                 PDF_STYLES.regular,
                 PDF_STYLES.w50,
-                PDF_STYLES.alignEnd,
+                financialValueAlign,
                 {
                   fontSize: FONT_SIZES[invoiceForm?.invoiceCustomization?.fontSize ?? DEFAULT_FONT_SIZES].regular
                 }
@@ -208,7 +213,7 @@ const FinancialInfoComponent: FC<Props> = ({ invoiceForm, storeSettings, labels 
       {shippingAmount > 0 && (
         <View style={[PDF_STYLES.row, PDF_STYLES.pb5]}>
           <View style={PDF_STYLES.flexGrow} />
-          <View style={[PDF_STYLES.row, PDF_STYLES.w100, PDF_STYLES.textEnd]}>
+          <View style={[PDF_STYLES.row, PDF_STYLES.w100, financialTextAlign]}>
             <View
               style={[
                 PDF_STYLES.regular,
@@ -224,7 +229,7 @@ const FinancialInfoComponent: FC<Props> = ({ invoiceForm, storeSettings, labels 
               style={[
                 PDF_STYLES.regular,
                 PDF_STYLES.w50,
-                PDF_STYLES.alignEnd,
+                financialValueAlign,
                 {
                   fontSize: FONT_SIZES[invoiceForm?.invoiceCustomization?.fontSize ?? DEFAULT_FONT_SIZES].regular
                 }
@@ -239,7 +244,7 @@ const FinancialInfoComponent: FC<Props> = ({ invoiceForm, storeSettings, labels 
       {surchargeAmount > 0 && (
         <View style={[PDF_STYLES.row, PDF_STYLES.pb5]}>
           <View style={PDF_STYLES.flexGrow} />
-          <View style={[PDF_STYLES.row, PDF_STYLES.w100, PDF_STYLES.textEnd]}>
+          <View style={[PDF_STYLES.row, PDF_STYLES.w100, financialTextAlign]}>
             <View
               style={[
                 PDF_STYLES.regular,
@@ -260,7 +265,7 @@ const FinancialInfoComponent: FC<Props> = ({ invoiceForm, storeSettings, labels 
               style={[
                 PDF_STYLES.regular,
                 PDF_STYLES.w50,
-                PDF_STYLES.alignEnd,
+                financialValueAlign,
                 {
                   fontSize: FONT_SIZES[invoiceForm?.invoiceCustomization?.fontSize ?? DEFAULT_FONT_SIZES].regular
                 }
@@ -275,7 +280,7 @@ const FinancialInfoComponent: FC<Props> = ({ invoiceForm, storeSettings, labels 
       {(discountAmount > 0 || Math.abs(totalTax) > 0 || shippingAmount > 0 || surchargeAmount > 0) && (
         <View style={[PDF_STYLES.row, PDF_STYLES.pt5, PDF_STYLES.pb5]}>
           <View style={PDF_STYLES.flexGrow} />
-          <View style={[PDF_STYLES.border, PDF_STYLES.w100, PDF_STYLES.textEnd]} />
+          <View style={[PDF_STYLES.border, PDF_STYLES.w100, financialTextAlign]} />
         </View>
       )}
 
@@ -284,7 +289,7 @@ const FinancialInfoComponent: FC<Props> = ({ invoiceForm, storeSettings, labels 
         invoiceForm?.invoiceType === InvoiceType.quotation) && (
         <View style={[PDF_STYLES.row, PDF_STYLES.pb5]}>
           <View style={PDF_STYLES.flexGrow} />
-          <View style={[PDF_STYLES.row, PDF_STYLES.w100, PDF_STYLES.textEnd]}>
+          <View style={[PDF_STYLES.row, PDF_STYLES.w100, financialTextAlign]}>
             <View
               style={[
                 PDF_STYLES.regularBold,
@@ -300,7 +305,7 @@ const FinancialInfoComponent: FC<Props> = ({ invoiceForm, storeSettings, labels 
               style={[
                 PDF_STYLES.regularBold,
                 PDF_STYLES.w50,
-                PDF_STYLES.alignEnd,
+                financialValueAlign,
                 { fontSize: FONT_SIZES[invoiceForm?.invoiceCustomization?.fontSize ?? DEFAULT_FONT_SIZES].regularBold }
               ]}
             >
@@ -315,7 +320,7 @@ const FinancialInfoComponent: FC<Props> = ({ invoiceForm, storeSettings, labels 
         invoiceForm?.status !== InvoiceStatus.paid && (
           <View style={[PDF_STYLES.row, PDF_STYLES.pb5]}>
             <View style={PDF_STYLES.flexGrow} />
-            <View style={[PDF_STYLES.row, PDF_STYLES.w100, PDF_STYLES.textEnd]}>
+            <View style={[PDF_STYLES.row, PDF_STYLES.w100, financialTextAlign]}>
               <View
                 style={[
                   PDF_STYLES.regular,
@@ -329,7 +334,7 @@ const FinancialInfoComponent: FC<Props> = ({ invoiceForm, storeSettings, labels 
                 style={[
                   PDF_STYLES.regular,
                   PDF_STYLES.w50,
-                  PDF_STYLES.alignEnd,
+                  financialValueAlign,
                   { fontSize: FONT_SIZES[invoiceForm?.invoiceCustomization?.fontSize ?? DEFAULT_FONT_SIZES].regular }
                 ]}
               >
@@ -342,7 +347,7 @@ const FinancialInfoComponent: FC<Props> = ({ invoiceForm, storeSettings, labels 
       {invoiceForm?.invoiceType === InvoiceType.invoice && invoiceForm?.status !== InvoiceStatus.paid && (
         <View style={[PDF_STYLES.row, PDF_STYLES.pb5]}>
           <View style={PDF_STYLES.flexGrow} />
-          <View style={[PDF_STYLES.row, PDF_STYLES.w100, PDF_STYLES.textEnd]}>
+          <View style={[PDF_STYLES.row, PDF_STYLES.w100, financialTextAlign]}>
             <View
               style={[
                 PDF_STYLES.regularBold,
@@ -356,7 +361,7 @@ const FinancialInfoComponent: FC<Props> = ({ invoiceForm, storeSettings, labels 
               style={[
                 PDF_STYLES.regularBold,
                 PDF_STYLES.w50,
-                PDF_STYLES.alignEnd,
+                financialValueAlign,
                 {
                   color: invoiceForm?.invoiceCustomization?.color,
                   fontSize: FONT_SIZES[invoiceForm?.invoiceCustomization?.fontSize ?? DEFAULT_FONT_SIZES].regularBold

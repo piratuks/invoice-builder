@@ -58,18 +58,31 @@ const HeaderInfoComponent: FC<Props> = ({ invoiceForm, storeSettings, logoUrl, p
         );
       case 'title':
         return (
-          <TitleInfo
-            key={key}
-            invoiceForm={invoiceForm}
-            labels={{ pdfINVOICELabel: pdfTexts.pdfINVOICE, pdfQUOTELabel: pdfTexts.pdfQUOTE }}
-          />
+          <View key={key} style={style}>
+            <TitleInfo
+              invoiceForm={invoiceForm}
+              labels={{ pdfINVOICELabel: pdfTexts.pdfINVOICE, pdfQUOTELabel: pdfTexts.pdfQUOTE }}
+            />
+          </View>
         );
       case 'logo':
-        return <LogoInfo key={key} invoiceForm={invoiceForm} logoUrl={logoUrl} />;
+        return (
+          <View key={key} style={style}>
+            <LogoInfo invoiceForm={invoiceForm} logoUrl={logoUrl} />
+          </View>
+        );
       case 'businessInfo':
-        return <BusinessInfo key={key} invoiceForm={invoiceForm} />;
+        return (
+          <View key={key} style={style}>
+            <BusinessInfo invoiceForm={invoiceForm} />
+          </View>
+        );
       case 'clientInfo':
-        return <ClientInfo key={key} invoiceForm={invoiceForm} billToLabel={pdfTexts.billTo} />;
+        return (
+          <View key={key} style={style}>
+            <ClientInfo invoiceForm={invoiceForm} billToLabel={pdfTexts.billTo} />
+          </View>
+        );
       case 'invoiceMeta':
         return (
           <View key={key} style={style}>
@@ -102,6 +115,6 @@ const HeaderInfoComponent: FC<Props> = ({ invoiceForm, storeSettings, logoUrl, p
     }
   };
 
-  return <View style={PDF_STYLES.header}>{blocks.map(renderBlock)}</View>;
+  return <View style={PDF_STYLES.header}>{blocks.map((block, index) => renderBlock(block, index))}</View>;
 };
 export const HeaderInfo = memo(HeaderInfoComponent);

@@ -518,6 +518,7 @@
     "addGrid": "Ajouter une grille",
     "addNode": "Ajouter un nœud",
     "addRegion": "Ajouter une région",
+    "noRegionWidthAvailable": "Aucune largeur prise en charge n'est disponible pour une autre région",
     "addSection": "Ajouter une section",
     "align": "Alignement",
     "boxed": "Encadré",
@@ -547,6 +548,7 @@
     "justify": "Justification",
     "moveDown": "Déplacer vers le bas",
     "moveInto": "Déplacer dans...",
+    "moveBefore": "Déplacer avant...",
     "moveUp": "Déplacer vers le haut",
     "noItem": "Sélectionnez une mise en page pour afficher les détails.",
     "noSections": "Aucune section définie.",
@@ -566,6 +568,7 @@
     "uniqueRegionId": "L'identifiant de région doit être unique et non vide",
     "upgradeToV2": "Mettre à niveau vers V2",
     "upgradedToV2": "Mise en page mise à niveau vers V2.",
+    "upgradedToV2Details": "V2 ajoute des régions de page, des lignes, colonnes et grilles imbriquées, ainsi que des options de débordement pour continuer ou garder le contenu groupé.",
     "uploadSchema": "Téléverser le schéma",
     "v2Feature": "Fonctionnalité V2",
     "validation": {

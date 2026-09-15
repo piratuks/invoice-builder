@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { LayoutBuilder } from '../pages/layouts/LayoutBuilder';
-import { parseLayoutSchema } from '../shared/types/layouts';
+import { parseLayoutSchema, type LayoutSchemaV2 } from '../shared/types/layouts';
 
 const createDataTransfer = () => {
   const values = new Map<string, string>();
@@ -37,9 +37,9 @@ const layout = {
   ]
 };
 
-const renderBuilder = () => {
+const renderBuilder = (value: LayoutSchemaV2 = layout) => {
   const onSchemaChange = vi.fn();
-  render(<LayoutBuilder schema={JSON.stringify(layout)} onSchemaChange={onSchemaChange} t={key => key} />);
+  render(<LayoutBuilder schema={JSON.stringify(value)} onSchemaChange={onSchemaChange} t={key => key} />);
   return onSchemaChange;
 };
 
@@ -90,6 +90,49 @@ describe('V2 LayoutBuilder drag and drop', () => {
     if (rightRow?.type === 'row') expect(rightRow.children.map(child => child.type)).toEqual(['block', 'block']);
   });
 
+  it('reparents a V2 block into a recursive header row through pointer drag events', () => {
+    const headerLayout = {
+      schemaVersion: 2 as const,
+      meta: { name: 'Header drag layout' },
+      regions: [
+        {
+          id: 'main',
+          width: '100%' as const,
+          direction: 'column' as const,
+          children: [
+            {
+              type: 'section' as const,
+              section: {
+                type: 'header' as const,
+                visible: true,
+                blocks: [{ type: 'row' as const, children: [{ type: 'logo' as const }] }]
+              }
+            },
+            { type: 'block' as const, block: { type: 'businessInfo' as const } }
+          ]
+        }
+      ]
+    };
+    const onSchemaChange = renderBuilder(headerLayout);
+    const businessInfo = draggableByText('businessInfo');
+    const targetRow = screen.getByText('row').closest('[draggable="true"]') as HTMLElement;
+    const dataTransfer = createDataTransfer();
+
+    fireEvent.dragStart(businessInfo, { dataTransfer });
+    fireEvent.dragOver(targetRow, { dataTransfer });
+    fireEvent.drop(targetRow, { dataTransfer });
+
+    const schema = lastSchema(onSchemaChange);
+    const header = schema?.regions[0].children?.[0];
+    expect(header?.type).toBe('section');
+    if (header?.type === 'section') {
+      expect(header.section.blocks?.[0]).toMatchObject({
+        type: 'row',
+        children: [{ type: 'logo' }, { type: 'businessInfo' }]
+      });
+    }
+  });
+
   it('rejects a V2 block drop onto a leaf in another region', () => {
     const onSchemaChange = renderBuilder();
     const logo = draggableByText('logo');
@@ -99,6 +142,41 @@ describe('V2 LayoutBuilder drag and drop', () => {
     fireEvent.dragStart(logo, { dataTransfer });
     fireEvent.dragOver(businessInfo, { dataTransfer });
     fireEvent.drop(businessInfo, { dataTransfer });
+
+    expect(onSchemaChange).not.toHaveBeenCalled();
+  });
+
+  it('rejects an incompatible section drop onto a recursive header row', () => {
+    const headerLayout: LayoutSchemaV2 = {
+      schemaVersion: 2,
+      meta: { name: 'Invalid header target' },
+      regions: [
+        {
+          id: 'main',
+          width: '100%',
+          direction: 'column',
+          children: [
+            {
+              type: 'section',
+              section: {
+                type: 'header',
+                visible: true,
+                blocks: [{ type: 'row', children: [{ type: 'logo' }] }]
+              }
+            },
+            { type: 'section', section: { type: 'itemsTable', visible: true } }
+          ]
+        }
+      ]
+    };
+    const onSchemaChange = renderBuilder(headerLayout);
+    const itemsTable = draggableByText('itemsTable');
+    const targetRow = draggableByText('row');
+    const dataTransfer = createDataTransfer();
+
+    fireEvent.dragStart(itemsTable, { dataTransfer });
+    fireEvent.dragOver(targetRow, { dataTransfer });
+    fireEvent.drop(targetRow, { dataTransfer });
 
     expect(onSchemaChange).not.toHaveBeenCalled();
   });

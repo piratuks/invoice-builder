@@ -4,6 +4,7 @@ import { createSqliteAdapter } from '../shared/db/client';
 import { initSchema } from '../shared/db/setup';
 import { up as createLayouts } from '../shared/migrations/20260902-27-invoice_layouts';
 import { up as seedLayouts } from '../shared/migrations/20260902-28-layout-schema-seeds';
+import { up as repairLayoutSchemas } from '../shared/migrations/20260915-30-layout-schema-repair';
 import type { DatabaseAdapter } from '../shared/types/DatabaseAdapter';
 
 type LayoutRow = { id: number; schema: string; isArchived: number };
@@ -81,5 +82,42 @@ describe('layout schema migrations', () => {
 
     expect(JSON.parse(classic?.schema ?? '{}').meta.description).toContain('bank payment information');
     expect(JSON.parse(legacyClassic?.schema ?? '{}').meta.description).toContain('Do not use for new invoices');
+  });
+
+  it('repairs logo and business spacing in layouts and invoice snapshots', async () => {
+    await createLayouts(db);
+    const schema = JSON.stringify({
+      schemaVersion: 1,
+      meta: { name: 'Classic' },
+      sections: [
+        {
+          type: 'header',
+          visible: true,
+          blocks: [{ type: 'row', children: [{ type: 'logo' }, { type: 'businessInfo' }] }]
+        }
+      ]
+    });
+    await db.run('INSERT INTO layouts ("schema", "isArchived") VALUES (?, ?)', [schema, 0]);
+    await db.run('PRAGMA foreign_keys = OFF');
+    await db.run('INSERT INTO invoice_layout_snapshots ("parentInvoiceId", "layoutSchema") VALUES (?, ?)', [
+      42,
+      schema
+    ]);
+    await db.run('PRAGMA foreign_keys = ON');
+
+    await repairLayoutSchemas(db);
+
+    const layout = await db.get<{ schema: string }>('SELECT "schema" FROM layouts ORDER BY "id" DESC LIMIT 1');
+    const snapshot = await db.get<{ layoutSchema: string }>(
+      'SELECT "layoutSchema" FROM invoice_layout_snapshots WHERE "parentInvoiceId" = ?',
+      [42]
+    );
+    const readRow = (value: string) => JSON.parse(value).sections[0].blocks[0];
+
+    expect(readRow(layout?.schema ?? '{}')).toMatchObject({
+      gap: 5,
+      children: [{ type: 'logo' }, { type: 'businessInfo', width: '50%' }]
+    });
+    expect(readRow(snapshot?.layoutSchema ?? '{}')).toEqual(readRow(layout?.schema ?? '{}'));
   });
 });

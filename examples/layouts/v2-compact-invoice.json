@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 2,
+  "meta": {
+    "name": "Compact Portrait Invoice",
+    "description": "A portrait invoice with a two-column business/client header, boxed invoice metadata, and optional payment and signature sections."
+  },
+  "orientation": "portrait",
+  "regions": [
+    {
+      "id": "main",
+      "width": "100%",
+      "direction": "column",
+      "overflow": "continue",
+      "children": [
+        {
+          "type": "section",
+          "section": {
+            "type": "header",
+            "visible": true,
+            "blocks": [
+              {
+                "type": "row",
+                "justify": "between",
+                "children": [
+                  {
+                    "type": "column",
+                    "width": "40%",
+                    "children": [
+                      {
+                        "type": "logo"
+                      },
+                      {
+                        "type": "businessInfo"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "column",
+                    "width": "60%",
+                    "align": "end",
+                    "children": [
+                      {
+                        "type": "clientInfo"
+                      },
+                      {
+                        "type": "invoiceMeta",
+                        "showInvoiceLabel": true,
+                        "boxed": true
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "type": "section",
+          "section": {
+            "type": "itemsTable",
+            "visible": true
+          }
+        },
+        {
+          "type": "section",
+          "section": {
+            "type": "financialTotals",
+            "visible": true
+          }
+        },
+        {
+          "type": "section",
+          "section": {
+            "type": "paymentInfo",
+            "visible": "auto"
+          }
+        },
+        {
+          "type": "section",
+          "section": {
+            "type": "notes",
+            "visible": "auto"
+          }
+        },
+        {
+          "type": "section",
+          "section": {
+            "type": "signature",
+            "visible": "auto"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -36,6 +36,7 @@ export interface HeaderBlock {
 export interface LayoutSection {
   type: LayoutSectionType;
   visible: LayoutVisibility;
+  align?: 'start' | 'center' | 'end';
   blocks?: HeaderBlock[];
   totalsBlocks?: TotalsRowBlock[];
   watermarkOrder?: WatermarkOrder;
@@ -70,6 +71,7 @@ export interface LayoutRegion {
   id: string;
   width: RegionWidth;
   direction: RegionDirection;
+  gap?: 5 | 10;
   blocks?: HeaderBlock[];
   sections?: LayoutSectionType[];
   children?: LayoutNode[];
@@ -254,7 +256,12 @@ export const validateLayoutSchema = (value: unknown): LayoutValidationError[] =>
           errors.push({ path, message: 'layouts.validation.object' });
           return;
         }
-        hasOnly(section, ['type', 'visible', 'blocks', 'totalsBlocks', 'watermarkOrder', 'columnSizing'], path, errors);
+        hasOnly(
+          section,
+          ['type', 'visible', 'align', 'blocks', 'totalsBlocks', 'watermarkOrder', 'columnSizing'],
+          path,
+          errors
+        );
         if (!validLayoutSectionTypes.includes(section.type as LayoutSectionType))
           errors.push({ path: `${path}.type`, message: 'layouts.validation.sectionType' });
         else if (seen.has(section.type as string))
@@ -262,6 +269,7 @@ export const validateLayoutSchema = (value: unknown): LayoutValidationError[] =>
         else seen.add(section.type as string);
         if (section.visible !== true && section.visible !== false && section.visible !== 'auto')
           errors.push({ path: `${path}.visible`, message: 'layouts.validation.visible' });
+        enumValue(section.align, ['start', 'center', 'end'], `${path}.align`, errors);
         if (section.type === 'header' && section.blocks !== undefined)
           validateHeaderBlocks(section.blocks, `${path}.blocks`, errors);
         if (section.type !== 'header' && section.blocks !== undefined)
@@ -289,7 +297,12 @@ const validateV2Section = (
     errors.push({ path, message: 'layouts.validation.object' });
     return;
   }
-  hasOnly(value, ['type', 'visible', 'blocks', 'totalsBlocks', 'watermarkOrder', 'columnSizing'], path, errors);
+  hasOnly(
+    value,
+    ['type', 'visible', 'align', 'blocks', 'totalsBlocks', 'watermarkOrder', 'columnSizing'],
+    path,
+    errors
+  );
   if (!validLayoutSectionTypes.includes(value.type as LayoutSectionType))
     errors.push({ path: `${path}.type`, message: 'layouts.validation.sectionType' });
   else if (seenSections.has(value.type as string))
@@ -297,6 +310,7 @@ const validateV2Section = (
   else seenSections.add(value.type as string);
   if (value.visible !== true && value.visible !== false && value.visible !== 'auto')
     errors.push({ path: `${path}.visible`, message: 'layouts.validation.visible' });
+  enumValue(value.align, ['start', 'center', 'end'], `${path}.align`, errors);
   if (value.type === 'header' && value.blocks !== undefined)
     validateHeaderBlocks(value.blocks, `${path}.blocks`, errors);
   if (value.type !== 'header' && value.blocks !== undefined)
@@ -369,7 +383,7 @@ export const validateLayoutSchemaV2 = (value: unknown): LayoutValidationError[] 
       errors.push({ path, message: 'layouts.validation.object' });
       return;
     }
-    hasOnly(region, ['id', 'width', 'direction', 'blocks', 'sections', 'children', 'overflow'], path, errors);
+    hasOnly(region, ['id', 'width', 'direction', 'gap', 'blocks', 'sections', 'children', 'overflow'], path, errors);
     if (typeof region.id !== 'string' || !region.id.trim())
       errors.push({ path: `${path}.id`, message: 'layouts.validation.regionId' });
     else if (seenRegionIds.has(region.id)) errors.push({ path: `${path}.id`, message: 'layouts.validation.duplicate' });
@@ -379,6 +393,8 @@ export const validateLayoutSchemaV2 = (value: unknown): LayoutValidationError[] 
     else totalWidth += Number.parseInt(region.width, 10);
     if (typeof region.direction !== 'string' || !regionDirections.includes(region.direction as RegionDirection))
       errors.push({ path: `${path}.direction`, message: 'layouts.validation.regionDirection' });
+    if (region.gap !== undefined && region.gap !== 5 && region.gap !== 10)
+      errors.push({ path: `${path}.gap`, message: 'layouts.validation.spacing' });
     enumValue(region.overflow, ['continue', 'keepTogether'], `${path}.overflow`, errors);
     const contentKinds = [
       region.blocks !== undefined,

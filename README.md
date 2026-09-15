@@ -20,6 +20,9 @@
 No accounts. No cloud. No subscriptions.  
 Your data stays on your machine in a database file you own.
 
+> ☕ **Support Invoice Builder**
+> If this project saves you time, you can help keep it maintained with a small contribution on [Buy Me a Coffee](https://www.buymeacoffee.com/evaldizi).
+
 ## 📸 Screenshots
 
 ![Invoice Form](tutorial/invoice_form.jpg)
