@@ -1,8 +1,9 @@
 import DeleteIcon from '@mui/icons-material/Delete';
+import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import { Box, IconButton, MenuItem, Select, Stack, Tooltip, Typography } from '@mui/material';
-import { useMemo, type ReactNode } from 'react';
+import { useMemo, useState, type DragEvent as ReactDragEvent, type ReactNode } from 'react';
 import {
   parseLayoutSchema,
   type HeaderBlockType,
@@ -38,6 +39,8 @@ export const LayoutBuilder = ({
   onSchemaChange: (schema: string) => void;
   t: (key: string) => string;
 }) => {
+  const [draggedNode, setDraggedNode] = useState<{ kind: 'section' | 'block'; id: string }>();
+  const [dragOverNode, setDragOverNode] = useState<string>();
   const builderState = useMemo(() => {
     const parsed = parseLayoutSchema(schema);
     return parsed.errors.length || !parsed.schema || parsed.schema.schemaVersion !== 1
@@ -77,6 +80,110 @@ export const LayoutBuilder = ({
     });
   const contains = (node: LayoutBuilderBlockNode, id: string): boolean =>
     node.id === id || node.children.some(child => contains(child, id));
+  const findNode = (id: string) => {
+    if (!builderState) return undefined;
+    const visit = (nodes: LayoutBuilderBlockNode[]): LayoutBuilderBlockNode | undefined => {
+      for (const node of nodes) {
+        if (node.id === id) return node;
+        const nested = visit(node.children);
+        if (nested) return nested;
+      }
+      return undefined;
+    };
+    return visit(builderState.nodes.flatMap(node => node.children));
+  };
+  const findParent = (id: string): LayoutBuilderBlockNode[] | undefined => {
+    if (!builderState) return undefined;
+    const visit = (
+      nodes: LayoutBuilderBlockNode[],
+      parent: LayoutBuilderBlockNode[]
+    ): LayoutBuilderBlockNode[] | undefined => {
+      for (const node of nodes) {
+        if (node.id === id) return parent;
+        const nested = visit(node.children, node.children);
+        if (nested) return nested;
+      }
+      return undefined;
+    };
+    for (const section of builderState.nodes) {
+      const parent = visit(section.children, section.children);
+      if (parent) return parent;
+    }
+    return undefined;
+  };
+  const canDrop = (
+    active: { kind: 'section' | 'block'; id: string },
+    target: { kind: 'section' | 'block'; id: string }
+  ) => {
+    if (active.id === target.id || !builderState) return false;
+    if (active.kind === 'section' || target.kind === 'section') {
+      return active.kind === 'section' && target.kind === 'section';
+    }
+    const activeNode = findNode(active.id);
+    const targetNode = findNode(target.id);
+    if (!activeNode || !targetNode || contains(activeNode, target.id)) return false;
+    return (
+      targetNode.block.type === 'row' ||
+      targetNode.block.type === 'column' ||
+      findParent(active.id) === findParent(target.id)
+    );
+  };
+  const readDragData = (event: ReactDragEvent<HTMLElement>) => {
+    try {
+      return JSON.parse(event.dataTransfer.getData('text/plain')) as { kind: 'section' | 'block'; id: string };
+    } catch {
+      return undefined;
+    }
+  };
+  const handleDragStart = (event: ReactDragEvent<HTMLElement>, kind: 'section' | 'block', id: string) => {
+    event.stopPropagation();
+    const data = { kind, id };
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('text/plain', JSON.stringify(data));
+    setDraggedNode(data);
+  };
+  const handleDragOver = (event: ReactDragEvent<HTMLElement>, kind: 'section' | 'block', id: string) => {
+    event.stopPropagation();
+    const active = readDragData(event) ?? draggedNode;
+    if (active && canDrop(active, { kind, id })) {
+      event.preventDefault();
+      event.dataTransfer.dropEffect = 'move';
+      setDragOverNode(`${kind}:${id}`);
+    }
+  };
+  const handleDrop = (event: ReactDragEvent<HTMLElement>, kind: 'section' | 'block', id: string) => {
+    event.stopPropagation();
+    event.preventDefault();
+    const active = readDragData(event) ?? draggedNode;
+    if (!active || !canDrop(active, { kind, id })) return;
+    if (active.kind === 'section') {
+      const fromIndex = builderState?.nodes.findIndex(node => node.id === active.id) ?? -1;
+      const toIndex = builderState?.nodes.findIndex(node => node.id === id) ?? -1;
+      actions.moveSection(fromIndex, toIndex);
+    } else if (kind === 'section') {
+      actions.reparent(active.id, id);
+    } else {
+      const activeBlock = findNode(active.id);
+      const targetBlock = findNode(id);
+      const activeIsContainer = activeBlock?.block.type === 'row' || activeBlock?.block.type === 'column';
+      const targetIsContainer = targetBlock?.block.type === 'row' || targetBlock?.block.type === 'column';
+      const activeParent = findParent(active.id);
+      const targetParent = findParent(id);
+      const sameParent = activeParent === targetParent;
+      if (targetIsContainer && !(activeIsContainer && sameParent)) actions.reparent(active.id, id);
+      else if (sameParent && activeParent && targetParent) {
+        const activeIndex = activeParent.findIndex(node => node.id === active.id);
+        const targetIndex = targetParent.findIndex(node => node.id === id);
+        actions.moveBlock(activeIndex < targetIndex ? id : active.id, activeIndex < targetIndex ? active.id : id);
+      } else actions.moveBlock(active.id, id);
+    }
+    setDraggedNode(undefined);
+    setDragOverNode(undefined);
+  };
+  const clearDragState = () => {
+    setDraggedNode(undefined);
+    setDragOverNode(undefined);
+  };
   const icon = (label: string, onClick: () => void, disabled = false, child: ReactNode) => (
     <Tooltip title={label}>
       <span>
@@ -101,7 +208,19 @@ export const LayoutBuilder = ({
         role="treeitem"
         aria-level={depth}
         tabIndex={0}
-        sx={{ pl: 2, ml: 1, py: 0.5, borderLeft: '2px solid', borderColor: 'divider' }}
+        draggable
+        onDragStart={event => handleDragStart(event, 'block', node.id)}
+        onDragOver={event => handleDragOver(event, 'block', node.id)}
+        onDrop={event => handleDrop(event, 'block', node.id)}
+        onDragEnd={clearDragState}
+        sx={{
+          pl: 2,
+          ml: 1,
+          py: 0.5,
+          borderLeft: '2px solid',
+          borderColor: dragOverNode === `block:${node.id}` ? 'primary.main' : 'divider',
+          backgroundColor: dragOverNode === `block:${node.id}` ? 'action.hover' : undefined
+        }}
         onKeyDown={event => {
           if (event.key === 'ArrowUp' && index > 0) actions.moveBlock(node.id, siblings[index - 1].id);
           if (event.key === 'ArrowDown' && index < siblings.length - 1)
@@ -110,6 +229,9 @@ export const LayoutBuilder = ({
         }}
       >
         <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+          <Tooltip title={t('ariaLabel.dragToSort')}>
+            <DragIndicatorIcon fontSize="small" sx={{ cursor: 'grab' }} />
+          </Tooltip>
           <Typography variant="body2" sx={{ minWidth: 92, fontWeight: 500 }}>
             {node.block.type}
           </Typography>
@@ -196,7 +318,19 @@ export const LayoutBuilder = ({
                 role="treeitem"
                 aria-level={1}
                 tabIndex={0}
-                sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1, p: 1.25 }}
+                draggable
+                onDragStart={event => handleDragStart(event, 'section', builderState?.nodes[index].id ?? '')}
+                onDragOver={event => handleDragOver(event, 'section', builderState?.nodes[index].id ?? '')}
+                onDrop={event => handleDrop(event, 'section', builderState?.nodes[index].id ?? '')}
+                onDragEnd={clearDragState}
+                sx={{
+                  border: '1px solid',
+                  borderColor: dragOverNode === `section:${builderState?.nodes[index].id}` ? 'primary.main' : 'divider',
+                  borderRadius: 1,
+                  p: 1.25,
+                  backgroundColor:
+                    dragOverNode === `section:${builderState?.nodes[index].id}` ? 'action.hover' : undefined
+                }}
                 onKeyDown={event => {
                   if (event.key === 'ArrowUp' && index > 0) {
                     event.preventDefault();
@@ -213,7 +347,12 @@ export const LayoutBuilder = ({
                 }}
               >
                 <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Typography sx={{ fontWeight: 600 }}>{section.type}</Typography>
+                  <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
+                    <Tooltip title={t('ariaLabel.dragToSort')}>
+                      <DragIndicatorIcon fontSize="small" sx={{ cursor: 'grab' }} />
+                    </Tooltip>
+                    <Typography sx={{ fontWeight: 600 }}>{section.type}</Typography>
+                  </Stack>
                   <Stack direction="row" spacing={0.25}>
                     {icon(
                       t('layouts.moveUp'),

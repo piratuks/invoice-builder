@@ -1,6 +1,7 @@
 import { pdf } from '@react-pdf/renderer';
 import { parseISO } from 'date-fns';
 import { useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { PDFDocument } from '../../../pages/invoices/Preview/PDFDocument';
 import { MONTH_NAMES } from '../../../state/constant';
 import { InvoiceType } from '../../enums/invoiceType';
@@ -100,7 +101,12 @@ export const getWatermarkPaidUrl = async (invoiceForm?: InvoiceFromData) => {
   return watermarkPaidUrl;
 };
 
-export const createPdfBlob = async (invoiceForm: InvoiceFromData, storeSettings: Settings, pdfTexts: PdfTexts) => {
+export const createPdfBlob = async (
+  invoiceForm: InvoiceFromData,
+  storeSettings: Settings,
+  pdfTexts: PdfTexts,
+  layoutRequired: string
+) => {
   const logoUrl = await getLogoUrl(invoiceForm);
   const attachmentUrls = await getAttachmentsUrl(invoiceForm);
   const watermarkUrl = await getWatermarkUrl(invoiceForm);
@@ -116,6 +122,7 @@ export const createPdfBlob = async (invoiceForm: InvoiceFromData, storeSettings:
       qrCodeUrl={qrCodeUrl}
       attachmentUrls={attachmentUrls}
       pdfTexts={pdfTexts}
+      layoutRequired={layoutRequired}
       watermarkUrl={watermarkUrl}
       watermarkPaidUrl={watermarkPaidUrl}
       signatureUrl={signatureUrl}
@@ -141,6 +148,7 @@ export const getPDFFilename = (invoiceForm: InvoiceFromData, storeSettings: Sett
 
 export const useExportPdf = (data: { invoiceForm?: InvoiceFromData; storeSettings?: Settings }) => {
   const { invoiceForm, storeSettings } = data;
+  const { t } = useTranslation();
 
   const pdfTextsDefaults = usePdfTexts({
     labelUpperCase: invoiceForm?.invoiceCustomization?.labelUpperCase,
@@ -158,7 +166,7 @@ export const useExportPdf = (data: { invoiceForm?: InvoiceFromData; storeSetting
   const exportPdf = useCallback(async () => {
     if (!invoiceForm || !storeSettings) return;
 
-    const blob = await createPdfBlob(invoiceForm, storeSettings, pdfTexts);
+    const blob = await createPdfBlob(invoiceForm, storeSettings, pdfTexts, t('common.layoutRequired'));
 
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -168,7 +176,7 @@ export const useExportPdf = (data: { invoiceForm?: InvoiceFromData; storeSetting
     a.click();
 
     URL.revokeObjectURL(url);
-  }, [invoiceForm, storeSettings, pdfTexts]);
+  }, [invoiceForm, storeSettings, pdfTexts, t]);
 
   return { exportPdf };
 };

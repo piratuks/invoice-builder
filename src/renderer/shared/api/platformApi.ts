@@ -23,7 +23,7 @@ import type {
 import type { Item, ItemAdd, ItemUpdate } from '../types/item';
 import type { Layout, LayoutAdd, LayoutUpdate } from '../types/layouts';
 import type { PostgresConfig } from '../types/postgresConfig';
-import type { PresetAdd, PresetUpdate, PresetUpdateWeb, PresetWeb } from '../types/preset';
+import type { PresetAdd, PresetUpdate, PresetWeb } from '../types/preset';
 import type { Response } from '../types/response';
 import type { Settings, SettingsUpdate } from '../types/settings';
 import type {
@@ -61,11 +61,6 @@ const mapPresetFromWeb2 = <T extends PresetWeb>(b: T) => ({
   qrCode: base64ToBytesOrUndef(b.qrCode),
   styleProfileWatermarkFileData: base64ToBytesOrUndef(b.styleProfileWatermarkFileData),
   styleProfilePaidWatermarkFileData: base64ToBytesOrUndef(b.styleProfilePaidWatermarkFileData)
-});
-
-const mapPresetFromWeb1 = <T extends PresetUpdateWeb>(b: T) => ({
-  ...b,
-  signatureData: base64ToBytesOrUndef(b.signatureData)
 });
 
 const mapPresetToWeb = async <T extends PresetUpdate | PresetAdd>(data: T) => ({
@@ -433,7 +428,7 @@ export const webApi = () => {
 
       return {
         ...response,
-        data: response.data && mapPresetFromWeb1(response.data)
+        data: response.data && mapPresetFromWeb2(response.data)
       };
     },
     addPreset: async (data: PresetAdd) => {
@@ -441,7 +436,7 @@ export const webApi = () => {
 
       return {
         ...response,
-        data: response.data && mapPresetFromWeb1(response.data)
+        data: response.data && mapPresetFromWeb2(response.data)
       };
     },
     deletePreset: (id: number) => apiDelete<Response<unknown>>(`/api/presets/${id}`),

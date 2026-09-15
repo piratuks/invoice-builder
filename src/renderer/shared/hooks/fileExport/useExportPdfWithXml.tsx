@@ -1,5 +1,6 @@
 import { PDFDocument as PdfLibDocument } from 'pdf-lib';
 import { useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { InvoiceFromData } from '../../types/invoice';
 import type { Settings } from '../../types/settings';
 import { usePdfTexts } from '../pdf/usePdfTexts';
@@ -7,6 +8,7 @@ import { createPdfBlob, getPDFFilename } from './useExportPdf';
 
 export const useExportPdfWithXml = (data: { invoiceForm?: InvoiceFromData; storeSettings?: Settings }) => {
   const { invoiceForm, storeSettings } = data;
+  const { t } = useTranslation();
 
   const pdfTextsDefaults = usePdfTexts({
     labelUpperCase: invoiceForm?.invoiceCustomization?.labelUpperCase,
@@ -26,7 +28,7 @@ export const useExportPdfWithXml = (data: { invoiceForm?: InvoiceFromData; store
     async (xml: Uint8Array) => {
       if (!invoiceForm || !storeSettings) return;
 
-      const blob = await createPdfBlob(invoiceForm, storeSettings, pdfTexts);
+      const blob = await createPdfBlob(invoiceForm, storeSettings, pdfTexts, t('common.layoutRequired'));
 
       const pdfBytes = new Uint8Array(await blob.arrayBuffer());
 
@@ -44,7 +46,7 @@ export const useExportPdfWithXml = (data: { invoiceForm?: InvoiceFromData; store
       a.click();
       URL.revokeObjectURL(url);
     },
-    [invoiceForm, storeSettings, pdfTexts]
+    [invoiceForm, storeSettings, pdfTexts, t]
   );
 
   return { exportPdfWithXml };
