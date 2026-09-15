@@ -1,5 +1,6 @@
-import { SwipeableDrawer, useMediaQuery, useTheme } from '@mui/material';
-import { memo, type FC } from 'react';
+import AddIcon from '@mui/icons-material/Add';
+import { Box, Button, SwipeableDrawer, useMediaQuery, useTheme } from '@mui/material';
+import { memo, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CRUDPage } from '../../../../shared/components/layout/crudPage/CRUDPage';
 import { FilterType } from '../../../../shared/enums/filterType';
@@ -9,6 +10,7 @@ import type { Filter, FilterData } from '../../../../shared/types/filter';
 import type { Response } from '../../../../shared/types/response';
 import { createCommonFilters, createInvoiceFilters } from '../../../../shared/utils/filterSortFunctions';
 import { List as ClientsList } from '../../../clients/List';
+import { ClientQuickAddModal } from '../Modals/ClientQuickAddModal';
 
 interface Props {
   isOpen: boolean;
@@ -19,6 +21,7 @@ interface Props {
 
 const ClientsDropdownComponent: FC<Props> = ({ isOpen, onClose, onOpen, onClick }) => {
   const { t } = useTranslation();
+  const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
   const filters: Filter[] = [
     ...createCommonFilters({ t, namespace: 'clients', initial: FilterType.active }),
     ...createInvoiceFilters({ t, namespace: 'clients' })
@@ -32,6 +35,14 @@ const ClientsDropdownComponent: FC<Props> = ({ isOpen, onClose, onOpen, onClick 
 
   return (
     <>
+      <ClientQuickAddModal
+        isOpen={isQuickAddOpen}
+        onCancel={() => setIsQuickAddOpen(false)}
+        onCreated={client => {
+          setIsQuickAddOpen(false);
+          onClick?.(client);
+        }}
+      />
       <SwipeableDrawer
         anchor="bottom"
         open={isOpen}
@@ -52,6 +63,11 @@ const ClientsDropdownComponent: FC<Props> = ({ isOpen, onClose, onOpen, onClick 
           }
         }}
       >
+        <Box sx={{ mb: 2 }}>
+          <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={() => setIsQuickAddOpen(true)}>
+            {t('invoices.addBillTo')}
+          </Button>
+        </Box>
         <CRUDPage<Client, ClientAdd, ClientUpdate>
           componentId="invoices:clients"
           filters={filters}
@@ -63,7 +79,7 @@ const ClientsDropdownComponent: FC<Props> = ({ isOpen, onClose, onOpen, onClick 
             { label: t('common.name'), value: 'name' },
             { label: t('common.lastUpdate'), value: 'updatedAt' }
           ]}
-          noItemText={t('currencies.noItem')}
+          noItemText={t('clients.noItem')}
           renderListItem={(item, selectedItem) => (
             <ClientsList
               key={item.id}

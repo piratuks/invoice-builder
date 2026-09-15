@@ -408,6 +408,7 @@
   "invoices": {
     "addDiscount": "Pridėti nuolaidą",
     "addInvoice": "Pridėti sąskaitą",
+    "addBillTo": "Pridėti gavėją",
     "addItem": "Pridėti prekę",
     "addNote": "Pridėti pastabą",
     "addPayment": "Pridėti mokėjimą",
