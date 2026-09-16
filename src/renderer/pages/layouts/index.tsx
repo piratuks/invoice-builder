@@ -1,7 +1,8 @@
-import { type FC } from 'react';
+import { useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CRUDPage } from '../../shared/components/layout/crudPage/CRUDPage';
 import { FilterType } from '../../shared/enums/filterType';
+import { InvoiceFormMode } from '../../shared/enums/invoiceFormMode';
 import { useLayoutAdd } from '../../shared/hooks/layouts/useLayoutAdd';
 import { useLayoutDelete } from '../../shared/hooks/layouts/useLayoutDelete';
 import { useLayoutsRetrieve } from '../../shared/hooks/layouts/useLayoutsRetrieve';
@@ -11,11 +12,13 @@ import { type Layout, type LayoutAdd, type LayoutUpdate } from '../../shared/typ
 import type { Response } from '../../shared/types/response';
 import { createCommonFilters, createInvoiceFilters } from '../../shared/utils/filterSortFunctions';
 import { isLayoutData } from '../../shared/utils/typeGuardFunctions';
+import { EditPreviewToggle } from '../invoices/Form/EditPreviewToggle';
 import { Form } from './Form';
 import { List } from './List';
 
 export const LayoutsPage: FC = () => {
   const { t } = useTranslation();
+  const [mode, setMode] = useState<InvoiceFormMode>(InvoiceFormMode.edit);
 
   const filters: Filter[] = [
     ...createCommonFilters({ t, namespace: 'layouts', initial: FilterType.active }),
@@ -50,6 +53,7 @@ export const LayoutsPage: FC = () => {
   return (
     <CRUDPage<Layout, LayoutAdd, LayoutUpdate>
       componentId="layouts"
+      renderCustomButtons={() => <EditPreviewToggle mode={mode} setMode={setMode} />}
       title={t('common.layout')}
       filters={filters}
       useRetrieve={useLayoutsCRUDRetrieve}
@@ -81,6 +85,7 @@ export const LayoutsPage: FC = () => {
       form={({ item, onChange }) => (
         <Form
           item={item}
+          mode={mode}
           handleChange={d => {
             if (isLayoutData(d.layout)) {
               onChange({

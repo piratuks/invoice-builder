@@ -5,6 +5,8 @@ import {
   type LayoutSchema,
   type LayoutSchemaV2,
   type LayoutSectionType,
+  MAX_LAYOUT_NESTING_DEPTH,
+  MAX_LAYOUT_NODE_COUNT,
   validRegionDirections,
   validRegionOverflows,
   validRegionWidths
@@ -191,6 +193,47 @@ const getNextV2NodeId = (state: LayoutBuilderV2State, regionId: string): string 
   }
   return id;
 };
+const countV2Nodes = (state: LayoutBuilderV2State): number => {
+  const count = (nodes: LayoutBuilderV2Node[]): number =>
+    nodes.reduce((total, node) => total + 1 + count(node.children), 0);
+  return state.regions.reduce((total, region) => total + count(region.children), 0);
+};
+const findV2NodeDepth = (state: LayoutBuilderV2State, id: string): number | undefined => {
+  const visit = (nodes: LayoutBuilderV2Node[], depth: number): number | undefined => {
+    for (const node of nodes) {
+      if (node.id === id) return depth;
+      const nested = visit(node.children, depth + 1);
+      if (nested !== undefined) return nested;
+    }
+    return undefined;
+  };
+  return state.regions.reduce<number | undefined>((result, region) => result ?? visit(region.children, 0), undefined);
+};
+const getV2SubtreeHeight = (node: LayoutBuilderV2Node): number =>
+  node.children.length ? 1 + Math.max(...node.children.map(getV2SubtreeHeight)) : 0;
+export const canAddLayoutBuilderV2Node = (layout: LayoutSchemaV2, parentId?: string): boolean => {
+  const state = createLayoutBuilderV2State(layout);
+  if (countV2Nodes(state) >= MAX_LAYOUT_NODE_COUNT) return false;
+  if (!parentId) return true;
+  const parentDepth = findV2NodeDepth(state, parentId);
+  return parentDepth !== undefined && parentDepth < MAX_LAYOUT_NESTING_DEPTH;
+};
+export const canReparentLayoutBuilderV2Node = (layout: LayoutSchemaV2, fromId: string, targetId: string): boolean => {
+  const state = createLayoutBuilderV2State(layout);
+  const from = findV2Node(state, fromId);
+  const targetDepth = findV2NodeDepth(state, targetId);
+  return (
+    !!from &&
+    from.node.type === 'node' &&
+    targetDepth !== undefined &&
+    targetDepth + 1 + getV2SubtreeHeight(from.node) <= MAX_LAYOUT_NESTING_DEPTH
+  );
+};
+export const canReparentLayoutBuilderV2NodeToRegion = (layout: LayoutSchemaV2, fromId: string): boolean => {
+  const state = createLayoutBuilderV2State(layout);
+  const from = findV2Node(state, fromId);
+  return !!from && from.node.type === 'node' && getV2SubtreeHeight(from.node) <= MAX_LAYOUT_NESTING_DEPTH;
+};
 export const setLayoutBuilderV2Orientation = (
   layout: LayoutSchemaV2,
   orientation: LayoutSchemaV2['orientation']
@@ -299,6 +342,7 @@ export const addLayoutBuilderV2Node = (
   sectionType: LayoutSectionType = 'itemsTable'
 ): LayoutSchemaV2 => {
   const state = createLayoutBuilderV2State(layout);
+  if (countV2Nodes(state) >= MAX_LAYOUT_NODE_COUNT) return serializeLayoutBuilderV2State(state);
   const region = state.regions.find(item => item.id === regionId);
   if (!region) return serializeLayoutBuilderV2State(state);
   const containsSectionType = (nodes: LayoutBuilderV2Node[], value: LayoutSectionType): boolean =>
@@ -314,6 +358,8 @@ export const addLayoutBuilderV2Node = (
     delete region.region.sections;
   }
   const parentNode = parentId ? findV2Node(state, parentId)?.node : undefined;
+  if (parentId && (!parentNode || findV2NodeDepth(state, parentId)! >= MAX_LAYOUT_NESTING_DEPTH))
+    return serializeLayoutBuilderV2State(state);
   const isHeaderBlockParent =
     parentNode?.type === 'node' &&
     ((parentNode.node.type === 'section' && parentNode.node.section.type === 'header') ||
@@ -407,6 +453,9 @@ export const reparentLayoutBuilderV2Node = (
   const contains = (node: LayoutBuilderV2Node, id: string): boolean =>
     node.id === id || node.children.some(child => contains(child, id));
   if (contains(from.node, targetId)) return serializeLayoutBuilderV2State(state);
+  const targetDepth = findV2NodeDepth(state, targetId);
+  if (targetDepth === undefined || targetDepth + 1 + getV2SubtreeHeight(from.node) > MAX_LAYOUT_NESTING_DEPTH)
+    return serializeLayoutBuilderV2State(state);
   const [moved] = from.parent.splice(from.index, 1);
   target.node.children.push(moved as LayoutBuilderV2Node);
   return serializeLayoutBuilderV2State(state);
@@ -421,6 +470,7 @@ export const reparentLayoutBuilderV2NodeToRegion = (
   const region = state.regions.find(item => item.id === regionId);
   if (!from || from.node.type !== 'node' || !region || from.parent === region.children)
     return serializeLayoutBuilderV2State(state);
+  if (getV2SubtreeHeight(from.node) > MAX_LAYOUT_NESTING_DEPTH) return serializeLayoutBuilderV2State(state);
   if (region.region.children === undefined) {
     region.region = { ...region.region, children: region.children.map(item => item.node) };
     delete region.region.blocks;

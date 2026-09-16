@@ -3,6 +3,7 @@ import { Button, FormControlLabel, Grid, Stack, Switch, Tab, Tabs, Typography, u
 import * as monaco from 'monaco-editor';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { InvoiceFormMode } from '../../shared/enums/invoiceFormMode';
 import { useForm } from '../../shared/hooks/form/useForm';
 import { useFormDirtyCheck } from '../../shared/hooks/form/useFormDirtyCheck';
 import {
@@ -14,6 +15,7 @@ import {
 } from '../../shared/types/layouts';
 import '../../shared/utils/monacoEnvironment';
 import { LayoutBuilder } from './LayoutBuilder';
+import { LayoutBuilderPreview } from './LayoutBuilderPreview';
 
 loader.config({ monaco });
 
@@ -27,10 +29,12 @@ const formatSchema = (schema?: Layout['schema']) => JSON.stringify(schema ?? cre
 
 export const Form = ({
   item,
-  handleChange
+  handleChange,
+  mode = InvoiceFormMode.edit
 }: {
   item?: Layout;
   handleChange: (value: { layout: LayoutAdd; isFormValid: boolean; description: string }) => void;
+  mode?: InvoiceFormMode;
 }) => {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -103,6 +107,10 @@ export const Form = ({
       cancelAnimationFrame(frame);
     };
   }, [editor]);
+
+  if (mode === InvoiceFormMode.preview) {
+    return schemaResult.schema ? <LayoutBuilderPreview schema={schemaResult.schema} /> : null;
+  }
 
   return (
     <Grid container spacing={2}>

@@ -33,6 +33,26 @@ const changedSchema = (onSchemaChange: ReturnType<typeof vi.fn>) => {
 };
 
 describe('LayoutBuilder drag and drop', () => {
+  it('undoes and redoes a V1 mutation with keyboard shortcuts', () => {
+    const schema = {
+      schemaVersion: 1 as const,
+      meta: { name: 'V1 history' },
+      sections: [{ type: 'financialTotals' as const, visible: true }]
+    };
+    const onSchemaChange = renderBuilder(schema);
+    const section = screen.getByText('financialTotals').closest('[role="treeitem"]') as HTMLElement;
+    fireEvent.click(within(section).getByRole('button', { name: 'layouts.properties' }));
+    const controls = within(section).getAllByRole('combobox');
+    fireEvent.mouseDown(controls[1]);
+    fireEvent.click(screen.getByText('start'));
+    const changed = onSchemaChange.mock.lastCall?.[0];
+
+    fireEvent.keyDown(window, { key: 'z', ctrlKey: true });
+    expect(onSchemaChange).toHaveBeenLastCalledWith(JSON.stringify(schema));
+    fireEvent.keyDown(window, { key: 'z', ctrlKey: true, shiftKey: true });
+    expect(onSchemaChange).toHaveBeenLastCalledWith(changed);
+  });
+
   it('keeps distinct V1 block IDs stable when siblings are reordered', () => {
     const schema = {
       schemaVersion: 1 as const,

@@ -1,10 +1,11 @@
 # Invoice Builder
 
-## [DATE], version 2.9.0
+## 2026-09-16, version 2.9.0
 
 New features & improvements
 
 - Added receipt printing for invoices in web/Docker mode via the browser's own print dialog (e.g. "Save as PDF"), previously available only in the Electron desktop app.
+- Added the V3 Visual Layout Builder for V1 and V2 layouts with visual editing, nested regions/rows/columns/grids, drag-and-drop, keyboard/menu fallbacks, undo/redo, schema limits, and embedded PDF preview.
 
 ## 2026-09-14, version 2.8.0
 

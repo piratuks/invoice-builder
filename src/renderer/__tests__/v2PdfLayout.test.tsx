@@ -15,9 +15,19 @@ import { InvoiceType } from '../shared/enums/invoiceType';
 import { PageFormat } from '../shared/enums/pageFormat';
 import { SizeType } from '../shared/enums/sizeType';
 import type { InvoiceFromData, PdfTexts } from '../shared/types/invoice';
-import { parseLayoutSchema, type LayoutSchemaV2 } from '../shared/types/layouts';
+import { parseLayoutSchema, type LayoutSchemaAny, type LayoutSchemaV2 } from '../shared/types/layouts';
 import type { Settings } from '../shared/types/settings';
-import { addLayoutBuilderV2Node, createLayoutBuilderV2State } from '../shared/utils/visualBuilderV2';
+import {
+  addHeaderBlock,
+  addLayoutSection,
+  createLayoutBuilderState,
+  serializeLayoutBuilderState
+} from '../shared/utils/visualBuilderV1';
+import {
+  addLayoutBuilderV2Node,
+  createLayoutBuilderV2State,
+  serializeLayoutBuilderV2State
+} from '../shared/utils/visualBuilderV2';
 
 vi.mock('@react-pdf/renderer', async () => {
   const actual = await vi.importActual<typeof import('@react-pdf/renderer')>('@react-pdf/renderer');
@@ -82,7 +92,7 @@ const items = Array.from({ length: 120 }, (_, index) => ({
   }
 }));
 
-const invoice = (layoutSchema: LayoutSchemaV2): InvoiceFromData => ({
+const invoice = (layoutSchema: LayoutSchemaAny): InvoiceFromData => ({
   invoiceType: InvoiceType.invoice,
   status: undefined,
   layoutId: 1,
@@ -100,7 +110,7 @@ const invoice = (layoutSchema: LayoutSchemaV2): InvoiceFromData => ({
   }
 });
 
-const renderPdfBytes = async (layoutSchema: LayoutSchemaV2) => {
+const renderPdfBytes = async (layoutSchema: LayoutSchemaAny) => {
   const blob = await pdf(
     <PDFDocument
       invoiceForm={invoice(layoutSchema)}
@@ -113,7 +123,7 @@ const renderPdfBytes = async (layoutSchema: LayoutSchemaV2) => {
   return new Uint8Array(await blob.arrayBuffer());
 };
 
-const renderPdf = async (layoutSchema: LayoutSchemaV2) => {
+const renderPdf = async (layoutSchema: LayoutSchemaAny) => {
   return PdfLibDocument.load(await renderPdfBytes(layoutSchema));
 };
 
@@ -149,6 +159,66 @@ describe('V2 PDF layout rendering', () => {
 
     expect(document.getPageCount()).toBeGreaterThan(0);
     expect(pageContent(document, 0).length).toBeGreaterThan(0);
+  });
+
+  it('renders a V1 schema produced by the visual builder', async () => {
+    const initialLayout = {
+      schemaVersion: 1 as const,
+      meta: { name: 'V1 builder parity' },
+      sections: [
+        { type: 'header' as const, visible: true },
+        { type: 'itemsTable' as const, visible: true }
+      ]
+    };
+    const withLogo = addHeaderBlock(initialLayout, 0, 'logo');
+    const builtLayout = addLayoutSection(withLogo, 'financialTotals');
+    const serializedLayout = serializeLayoutBuilderState(createLayoutBuilderState(builtLayout));
+
+    expect(parseLayoutSchema(JSON.stringify(serializedLayout)).errors).toEqual([]);
+    const document = await renderPdf(serializedLayout);
+
+    expect(document.getPageCount()).toBeGreaterThan(0);
+    expect(pageContent(document, 0).length).toBeGreaterThan(0);
+  });
+
+  it('rehydrates and reserializes persisted V1 builder JSON', () => {
+    const layout = addHeaderBlock(
+      {
+        schemaVersion: 1 as const,
+        meta: { name: 'Persisted V1 builder' },
+        sections: [{ type: 'header' as const, visible: true }]
+      },
+      0,
+      'businessInfo'
+    );
+    const serialized = serializeLayoutBuilderState(createLayoutBuilderState(layout));
+    const parsed = parseLayoutSchema(JSON.stringify(serialized));
+
+    expect(parsed.errors).toEqual([]);
+    if (parsed.schema?.schemaVersion !== 1) throw new Error('Expected a V1 layout schema');
+    const reserialized = serializeLayoutBuilderState(createLayoutBuilderState(parsed.schema));
+
+    expect(reserialized).toEqual(serialized);
+    expect(parseLayoutSchema(JSON.stringify(reserialized)).errors).toEqual([]);
+  });
+
+  it('rehydrates and reserializes persisted V2 builder JSON', () => {
+    const layout: LayoutSchemaV2 = {
+      schemaVersion: 2,
+      meta: { name: 'Persisted V2 builder' },
+      regions: [
+        { id: 'main', width: '100%', direction: 'column', children: [{ type: 'block', block: { type: 'logo' } }] }
+      ]
+    };
+    const serialized = serializeLayoutBuilderV2State(createLayoutBuilderV2State(layout));
+    const parsed = parseLayoutSchema(JSON.stringify(serialized));
+
+    expect(parsed.errors).toEqual([]);
+    if (parsed.schema?.schemaVersion !== 2) throw new Error('Expected a V2 layout schema');
+    const reserialized = serializeLayoutBuilderV2State(createLayoutBuilderV2State(parsed.schema));
+
+    expect(reserialized).toEqual(serialized);
+    expect(parseLayoutSchema(JSON.stringify(reserialized)).errors).toEqual([]);
   });
 
   it('flows a recursive items table across multiple pages', async () => {

@@ -36,6 +36,54 @@ const latestSchema = (onSchemaChange: ReturnType<typeof vi.fn>) => {
 };
 
 describe('V2 LayoutBuilder controls', () => {
+  it('supports keyboard move and delete actions for V2 nodes', () => {
+    const view = renderBuilder({
+      schemaVersion: 2,
+      meta: { name: 'Keyboard controls' },
+      regions: [
+        {
+          id: 'main',
+          width: '100%',
+          direction: 'column',
+          children: [
+            { type: 'block', block: { type: 'logo' } },
+            { type: 'block', block: { type: 'businessInfo' } }
+          ]
+        }
+      ]
+    });
+    const businessInfo = screen.getByText('businessInfo').closest('[role="treeitem"]') as HTMLElement;
+
+    fireEvent.keyDown(businessInfo, { key: 'ArrowUp' });
+    expect(
+      latestSchema(view.onSchemaChange)?.regions[0].children?.map(node =>
+        node.type === 'block' ? node.block.type : node.type
+      )
+    ).toEqual(['businessInfo', 'logo']);
+
+    view.rerender(latestSchema(view.onSchemaChange));
+    const businessAfterMove = screen.getByText('businessInfo').closest('[role="treeitem"]') as HTMLElement;
+    fireEvent.keyDown(businessAfterMove, { key: 'Delete' });
+    expect(latestSchema(view.onSchemaChange)?.regions[0].children).toHaveLength(1);
+  });
+
+  it('undoes and redoes a V2 mutation with toolbar buttons', () => {
+    const schema = {
+      schemaVersion: 2 as const,
+      meta: { name: 'V2 history' },
+      regions: [{ id: 'main', width: '100%' as const, direction: 'column' as const, children: [] }]
+    };
+    const view = renderBuilder(schema);
+    fireEvent.mouseDown(screen.getAllByRole('combobox')[0]);
+    fireEvent.click(screen.getByText('landscape'));
+    const changed = view.onSchemaChange.mock.lastCall?.[0];
+
+    fireEvent.click(screen.getByRole('button', { name: 'layouts.undo' }));
+    expect(view.onSchemaChange).toHaveBeenLastCalledWith(JSON.stringify(schema));
+    fireEvent.click(screen.getByRole('button', { name: 'layouts.redo' }));
+    expect(view.onSchemaChange).toHaveBeenLastCalledWith(changed);
+  });
+
   it('updates orientation and region width through the rendered controls', () => {
     const view = renderBuilder({
       schemaVersion: 2,

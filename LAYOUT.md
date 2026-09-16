@@ -17,6 +17,8 @@ The upload is validated before it replaces the displayed schema. Invalid JSON or
 
 Ready-made layout examples, including V2 region, sidebar, nested-header, and receipt-style compositions, are available in [`examples/layouts`](examples/layouts).
 
+The Layouts Visual tab can edit both V1 and V2 schemas. The JSON tab is a read-only inspection view; use **Upload schema** to replace a layout with validated JSON. Visual edits support undo and redo, and Preview mode renders a representative invoice through the same PDF interpreter used by invoice and quote output.
+
 An invoice stores a snapshot of the selected layout. Later changes to the saved layout do not change invoices that already have a snapshot.
 
 ## Top-Level Structure
@@ -83,6 +85,8 @@ V2 layouts compose the complete page from explicit regions. V2 keeps content typ
 - `regions[].gap` accepts `5` or `10` and adds spacing after the region when rendered beside another region.
 
 For V2, region widths must total no more than 100%. Use `children` when a region needs nested rows, columns, grids, or per-section configuration. A region must use exactly one content form: `blocks`, `sections`, or `children`.
+
+When a V1 layout is upgraded through the Visual Builder, its sections are preserved as section nodes inside one `main` V2 region. V2-only features such as regions, grids, orientation, and overflow then become available; downgrading V2 back to V1 is not supported.
 
 ```json
 {
@@ -424,6 +428,6 @@ The application rejects a layout when:
 - A block uses `children`, `paymentSource`, or another property in an unsupported location.
 - An enum value such as `visible`, `width`, `align`, `columnSizing`, or `watermarkOrder` is invalid.
 - A V2 region has invalid content ownership, duplicate region IDs, unsupported overflow behavior, or region widths totaling more than 100%.
-- A V2 recursive node has an unsupported type, invalid children, invalid spacing, or nesting deeper than the allowed limit.
+- A V2 recursive node has an unsupported type, invalid children, invalid spacing, nesting deeper than 12 levels, or a total layout node count above 500.
 
 When adding new capabilities, the schema version and validator may be extended with a backwards-compatible field or a new version.

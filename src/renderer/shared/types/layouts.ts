@@ -107,6 +107,8 @@ export interface LayoutValidationError {
 }
 
 const MAX_LAYOUT_BYTES = 64 * 1024;
+export const MAX_LAYOUT_NESTING_DEPTH = 12;
+export const MAX_LAYOUT_NODE_COUNT = 500;
 export const validLayoutSectionTypes: LayoutSectionType[] = [
   'watermark',
   'header',
@@ -327,13 +329,14 @@ const validateLayoutNodes = (
   path: string,
   seenSections: Set<string>,
   errors: LayoutValidationError[],
-  depth: number
+  depth: number,
+  nodeCount: { value: number; reported: boolean }
 ) => {
   if (!Array.isArray(value)) {
     errors.push({ path, message: 'layouts.validation.array' });
     return;
   }
-  if (depth > 12) {
+  if (depth > MAX_LAYOUT_NESTING_DEPTH) {
     errors.push({ path, message: 'layouts.validation.nesting' });
     return;
   }
@@ -343,12 +346,17 @@ const validateLayoutNodes = (
       errors.push({ path: nodePath, message: 'layouts.validation.object' });
       return;
     }
+    nodeCount.value += 1;
+    if (nodeCount.value > MAX_LAYOUT_NODE_COUNT && !nodeCount.reported) {
+      errors.push({ path, message: 'layouts.validation.nodeCount' });
+      nodeCount.reported = true;
+    }
     hasOnly(node, ['type', 'children', 'block', 'section', 'width', 'gap'], nodePath, errors);
     if (node.type === 'row' || node.type === 'column' || node.type === 'grid') {
       enumValue(node.width, regionWidths, `${nodePath}.width`, errors);
       if (node.gap !== undefined && node.gap !== 5 && node.gap !== 10)
         errors.push({ path: `${nodePath}.gap`, message: 'layouts.validation.spacing' });
-      validateLayoutNodes(node.children, `${nodePath}.children`, seenSections, errors, depth + 1);
+      validateLayoutNodes(node.children, `${nodePath}.children`, seenSections, errors, depth + 1, nodeCount);
     } else if (node.type === 'block') {
       if (!isObject(node.block)) errors.push({ path: `${nodePath}.block`, message: 'layouts.validation.object' });
       else validateHeaderBlocks([node.block], `${nodePath}.block`, errors);
@@ -376,6 +384,7 @@ export const validateLayoutSchemaV2 = (value: unknown): LayoutValidationError[] 
   enumValue(value.orientation, ['portrait', 'landscape'], 'orientation', errors);
   const seenRegionIds = new Set<string>();
   const seenSections = new Set<string>();
+  const nodeCount = { value: 0, reported: false };
   let totalWidth = 0;
   value.regions.forEach((region, index) => {
     const path = `regions[${index}]`;
@@ -417,7 +426,7 @@ export const validateLayoutSchemaV2 = (value: unknown): LayoutValidationError[] 
         });
     }
     if (region.children !== undefined)
-      validateLayoutNodes(region.children, `${path}.children`, seenSections, errors, 0);
+      validateLayoutNodes(region.children, `${path}.children`, seenSections, errors, 0, nodeCount);
   });
   if (totalWidth > 100) errors.push({ path: 'regions', message: 'layouts.validation.regionWidthsTotal' });
   return errors;

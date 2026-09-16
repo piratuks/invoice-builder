@@ -120,4 +120,54 @@ describe('layout schema migrations', () => {
     });
     expect(readRow(snapshot?.layoutSchema ?? '{}')).toEqual(readRow(layout?.schema ?? '{}'));
   });
+
+  it('keeps existing invoice and quote snapshots isolated from layout edits', async () => {
+    await createLayouts(db);
+    const originalSchema = JSON.stringify({ schemaVersion: 1, meta: { name: 'Snapshot source' }, sections: [] });
+    const editedSchema = JSON.stringify({
+      schemaVersion: 1,
+      meta: { name: 'Snapshot source edited' },
+      sections: [{ type: 'notes', visible: 'auto' }]
+    });
+    await db.run('INSERT INTO layouts ("schema", "isArchived") VALUES (?, ?)', [originalSchema, 0]);
+    const layout = await db.get<{ id: number }>('SELECT "id" FROM layouts ORDER BY "id" DESC LIMIT 1');
+    expect(layout?.id).toEqual(expect.any(Number));
+
+    await db.run('PRAGMA foreign_keys = OFF');
+    await db.run(
+      `INSERT INTO invoices
+        ("invoiceType", "businessId", "clientId", "currencyId", "issuedAt", "invoiceNumber",
+         "businessNameSnapshot", "businessShortNameSnapshot", "clientNameSnapshot",
+         "currencyCodeSnapshot", "currencySymbolSnapshot", "currencySubunitSnapshot", "layoutId")
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ['invoice', 1, 1, 1, '2026-01-01', 'INV-1', 'Business', 'BU', 'Client', 'EUR', '€', 2, layout?.id]
+    );
+    await db.run(
+      `INSERT INTO invoices
+        ("invoiceType", "businessId", "clientId", "currencyId", "issuedAt", "invoiceNumber",
+         "businessNameSnapshot", "businessShortNameSnapshot", "clientNameSnapshot",
+         "currencyCodeSnapshot", "currencySymbolSnapshot", "currencySubunitSnapshot", "layoutId")
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ['quotation', 1, 1, 1, '2026-01-01', 'QUO-1', 'Business', 'BU', 'Client', 'EUR', '€', 2, layout?.id]
+    );
+    await db.run('PRAGMA foreign_keys = ON');
+    const documents = await db.all<{ id: number; invoiceType: string }>(
+      'SELECT "id", "invoiceType" FROM invoices ORDER BY "id" DESC LIMIT 2'
+    );
+    for (const document of documents) {
+      await db.run('INSERT INTO invoice_layout_snapshots ("parentInvoiceId", "layoutSchema") VALUES (?, ?)', [
+        document.id,
+        originalSchema
+      ]);
+    }
+
+    await db.run('UPDATE layouts SET "schema" = ? WHERE "id" = ?', [editedSchema, layout?.id]);
+
+    const snapshots = await db.all<{ parentInvoiceId: number; layoutSchema: string }>(
+      'SELECT "parentInvoiceId", "layoutSchema" FROM invoice_layout_snapshots ORDER BY "parentInvoiceId"'
+    );
+    expect(snapshots).toHaveLength(2);
+    expect(snapshots.every(snapshot => snapshot.layoutSchema === originalSchema)).toBe(true);
+    expect(documents.map(document => document.invoiceType).sort()).toEqual(['invoice', 'quotation']);
+  });
 });

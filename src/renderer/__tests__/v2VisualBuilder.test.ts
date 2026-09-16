@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { parseLayoutSchema } from '../shared/types/layouts';
+import {
+  MAX_LAYOUT_NESTING_DEPTH,
+  MAX_LAYOUT_NODE_COUNT,
+  parseLayoutSchema,
+  type LayoutNode
+} from '../shared/types/layouts';
 import {
   addLayoutBuilderV2Node,
   addLayoutBuilderV2Region,
@@ -46,7 +51,101 @@ const layout = {
   ]
 };
 
+const makeNestedRows = (remaining: number): LayoutNode =>
+  remaining === 0
+    ? { type: 'block', block: { type: 'logo' } }
+    : { type: 'row', children: [makeNestedRows(remaining - 1)] };
+
 describe('V2 visual builder', () => {
+  it('rejects layouts over the shared V2 node-count limit', () => {
+    const tooManyNodes = {
+      schemaVersion: 2 as const,
+      meta: { name: 'Too many nodes' },
+      regions: [
+        {
+          id: 'main',
+          width: '100%' as const,
+          direction: 'column' as const,
+          children: Array.from({ length: MAX_LAYOUT_NODE_COUNT + 1 }, () => ({
+            type: 'block' as const,
+            block: { type: 'logo' as const }
+          }))
+        }
+      ]
+    };
+
+    expect(parseLayoutSchema(JSON.stringify(tooManyNodes)).errors).toContainEqual(
+      expect.objectContaining({ message: 'layouts.validation.nodeCount' })
+    );
+  });
+
+  it('allows the maximum nesting depth but rejects the next level', () => {
+    const atBoundary = {
+      schemaVersion: 2 as const,
+      meta: { name: 'Boundary depth' },
+      regions: [
+        {
+          id: 'main',
+          width: '100%' as const,
+          direction: 'column' as const,
+          children: [makeNestedRows(MAX_LAYOUT_NESTING_DEPTH)]
+        }
+      ]
+    };
+    const tooDeep = {
+      ...atBoundary,
+      meta: { name: 'Too deep' },
+      regions: [{ ...atBoundary.regions[0], children: [makeNestedRows(MAX_LAYOUT_NESTING_DEPTH + 1)] }]
+    };
+
+    expect(parseLayoutSchema(JSON.stringify(atBoundary)).errors).toEqual([]);
+    expect(parseLayoutSchema(JSON.stringify(tooDeep)).errors).toContainEqual(
+      expect.objectContaining({ message: 'layouts.validation.nesting' })
+    );
+  });
+
+  it('refuses V2 additions that exceed node-count or nesting limits', () => {
+    const fullLayout = {
+      schemaVersion: 2 as const,
+      meta: { name: 'Full node layout' },
+      regions: [
+        {
+          id: 'main',
+          width: '100%' as const,
+          direction: 'column' as const,
+          children: Array.from({ length: MAX_LAYOUT_NODE_COUNT }, () => ({
+            type: 'block' as const,
+            block: { type: 'logo' as const }
+          }))
+        }
+      ]
+    };
+    const deepLayout = {
+      schemaVersion: 2 as const,
+      meta: { name: 'Deep node layout' },
+      regions: [
+        {
+          id: 'main' as const,
+          width: '100%' as const,
+          direction: 'column' as const,
+          children: [
+            makeNestedRows(MAX_LAYOUT_NESTING_DEPTH + 1),
+            { type: 'block' as const, block: { type: 'logo' as const } }
+          ]
+        }
+      ]
+    };
+    const deepState = createLayoutBuilderV2State(deepLayout);
+    let deepest = deepState.regions[0].children[0];
+    while (deepest.children[0]?.node.type === 'row') deepest = deepest.children[0];
+    const sourceId = deepState.regions[0].children[1].id;
+    const unchangedReparent = reparentLayoutBuilderV2Node(deepLayout, sourceId, deepest.id);
+
+    expect(addLayoutBuilderV2Node(fullLayout, 'main', undefined, 'logo')).toEqual(fullLayout);
+    expect(addLayoutBuilderV2Node(deepLayout, 'main', deepest.id, 'logo')).toEqual(deepLayout);
+    expect(unchangedReparent).toEqual(deepLayout);
+  });
+
   it('round-trips block, section, and recursive child region content', () => {
     const state = createLayoutBuilderV2State(layout);
     const serialized = serializeLayoutBuilderV2State(state);

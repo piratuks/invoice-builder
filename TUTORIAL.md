@@ -651,13 +651,19 @@ Layout records can be archived and selected from invoice or quote page setup. Ex
 
 ### Adding a Layout
 
-Click **Add** to create a new layout. Provide a valid layout JSON file using **Upload schema**. The JSON must contain a layout name and use the supported schema version and properties documented in the [Layout JSON reference](LAYOUT.md).
+Click **Add** to create a new layout. The **Visual** tab is the default editing mode. Use its controls to add sections, header blocks, regions, rows, columns, and grids, then reorder or reparent them with buttons, menus, keyboard actions, or drag and drop.
+
+You can also use **Upload schema** to import a valid V1 or V2 JSON layout. The JSON must contain a layout name and use the supported schema version and properties documented in the [Layout JSON reference](LAYOUT.md). Ready-made examples are available in [`examples/layouts`](examples/layouts).
 
 ![Layouts creation](tutorial/layouts_page_1.jpg)
+![Layouts visual_builder](tutorial/layouts_visual_builder.png)
+![Layouts preview](tutorial/layouts_preview.png)
 
 ### Editing/Deleting a Layout
 
-Select a layout from the list to view its JSON schema. The schema viewer is read-only in the application. To update the layout, upload a replacement `.json` file using **Upload schema**.
+Select a layout from the list to edit it visually. The **JSON** tab is a read-only inspection view of the generated schema; use **Upload schema** to replace it with a validated JSON layout.
+
+Use the **Preview** mode to see a representative invoice rendered through the same PDF interpreter used for invoice and quote output. Layout edits support undo and redo, and the builder warns when V2 nesting or node-count limits are reached.
 
 The upload is checked before it is applied. Invalid JSON, unsupported properties, duplicate sections, and unsupported values are rejected with validation errors. Layout JSON files are limited to 64 KB.
 

@@ -1,5 +1,7 @@
+import RedoIcon from '@mui/icons-material/Redo';
+import UndoIcon from '@mui/icons-material/Undo';
 import { Alert, Box, IconButton, MenuItem, Select, Stack, Tooltip, Typography } from '@mui/material';
-import { useEffect, useMemo, useState, type DragEvent as ReactDragEvent, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState, type DragEvent as ReactDragEvent, type ReactNode } from 'react';
 import {
   parseLayoutSchema,
   validV2ContainerNodeTypes,
@@ -52,6 +54,8 @@ import {
 import { V1LayoutBuilder } from './V1LayoutBuilder';
 import { V2LayoutBuilder } from './V2LayoutBuilder';
 
+const MAX_HISTORY_ENTRIES = 50;
+
 export const LayoutBuilder = ({
   schema,
   onSchemaChange,
@@ -73,6 +77,62 @@ export const LayoutBuilder = ({
     id: string;
   }>();
   const [dragOverNode, setDragOverNode] = useState<string>();
+  const [historyState, setHistoryState] = useState({ value: schema, past: [] as string[], future: [] as string[] });
+  const [pendingSchema, setPendingSchema] = useState<string>();
+  useEffect(() => {
+    if (pendingSchema !== undefined) {
+      if (pendingSchema === schema) setPendingSchema(undefined);
+      return;
+    }
+    if (historyState.value === schema) return;
+    setHistoryState({ value: schema, past: [], future: [] });
+  }, [historyState, pendingSchema, schema]);
+  const commitSchema = (nextSchema: string) => {
+    if (nextSchema === historyState.value) return;
+    setHistoryState({
+      value: nextSchema,
+      past: [...historyState.past, historyState.value].slice(-MAX_HISTORY_ENTRIES),
+      future: []
+    });
+    setPendingSchema(nextSchema);
+    onSchemaChange(nextSchema);
+  };
+  const undo = useCallback(() => {
+    const previous = historyState.past.at(-1);
+    if (!previous) return;
+    setHistoryState({
+      value: previous,
+      past: historyState.past.slice(0, -1),
+      future: [historyState.value, ...historyState.future].slice(0, MAX_HISTORY_ENTRIES)
+    });
+    setPendingSchema(previous);
+    onSchemaChange(previous);
+  }, [historyState, onSchemaChange]);
+  const redo = useCallback(() => {
+    const next = historyState.future[0];
+    if (!next) return;
+    setHistoryState({
+      value: next,
+      past: [...historyState.past, historyState.value].slice(-MAX_HISTORY_ENTRIES),
+      future: historyState.future.slice(1)
+    });
+    setPendingSchema(next);
+    onSchemaChange(next);
+  }, [historyState, onSchemaChange]);
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((!event.ctrlKey && !event.metaKey) || event.altKey || event.key.toLowerCase() !== 'z') return;
+      const canUndo = historyState.past.length > 0;
+      const canRedo = historyState.future.length > 0;
+      if (event.shiftKey ? canRedo : canUndo) {
+        event.preventDefault();
+        if (event.shiftKey) redo();
+        else undo();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [historyState, redo, undo]);
   useEffect(() => {
     if (!showUpgradeNotice) return;
     const timeout = window.setTimeout(() => setShowUpgradeNotice(false), 4000);
@@ -99,7 +159,7 @@ export const LayoutBuilder = ({
     return () => onValidityChange?.(true);
   }, [onValidityChange, regionNamesValid]);
   const sections = builderState?.nodes.map(node => node.section) ?? [];
-  const update = (next: LayoutSchemaAny) => onSchemaChange(JSON.stringify(next, null, 2));
+  const update = (next: LayoutSchemaAny) => commitSchema(JSON.stringify(next, null, 2));
   const apply = (fn: (schema: Extract<LayoutSchemaAny, { schemaVersion: 1 }>) => LayoutSchemaAny) => {
     const parsed = parseLayoutSchema(schema);
     if (!parsed.errors.length && parsed.schema?.schemaVersion === 1) update(fn(parsed.schema));
@@ -402,6 +462,10 @@ export const LayoutBuilder = ({
   return (
     <Box sx={{ p: { xs: 1, sm: 2 }, border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
       <Stack spacing={2}>
+        <Stack direction="row" spacing={0.5} sx={{ justifyContent: 'flex-end' }}>
+          {icon(t('layouts.undo'), undo, historyState.past.length === 0, <UndoIcon fontSize="small" />)}
+          {icon(t('layouts.redo'), redo, historyState.future.length === 0, <RedoIcon fontSize="small" />)}
+        </Stack>
         {showUpgradeNotice && (
           <Alert severity="info">
             <Typography component="div">{t('layouts.upgradedToV2')}</Typography>

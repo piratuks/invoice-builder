@@ -4,6 +4,7 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import TuneIcon from '@mui/icons-material/Tune';
 import {
+  Alert,
   Box,
   Button,
   MenuItem,
@@ -16,6 +17,8 @@ import {
 } from '@mui/material';
 import { useState, type ReactNode } from 'react';
 import {
+  MAX_LAYOUT_NESTING_DEPTH,
+  MAX_LAYOUT_NODE_COUNT,
   validHeaderBooleanProperties,
   validV2ContainerNodeTypes,
   type HeaderBlock,
@@ -30,8 +33,11 @@ import {
   supportedLayoutSectionTypes
 } from '../../shared/utils/visualBuilderV1';
 import {
+  canAddLayoutBuilderV2Node,
   canAddLayoutBuilderV2Region,
   canContainLayoutBuilderV2Node,
+  canReparentLayoutBuilderV2Node,
+  canReparentLayoutBuilderV2NodeToRegion,
   supportedRegionDirections,
   supportedRegionOverflows,
   supportedRegionWidths,
@@ -171,9 +177,18 @@ export const V2LayoutBuilder = ({
 }: Props) => {
   const [expandedNodeId, setExpandedNodeId] = useState<string>();
   const choices = getChoices(state);
+  const countNodes = (nodes: LayoutBuilderV2Node[]): number =>
+    nodes.reduce((total, node) => total + 1 + countNodes(node.children), 0);
+  const maxDepth = (nodes: LayoutBuilderV2Node[], depth: number): number =>
+    nodes.reduce((current, node) => Math.max(current, maxDepth(node.children, depth + 1)), depth);
+  const nodeCount = state.regions.reduce((total, region) => total + countNodes(region.children), 0);
+  const depthReached = state.regions.some(region => maxDepth(region.children, 0) >= MAX_LAYOUT_NESTING_DEPTH);
+  const nodeLimitReached = nodeCount >= MAX_LAYOUT_NODE_COUNT;
+  const limitReached = nodeLimitReached || depthReached;
   const addNode = (regionId: string, parentId: string | undefined, value: string) => {
     const choice = choices.find(item => item.value === value);
-    if (choice) actions.addNode(regionId, parentId, choice.type, choice.sectionType);
+    if (choice && canAddLayoutBuilderV2Node(schema, parentId))
+      actions.addNode(regionId, parentId, choice.type, choice.sectionType);
   };
   const renderNodeProperties = (node: LayoutBuilderV2Node) => {
     if (expandedNodeId !== node.id) return null;
@@ -399,6 +414,7 @@ export const V2LayoutBuilder = ({
     depth: number
   ): ReactNode => {
     const index = siblings.findIndex(item => item.id === node.id);
+    const layoutDepth = depth - 2;
     const container = isContainer(node);
     const targets: Array<{ value: string; label: string }> = [];
     const collect = (nodes: LayoutBuilderV2Node[], path: string[]) =>
@@ -415,10 +431,13 @@ export const V2LayoutBuilder = ({
     });
     const validTargets = targets.filter(target => {
       if (target.value === `node:${node.id}`) return false;
-      if (target.value.startsWith('region:')) return true;
+      if (target.value.startsWith('region:')) return canReparentLayoutBuilderV2NodeToRegion(schema, node.id);
       const targetNode = findNode(state, target.value.slice(5));
       return (
-        !!targetNode && !containsNode(node, targetNode.id) && canContainLayoutBuilderV2Node(targetNode.node, node.node)
+        !!targetNode &&
+        !containsNode(node, targetNode.id) &&
+        canContainLayoutBuilderV2Node(targetNode.node, node.node) &&
+        canReparentLayoutBuilderV2Node(schema, node.id, targetNode.id)
       );
     });
     const parent = findParent(state, node.id);
@@ -434,6 +453,7 @@ export const V2LayoutBuilder = ({
         key={node.id}
         role="treeitem"
         aria-level={depth}
+        tabIndex={0}
         draggable
         onDragStart={event => onDragStart(event, 'v2Node', node.id)}
         onDragOver={event => onDragOver(event, 'v2Node', node.id)}
@@ -447,6 +467,20 @@ export const V2LayoutBuilder = ({
           borderColor: dragOverNode === `v2Node:${node.id}` ? 'primary.main' : 'divider',
           backgroundColor: dragOverNode === `v2Node:${node.id}` ? 'action.hover' : undefined,
           cursor: 'grab'
+        }}
+        onKeyDown={event => {
+          if (event.key === 'ArrowUp' && index > 0) {
+            event.preventDefault();
+            actions.moveNode(node.id, siblings[index - 1].id);
+          }
+          if (event.key === 'ArrowDown' && index < siblings.length - 1) {
+            event.preventDefault();
+            actions.moveNode(siblings[index + 1].id, node.id);
+          }
+          if (event.key === 'Delete' || event.key === 'Backspace') {
+            event.preventDefault();
+            actions.removeNode(node.id);
+          }
         }}
       >
         <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
@@ -501,6 +535,7 @@ export const V2LayoutBuilder = ({
                 size="small"
                 displayEmpty
                 value=""
+                disabled={nodeLimitReached || layoutDepth >= MAX_LAYOUT_NESTING_DEPTH}
                 onChange={event => addNode(regionId, node.id, event.target.value)}
                 renderValue={() => t('layouts.addNode')}
               >
@@ -520,6 +555,7 @@ export const V2LayoutBuilder = ({
 
   return (
     <Stack spacing={2}>
+      {limitReached && <Alert severity="warning">{t('layouts.limitsReached')}</Alert>}
       <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
         <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
           V2
@@ -679,6 +715,7 @@ export const V2LayoutBuilder = ({
               size="small"
               displayEmpty
               value=""
+              disabled={nodeLimitReached}
               onChange={event => addNode(region.id, undefined, event.target.value)}
               renderValue={() => t('layouts.addNode')}
             >

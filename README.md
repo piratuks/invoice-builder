@@ -92,9 +92,8 @@ If you value **privacy, portability, and control**, this app is built for you.
 - Attachments: include images in PDFs
 - Signature support: upload or hand-draw signatures and apply them to PDFs
 - Style profiles are now available for invoices and quotes, enabling quick, consistent theming
-- Layouts page for importing and managing JSON-driven invoice PDF compositions
-- Customizable V1 and V2 JSON layout schemas, including page-level regions, sidebars, landscape compositions, recursive rows/columns/grids, and controlled content flow
-- Layout JSON controls section order, visibility, header composition, supported block placement, spacing, and table sizing
+- Layouts and Visual Layout Builder for importing, creating, editing, and exporting V1/V2 invoice PDF compositions without manually writing JSON, with nested regions, sidebars, landscape layouts, rows, columns, grids, drag-and-drop, keyboard actions, undo/redo, live preview, and controlled content flow
+- Layout JSON controls section order, visibility, header composition, supported block placement, spacing, table sizing, and page-level regions
 - Export individual layouts as reusable JSON files
 - See [LAYOUT.md](LAYOUT.md) for the complete layout JSON structure and usage guide
 - Show quantity, unit, and row number in the PDF item table
