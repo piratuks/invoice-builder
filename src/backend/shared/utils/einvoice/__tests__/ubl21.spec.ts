@@ -177,4 +177,167 @@ describe('generateUBLInvoiceXML', () => {
       )
     ).toThrow('error.xrechnungClientAddress');
   });
+
+  it.each([
+    ['currency snapshot', { invoiceCurrencySnapshot: undefined }, 'error.peppolNotSupported'],
+    ['business snapshot', { invoiceBusinessSnapshot: undefined }, 'error.peppolNotSupported'],
+    [
+      'business endpoint',
+      {
+        invoiceBusinessSnapshot: {
+          ...baseInvoice().invoiceBusinessSnapshot,
+          businessPeppolEndpointId: undefined
+        }
+      },
+      'error.peppolBusinessSchema'
+    ],
+    [
+      'business endpoint scheme',
+      {
+        invoiceBusinessSnapshot: {
+          ...baseInvoice().invoiceBusinessSnapshot,
+          businessPeppolEndpointSchemeId: undefined
+        }
+      },
+      'error.peppolBusinessSchema'
+    ],
+    [
+      'client endpoint',
+      { invoiceClientSnapshot: { ...baseInvoice().invoiceClientSnapshot, clientPeppolEndpointId: undefined } },
+      'error.peppolClientSchema'
+    ],
+    [
+      'client endpoint scheme',
+      { invoiceClientSnapshot: { ...baseInvoice().invoiceClientSnapshot, clientPeppolEndpointSchemeId: undefined } },
+      'error.peppolClientSchema'
+    ],
+    [
+      'buyer reference',
+      { invoiceClientSnapshot: { ...baseInvoice().invoiceClientSnapshot, clientBuyerReference: undefined } },
+      'error.peppolClientReference'
+    ],
+    [
+      'client country',
+      { invoiceClientSnapshot: { ...baseInvoice().invoiceClientSnapshot, clientCountryCode: undefined } },
+      'error.peppolClientCC'
+    ],
+    [
+      'business country',
+      { invoiceBusinessSnapshot: { ...baseInvoice().invoiceBusinessSnapshot, businessCountryCode: undefined } },
+      'error.peppolBusinessCC'
+    ],
+    [
+      'business registration',
+      {
+        invoiceBusinessSnapshot: {
+          ...baseInvoice().invoiceBusinessSnapshot,
+          businessCode: undefined,
+          businessVatCode: undefined
+        }
+      },
+      'error.peppolBusinessVATCode'
+    ]
+  ])('rejects PEPPOL invoices missing %s', (_label, overrides, error) => {
+    expect(() => generateUBLInvoiceXML(baseInvoice(overrides as Partial<Invoice>), EInvoice.ubl21)).toThrow(error);
+  });
+
+  it.each([
+    ['currency snapshot', { invoiceCurrencySnapshot: undefined }, 'error.xrechnungNotSupported'],
+    ['business snapshot', { invoiceBusinessSnapshot: undefined }, 'error.xrechnungNotSupported'],
+    ['client snapshot', { invoiceClientSnapshot: undefined }, 'error.xrechnungNotSupported'],
+    [
+      'business endpoint',
+      { invoiceBusinessSnapshot: { ...baseInvoice().invoiceBusinessSnapshot, businessPeppolEndpointId: undefined } },
+      'error.xrechnungBusinessSchema'
+    ],
+    [
+      'client endpoint',
+      { invoiceClientSnapshot: { ...baseInvoice().invoiceClientSnapshot, clientPeppolEndpointId: undefined } },
+      'error.xrechnungClientSchema'
+    ],
+    [
+      'buyer reference',
+      { invoiceClientSnapshot: { ...baseInvoice().invoiceClientSnapshot, clientBuyerReference: undefined } },
+      'error.xrechnungClientReference'
+    ],
+    [
+      'client country',
+      { invoiceClientSnapshot: { ...baseInvoice().invoiceClientSnapshot, clientCountryCode: undefined } },
+      'error.xrechnungClientCC'
+    ],
+    [
+      'business country',
+      { invoiceBusinessSnapshot: { ...baseInvoice().invoiceBusinessSnapshot, businessCountryCode: undefined } },
+      'error.xrechnungBusinessCC'
+    ],
+    ['due date', { dueDate: undefined }, 'error.xrechnungDueDate'],
+    [
+      'business registration',
+      {
+        invoiceBusinessSnapshot: {
+          ...baseInvoice().invoiceBusinessSnapshot,
+          businessCode: undefined,
+          businessVatCode: undefined
+        }
+      },
+      'error.xrechnungBusinessVATCode'
+    ],
+    [
+      'business phone',
+      { invoiceBusinessSnapshot: { ...baseInvoice().invoiceBusinessSnapshot, businessPhone: undefined } },
+      'error.xrechnungBusinessPhone'
+    ]
+  ])('rejects XRechnung invoices missing %s', (_label, overrides, error) => {
+    expect(() => generateUBLInvoiceXML(baseInvoice(overrides as Partial<Invoice>), EInvoice.xrechnung)).toThrow(error);
+  });
+
+  it('uses country and registration fallbacks while omitting optional contact and address elements', () => {
+    const invoice = baseInvoice({
+      issuedAt: undefined,
+      thanksNotes: undefined,
+      customerNotes: undefined,
+      termsConditionNotes: undefined,
+      taxName: undefined,
+      shippingFeeCents: '0',
+      surchargeAmountCents: '0',
+      discountPercent: 0,
+      invoiceBusinessSnapshot: {
+        ...baseInvoice().invoiceBusinessSnapshot,
+        businessAddress: undefined,
+        businessVatCode: undefined,
+        businessCode: 'REG-1',
+        businessPhone: undefined,
+        businessEmail: undefined
+      } as Invoice['invoiceBusinessSnapshot'],
+      invoiceClientSnapshot: {
+        ...baseInvoice().invoiceClientSnapshot,
+        clientAddress: undefined,
+        clientVatCode: undefined,
+        clientPhone: undefined,
+        clientEmail: undefined
+      } as Invoice['invoiceClientSnapshot'],
+      invoiceBankSnapshot: { parentInvoiceId: 1, name: 'Empty bank' },
+      invoiceItems: [
+        {
+          itemId: 1,
+          quantity: '1',
+          taxRate: 0,
+          taxType: undefined,
+          invoiceItemSnapshot: {
+            parentInvoiceItemId: 1,
+            itemName: 'Free item',
+            unitPriceCents: '0',
+            unitName: 'each'
+          }
+        }
+      ] as unknown as Invoice['invoiceItems'],
+      invoicePayments: []
+    });
+
+    const xml = generateUBLInvoiceXML(invoice, EInvoice.ubl21);
+    expect(xml).toContain('<cbc:CompanyID>REG-1</cbc:CompanyID>');
+    expect(xml).not.toContain('<cac:Contact>');
+    expect(xml).not.toContain('<cbc:StreetName>');
+    expect(xml).not.toContain('<cbc:Note>');
+  });
 });

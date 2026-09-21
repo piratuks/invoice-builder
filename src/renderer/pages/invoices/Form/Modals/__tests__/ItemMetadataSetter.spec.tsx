@@ -8,6 +8,7 @@ import { getApi } from '../../../../../shared/api/restApi';
 import { Alignment } from '../../../../../shared/enums/alignment';
 import { InvoiceType } from '../../../../../shared/enums/invoiceType';
 import { store } from '../../../../../state/configureStore';
+import { selectToasts } from '../../../../../state/pageSlice';
 import { ItemMetadataSetter } from '../ItemMetadataSetter';
 
 vi.mock('../../../../../shared/api/restApi', () => ({ getApi: vi.fn(), isWebMode: () => true }));
@@ -147,5 +148,68 @@ describe('ItemMetadataSetter', () => {
     expect(await screen.findByRole('option', { name: 'Department' })).toBeInTheDocument();
     expect(screen.getByRole('option', { name: 'Region' })).toBeInTheDocument();
     expect(screen.getAllByRole('option', { name: 'Department' })).toHaveLength(1);
+  });
+
+  it.each([
+    [{ success: false, message: 'Direct failure' }, 'Direct failure'],
+    [{ success: false, key: 'common.invalidForm' }, i18n.t('common.invalidForm')]
+  ])('reports header retrieval errors', async (response, expectedMessage) => {
+    mockApi.getCustomHeaders.mockResolvedValue(response);
+
+    render(<ItemMetadataSetter isOpen={true} type={InvoiceType.invoice} headerOptions={[]} />, { wrapper });
+
+    await waitFor(() =>
+      expect(selectToasts(store.getState())).toEqual(
+        expect.arrayContaining([expect.objectContaining({ message: expectedMessage, severity: 'error' })])
+      )
+    );
+  });
+
+  it('autofills metadata from a known header and validates required numeric fields', async () => {
+    const user = userEvent.setup();
+    const onSave = vi.fn();
+    render(
+      <ItemMetadataSetter
+        isOpen={true}
+        type={InvoiceType.invoice}
+        headerOptions={[{ header: 'Department', sortOrder: 4, alignment: Alignment.center }]}
+        onSave={onSave}
+      />,
+      { wrapper }
+    );
+
+    const headerInput = screen.getByRole('combobox', { name: /custom field header/i });
+    await user.click(headerInput);
+    await user.click(await screen.findByRole('option', { name: 'Department' }));
+    await user.type(screen.getByRole('textbox', { name: i18n.t('invoices.customFieldValue') }), 'Sales');
+
+    const quantity = screen.getByRole('textbox', { name: i18n.t('invoices.quantity') });
+    await user.clear(quantity);
+    expect(await screen.findByText(i18n.t('common.fieldRequired'))).toBeInTheDocument();
+    await user.type(quantity, '2');
+
+    await user.click(screen.getByRole('button', { name: i18n.t('common.save') }));
+    expect(onSave).toHaveBeenCalledWith(
+      expect.objectContaining({ header: 'Department', value: 'Sales', sortOrder: 4, alignment: Alignment.center })
+    );
+  });
+
+  it.each([Alignment.left, Alignment.center])('toggles %s alignment off and on', async alignment => {
+    const user = userEvent.setup();
+    render(
+      <ItemMetadataSetter
+        isOpen={true}
+        type={InvoiceType.invoice}
+        headerOptions={[]}
+        customField={{ header: 'Code', value: 'A', sortOrder: 1, alignment }}
+      />,
+      { wrapper }
+    );
+
+    const radio = screen.getByRole('radio', { name: alignment });
+    await user.click(radio);
+    await waitFor(() => expect(radio).not.toBeChecked());
+    await user.click(radio);
+    await waitFor(() => expect(radio).toBeChecked());
   });
 });

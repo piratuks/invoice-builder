@@ -232,6 +232,100 @@ describe('invoice form dropdowns', () => {
     );
   });
 
+  it('switches through deducted, on-total, and no-tax modes while resetting item taxes', async () => {
+    const user = userEvent.setup();
+    const onClick = vi.fn();
+    render(
+      <TaxDropdown
+        isOpen={true}
+        data={
+          {
+            taxType: undefined,
+            taxRate: 0,
+            taxName: '',
+            invoiceItems: [
+              {
+                itemId: 1,
+                quantity: 1,
+                taxRate: 8,
+                taxType: InvoiceItemTaxType.inclusive,
+                invoiceItemSnapshot: { parentInvoiceItemId: 1, itemName: 'Support', unitPriceCents: '1000' }
+              }
+            ]
+          } as never
+        }
+        onClick={onClick}
+      />,
+      { wrapper }
+    );
+
+    const typeInput = screen.getByRole('combobox', { name: i18n.t('invoices.type') });
+    await user.click(typeInput);
+    await user.click(await screen.findByRole('option', { name: i18n.t('invoices.deducted') }));
+    const rateInput = screen.getByRole('textbox', { name: i18n.t('invoices.percentage') });
+    await user.clear(rateInput);
+    await waitFor(() => expect(screen.getByRole('button', { name: i18n.t('common.save') })).toBeDisabled());
+    await user.type(rateInput, '6');
+    await user.type(screen.getByRole('textbox', { name: i18n.t('common.name') }), 'Withholding');
+
+    await user.click(typeInput);
+    await user.click(await screen.findByRole('option', { name: i18n.t('invoices.onTotal') }));
+    const inclusive = screen.getByRole('switch', { name: i18n.t('invoices.inclusive') });
+    await user.click(inclusive);
+    await user.click(inclusive);
+
+    await user.click(typeInput);
+    await user.click(await screen.findByRole('option', { name: i18n.t('invoices.none') }));
+    await user.click(screen.getByRole('button', { name: i18n.t('common.save') }));
+
+    await waitFor(() =>
+      expect(onClick).toHaveBeenCalledWith(
+        expect.objectContaining({
+          taxType: undefined,
+          taxRate: 0,
+          taxName: '',
+          invoiceItems: [expect.objectContaining({ taxRate: 0, taxType: undefined })]
+        })
+      )
+    );
+  });
+
+  it('uses exclusive item tax when no item is currently inclusive', async () => {
+    const user = userEvent.setup();
+    const onClick = vi.fn();
+    render(
+      <TaxDropdown
+        isOpen={true}
+        data={
+          {
+            invoiceItems: [
+              {
+                itemId: 1,
+                quantity: 1,
+                taxRate: 0,
+                taxType: InvoiceItemTaxType.exclusive,
+                invoiceItemSnapshot: { parentInvoiceItemId: 1, itemName: 'Consulting', unitPriceCents: '1000' }
+              }
+            ]
+          } as never
+        }
+        onClick={onClick}
+      />,
+      { wrapper }
+    );
+
+    const itemRate = screen.getByRole('textbox', { name: '%' });
+    await user.clear(itemRate);
+    await user.type(itemRate, '9');
+    await user.click(screen.getByRole('button', { name: i18n.t('common.save') }));
+
+    expect(onClick).toHaveBeenCalledWith(
+      expect.objectContaining({
+        invoiceItems: [expect.objectContaining({ taxRate: 9, taxType: InvoiceItemTaxType.exclusive })]
+      })
+    );
+  });
+
   it('saves a payment from the add-payment drawer', async () => {
     const user = userEvent.setup();
     const onClick = vi.fn();

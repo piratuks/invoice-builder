@@ -70,6 +70,7 @@ type MockItemRowProps = {
 
 type MockItemMetadataSetterProps = {
   isOpen?: boolean;
+  onCancel: () => void;
   onSave: (value: Record<string, unknown>) => void;
 };
 
@@ -117,11 +118,26 @@ type MockAttachmentsListProps = {
 
 type MockDropdownProps = {
   onClick: (value: Record<string, unknown>) => void;
+  onClose?: () => void;
+  onOpen?: () => void;
 };
 
 type MockLanguageDropdownProps = {
   onClick: (value: Language) => void;
+  onClose: () => void;
+  onOpen: () => void;
 };
+
+const DropdownControls = ({ name, onClose, onOpen }: { name: string; onClose?: () => void; onOpen?: () => void }) => (
+  <>
+    <button type="button" onClick={onOpen}>
+      open-{name}-dropdown
+    </button>
+    <button type="button" onClick={onClose}>
+      close-{name}-dropdown
+    </button>
+  </>
+);
 
 vi.mock('../ItemsList', () => ({
   ItemsList: ({ invoiceForm, onDelete, onEdit }: MockItemRowProps) => (
@@ -141,23 +157,28 @@ vi.mock('../ItemsList', () => ({
 }));
 
 vi.mock('../Modals/ItemMetadataSetter', () => ({
-  ItemMetadataSetter: ({ isOpen, onSave }: MockItemMetadataSetterProps) =>
+  ItemMetadataSetter: ({ isOpen, onCancel, onSave }: MockItemMetadataSetterProps) =>
     isOpen ? (
-      <button
-        type="button"
-        onClick={() =>
-          onSave({
-            quantity: 2,
-            unitPrice: 150,
-            header: 'Custom',
-            value: 'Value',
-            alignment: 'left',
-            sortOrder: 1
-          })
-        }
-      >
-        save-item-metadata
-      </button>
+      <div>
+        <button
+          type="button"
+          onClick={() =>
+            onSave({
+              quantity: 2,
+              unitPrice: 150,
+              header: 'Custom',
+              value: 'Value',
+              alignment: 'left',
+              sortOrder: 1
+            })
+          }
+        >
+          save-item-metadata
+        </button>
+        <button type="button" onClick={onCancel}>
+          cancel-item-metadata
+        </button>
+      </div>
     ) : null
 }));
 
@@ -359,33 +380,36 @@ vi.mock('../Dropdowns/ItemsDropdown', () => ({
 }));
 
 vi.mock('../Dropdowns/BusinessesDropdown', () => ({
-  BusinessesDropdown: ({ onClick }: MockDropdownProps) => (
-    <button
-      type="button"
-      onClick={() =>
-        onClick({
-          id: 2,
-          name: 'Acme Corp',
-          shortName: 'AC',
-          address: '1 Main St',
-          role: 'Seller',
-          email: 'hello@acme.com',
-          phone: '123',
-          additional: 'Add',
-          paymentInformation: 'Info',
-          vatCode: 'VAT',
-          countryCode: 'US',
-          code: 'AC',
-          peppolEndpointId: 'ep',
-          peppolEndpointSchemeId: 'scheme',
-          invoiceCount: 0,
-          quotesCount: 0,
-          isArchived: false
-        })
-      }
-    >
-      select-business
-    </button>
+  BusinessesDropdown: ({ onClick, onClose, onOpen }: MockDropdownProps) => (
+    <div>
+      <DropdownControls name="business" onClose={onClose} onOpen={onOpen} />
+      <button
+        type="button"
+        onClick={() =>
+          onClick({
+            id: 2,
+            name: 'Acme Corp',
+            shortName: 'AC',
+            address: '1 Main St',
+            role: 'Seller',
+            email: 'hello@acme.com',
+            phone: '123',
+            additional: 'Add',
+            paymentInformation: 'Info',
+            vatCode: 'VAT',
+            countryCode: 'US',
+            code: 'AC',
+            peppolEndpointId: 'ep',
+            peppolEndpointSchemeId: 'scheme',
+            invoiceCount: 0,
+            quotesCount: 0,
+            isArchived: false
+          })
+        }
+      >
+        select-business
+      </button>
+    </div>
   )
 }));
 
@@ -471,34 +495,46 @@ vi.mock('../Dropdowns/MoreActionDropdown', () => ({
 }));
 
 vi.mock('../Dropdowns/BanksDropdown', () => ({
-  BanksDropdown: ({ onClick }: MockDropdownProps) => (
-    <button type="button" onClick={() => onClick({ id: 3, name: 'Main', bankName: 'Bank', accountNumber: '123' })}>
-      select-bank
-    </button>
+  BanksDropdown: ({ onClick, onClose, onOpen }: MockDropdownProps) => (
+    <div>
+      <DropdownControls name="bank" onClose={onClose} onOpen={onOpen} />
+      <button type="button" onClick={() => onClick({ id: 3, name: 'Main', bankName: 'Bank', accountNumber: '123' })}>
+        select-bank
+      </button>
+    </div>
   )
 }));
 
 vi.mock('../Dropdowns/StyleProfilesDropdown', () => ({
-  StyleProfilesDropdown: ({ onClick }: MockDropdownProps) => (
-    <button type="button" onClick={() => onClick({ id: 4, layoutId: 5, name: 'Brand', color: '#123456' })}>
-      select-style
-    </button>
+  StyleProfilesDropdown: ({ onClick, onClose, onOpen }: MockDropdownProps) => (
+    <div>
+      <DropdownControls name="style" onClose={onClose} onOpen={onOpen} />
+      <button type="button" onClick={() => onClick({ id: 4, layoutId: 5, name: 'Brand', color: '#123456' })}>
+        select-style
+      </button>
+    </div>
   )
 }));
 
 vi.mock('../Dropdowns/LanguageDropdown', () => ({
-  LanguageDropdown: ({ onClick }: MockLanguageDropdownProps) => (
-    <button type="button" onClick={() => onClick(Language.de)}>
-      select-language
-    </button>
+  LanguageDropdown: ({ onClick, onClose, onOpen }: MockLanguageDropdownProps) => (
+    <div>
+      <DropdownControls name="language" onClose={onClose} onOpen={onOpen} />
+      <button type="button" onClick={() => onClick(Language.de)}>
+        select-language
+      </button>
+    </div>
   )
 }));
 
 vi.mock('../Dropdowns/ClientsDropdown', () => ({
-  ClientsDropdown: ({ onClick }: MockDropdownProps) => (
-    <button type="button" onClick={() => onClick({ id: 6, name: 'Client B' })}>
-      select-client
-    </button>
+  ClientsDropdown: ({ onClick, onClose, onOpen }: MockDropdownProps) => (
+    <div>
+      <DropdownControls name="client" onClose={onClose} onOpen={onOpen} />
+      <button type="button" onClick={() => onClick({ id: 6, name: 'Client B' })}>
+        select-client
+      </button>
+    </div>
   )
 }));
 
@@ -948,5 +984,19 @@ describe('InvoiceForm branching behaviors', () => {
     await user.keyboard('{Enter}');
 
     expect(document.activeElement).toHaveAttribute('aria-label', i18n.t('ariaLabel.moreActions'));
+  });
+
+  it('routes dropdown navigation and modal cancellation callbacks', async () => {
+    const user = userEvent.setup();
+    render(<InvoiceFormHarness />, { wrapper });
+
+    for (const name of ['language', 'business', 'style', 'bank', 'client']) {
+      await user.click(screen.getByRole('button', { name: `open-${name}-dropdown` }));
+      await user.click(screen.getByRole('button', { name: `close-${name}-dropdown` }));
+    }
+
+    await user.click(screen.getByRole('button', { name: /edit-item-1/i }));
+    await user.click(screen.getByRole('button', { name: /cancel-item-metadata/i }));
+    expect(screen.queryByRole('button', { name: /cancel-item-metadata/i })).not.toBeInTheDocument();
   });
 });

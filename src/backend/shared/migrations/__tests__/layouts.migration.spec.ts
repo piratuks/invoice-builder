@@ -121,6 +121,90 @@ describe('layout schema migrations', () => {
     expect(readRow(snapshot?.layoutSchema ?? '{}')).toEqual(readRow(layout?.schema ?? '{}'));
   });
 
+  it('repairs v2 region blocks and nested header sections without overwriting existing values', async () => {
+    await createLayouts(db);
+    const schema = JSON.stringify({
+      schemaVersion: 2,
+      regions: [
+        null,
+        {
+          blocks: [
+            'plain text',
+            {
+              type: 'row',
+              justify: 'between',
+              children: [{ type: 'logo' }, { type: 'businessInfo' }]
+            }
+          ],
+          children: [
+            null,
+            {
+              type: 'section',
+              section: {
+                type: 'header',
+                blocks: [
+                  {
+                    type: 'column',
+                    children: [
+                      {
+                        type: 'row',
+                        gap: 9,
+                        children: [{ type: 'logo' }, { type: 'businessInfo', width: '40%' }]
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    });
+    await db.run('INSERT INTO layouts ("schema", "isArchived") VALUES (?, ?)', [schema, 0]);
+
+    await repairLayoutSchemas(db);
+
+    const layout = await db.get<{ schema: string }>('SELECT "schema" FROM layouts ORDER BY "id" DESC LIMIT 1');
+    const repaired = JSON.parse(layout?.schema ?? '{}');
+    expect(repaired.regions[1].blocks[1]).toEqual({
+      type: 'row',
+      gap: 5,
+      children: [{ type: 'logo' }, { type: 'businessInfo', width: '50%' }]
+    });
+    expect(repaired.regions[1].children[1].section.blocks[0].children[0]).toMatchObject({
+      gap: 9,
+      children: [{ type: 'logo' }, { type: 'businessInfo', width: '40%' }]
+    });
+  });
+
+  it('leaves malformed and unrelated schemas unchanged', async () => {
+    await createLayouts(db);
+    const schemas = [
+      'not-json',
+      '[]',
+      JSON.stringify({ schemaVersion: 1, sections: [null, { type: 'notes', blocks: [] }] }),
+      JSON.stringify({ schemaVersion: 2, regions: [{ blocks: {}, children: {} }] }),
+      JSON.stringify({ schemaVersion: 3, sections: [] })
+    ];
+    for (const schema of schemas) {
+      await db.run('INSERT INTO layouts ("schema", "isArchived") VALUES (?, ?)', [schema, 0]);
+    }
+
+    await repairLayoutSchemas(db);
+
+    const stored = await db.all<{ schema: string }>('SELECT "schema" FROM layouts ORDER BY "id"');
+    expect(stored.map(row => row.schema)).toEqual(schemas);
+  });
+
+  it('maps database failures', async () => {
+    const failingDb = {
+      type: 'sqlite',
+      all: vi.fn().mockRejectedValue(new Error('query failed'))
+    } as unknown as DatabaseAdapter;
+
+    await expect(repairLayoutSchemas(failingDb)).resolves.toMatchObject({ success: false });
+  });
+
   it('keeps existing invoice and quote snapshots isolated from layout edits', async () => {
     await createLayouts(db);
     const originalSchema = JSON.stringify({ schemaVersion: 1, meta: { name: 'Snapshot source' }, sections: [] });

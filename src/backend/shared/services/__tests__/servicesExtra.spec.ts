@@ -1,4 +1,5 @@
 import { AmountFormat } from '../../enums/amountFormat';
+import { DatabaseType } from '../../enums/databaseType';
 import { DateFormat } from '../../enums/dateFormat';
 import { Language } from '../../enums/language';
 import type { DatabaseAdapter } from '../../types/DatabaseAdapter';
@@ -361,6 +362,7 @@ describe('importExport service', () => {
 
   it('exports all data including newly added entities', async () => {
     await addBusiness(db, makeBusiness({ name: 'Export Biz', shortName: 'EB' }));
+    await addPreset(db, makePreset({ name: 'Export Preset' }));
 
     const result = await exportAllData(db);
     expect(result.success).toBe(true);
@@ -374,6 +376,7 @@ describe('importExport service', () => {
 
   it('imports a previously exported payload', async () => {
     await addBusiness(db, makeBusiness({ name: 'RoundTrip Biz', shortName: 'RB' }));
+    await addPreset(db, makePreset({ name: 'RoundTrip Preset' }));
     const exported = await exportAllData(db);
     expect(exported.success).toBe(true);
 
@@ -382,5 +385,49 @@ describe('importExport service', () => {
 
     const reExported = await exportAllData(db);
     expect(reExported.data?.businesses.some(b => b?.name === 'RoundTrip Biz')).toBe(true);
+    expect(reExported.data?.presets.some(p => p?.name === 'RoundTrip Preset')).toBe(true);
+  });
+
+  it('accepts an empty object and restores SQLite foreign keys', async () => {
+    const result = await importAllData(db, {});
+
+    expect(result).toEqual({ success: true });
+    expect(await db.get('PRAGMA foreign_keys')).toMatchObject({ foreign_keys: 1 });
+  });
+
+  it('uses PostgreSQL identity inserts and updates non-id settings fields', async () => {
+    const run = vi.fn().mockResolvedValue(undefined);
+    const postgresDb = { type: DatabaseType.postgre, run } as unknown as DatabaseAdapter;
+
+    const result = await importAllData(postgresDb, {
+      currencies: [{}, { invoiceFullNumber: 'ignored' }, { id: 9, code: 'TST', isArchived: true }],
+      settings: { id: 1, isDarkMode: false }
+    });
+
+    expect(result).toEqual({ success: true });
+    expect(run.mock.calls.some(([sql]) => String(sql).includes('OVERRIDING SYSTEM VALUE'))).toBe(true);
+    expect(run.mock.calls.some(([sql]) => String(sql).includes('SELECT setval'))).toBe(true);
+    expect(run).toHaveBeenCalledWith(expect.stringContaining('UPDATE settings SET'), [0]);
+  });
+
+  it('rolls back failed imports and restores SQLite foreign keys', async () => {
+    const run = vi.fn(async (sql: string) => {
+      if (sql === 'DELETE FROM invoices') throw new Error('delete failed');
+    });
+    const failingDb = { type: DatabaseType.sqlite, run } as unknown as DatabaseAdapter;
+
+    await expect(importAllData(failingDb, {})).resolves.toMatchObject({ success: false });
+    expect(run).toHaveBeenCalledWith('ROLLBACK');
+    expect(run).toHaveBeenCalledWith('PRAGMA foreign_keys = ON;');
+  });
+
+  it('reports rollback failures', async () => {
+    const run = vi.fn(async (sql: string) => {
+      if (sql === 'ROLLBACK') throw new Error('rollback failed');
+      if (sql === 'DELETE FROM invoices') throw new Error('delete failed');
+    });
+    const failingDb = { type: DatabaseType.sqlite, run } as unknown as DatabaseAdapter;
+
+    await expect(importAllData(failingDb, {})).resolves.toMatchObject({ success: false });
   });
 });

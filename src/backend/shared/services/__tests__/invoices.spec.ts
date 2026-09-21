@@ -138,6 +138,22 @@ const loadNextSequence = async (
   return row?.nextSequence;
 };
 
+const failRunContaining = (db: DatabaseAdapter, fragment: string): DatabaseAdapter =>
+  new Proxy(db, {
+    get(target, property) {
+      if (property === 'run') {
+        return async (sql: string, params?: unknown[], returnId?: boolean) => {
+          if (sql.includes(fragment)) {
+            throw Object.assign(new Error(`SQLITE_IOERR: forced failure for ${fragment}`), { code: 'SQLITE_IOERR' });
+          }
+          return target.run(sql, params as never, returnId);
+        };
+      }
+      const value = Reflect.get(target, property);
+      return typeof value === 'function' ? value.bind(target) : value;
+    }
+  });
+
 const addOptionalInvoiceData = async (db: DatabaseAdapter, payload: NewInvoicePayload) => {
   const itemId = await db.run(`INSERT INTO items ("name", "amount") VALUES ('Consulting', '12500');`, [], true);
   const bankId = await db.run(
@@ -446,6 +462,58 @@ describe('invoice sequence handling', () => {
       formattedSequence: '000011'
     });
   });
+
+  it('does not move the sequence backward or react to non-numeric updates', async () => {
+    const businessId = await insertBusiness(db, 'Business I', 'BI');
+    const clientId = await insertClient(db, 'Client I', 'CI');
+    const currencyId = await getCurrencyId(db, 'USD');
+    const added = await addInvoice(db, createInvoicePayload(businessId, clientId, currencyId, '000010'));
+    const invoice = added.data as Invoice;
+
+    expect((await updateInvoice(db, { ...invoice, invoiceNumber: '000002' })).success).toBe(true);
+    expect(await loadNextSequence(db, businessId, clientId)).toBe(11);
+
+    expect((await updateInvoice(db, { ...(added.data as Invoice), invoiceNumber: 'INV-CUSTOM' })).success).toBe(true);
+    expect(await loadNextSequence(db, businessId, clientId)).toBe(11);
+  });
+
+  it('creates a sequence in a new client scope after an update', async () => {
+    const businessId = await insertBusiness(db, 'Business J', 'BJ');
+    const firstClientId = await insertClient(db, 'Client J1', 'J1');
+    const secondClientId = await insertClient(db, 'Client J2', 'J2');
+    const currencyId = await getCurrencyId(db, 'USD');
+    const added = await addInvoice(db, createInvoicePayload(businessId, firstClientId, currencyId, '4'));
+    const invoice = added.data as Invoice;
+
+    const result = await updateInvoice(db, {
+      ...invoice,
+      clientId: secondClientId,
+      invoiceNumber: '12',
+      invoiceClientSnapshot: {
+        ...invoice.invoiceClientSnapshot!,
+        id: undefined,
+        clientName: 'Client J2'
+      }
+    });
+
+    expect(result.success).toBe(true);
+    expect(await loadNextSequence(db, businessId, secondClientId)).toBe(13);
+  });
+
+  it('preserves a non-numeric quotation number when converting it', async () => {
+    const businessId = await insertBusiness(db, 'Business K', 'BK');
+    const clientId = await insertClient(db, 'Client K', 'CK');
+    const currencyId = await getCurrencyId(db, 'USD');
+    const added = await addInvoice(
+      db,
+      createInvoicePayload(businessId, clientId, currencyId, 'QUOTE-A', InvoiceType.quotation)
+    );
+
+    const result = await duplicateInvoice(db, (added.data as Invoice).id as number, InvoiceType.invoice);
+
+    expect(result.success).toBe(true);
+    expect((result.data as Invoice).invoiceNumber).toBe('QUOTE-A');
+  });
 });
 
 describe('invoice retrieval', () => {
@@ -595,6 +663,7 @@ describe('invoice retrieval', () => {
       id: 0,
       customField: { header: 'Project', value: 'Beta', sortOrder: 6, alignment: Alignment.left }
     });
+    payload.invoiceItems.push({ ...payload.invoiceItems[0], id: 0, customField: undefined });
 
     expect((await addInvoice(db, payload)).success).toBe(true);
     await expect(getCustomHeaders(db, InvoiceType.invoice)).resolves.toEqual({
@@ -634,6 +703,30 @@ describe('invoice service errors', () => {
     ];
 
     expect((await addInvoice(db, payload)).success).toBe(false);
+    expect((await db.get<{ count: number }>('SELECT COUNT(*) AS count FROM invoices'))?.count).toBe(0);
+  });
+
+  it.each([
+    'invoice_style_profile_snapshots',
+    'invoice_customizations',
+    'invoice_currency_snapshots',
+    'invoice_bank_snapshots',
+    'invoice_business_snapshots',
+    'invoice_layout_snapshots',
+    'invoice_client_snapshots',
+    'invoice_items',
+    'invoice_item_snapshots',
+    'attachments'
+  ])('rolls back when inserting %s fails', async table => {
+    const businessId = await insertBusiness(db, `Failure ${table}`, 'FB');
+    const clientId = await insertClient(db, `Client ${table}`, 'FC');
+    const currencyId = await getCurrencyId(db, 'USD');
+    const payload = createInvoicePayload(businessId, clientId, currencyId, `fail-${table}`);
+    await addOptionalInvoiceData(db, payload);
+
+    const result = await addInvoice(failRunContaining(db, `INSERT INTO ${table}`), payload);
+
+    expect(result.success).toBe(false);
     expect((await db.get<{ count: number }>('SELECT COUNT(*) AS count FROM invoices'))?.count).toBe(0);
   });
 
