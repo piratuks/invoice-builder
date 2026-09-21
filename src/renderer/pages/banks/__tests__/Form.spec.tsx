@@ -48,6 +48,31 @@ describe('banks Form', () => {
     await waitFor(() => expect(handleChange).toHaveBeenCalledWith(expect.objectContaining({ isFormValid: false })));
   });
 
+  it('shows validation errors for invalid accountNumber, sortOrder, branchCode, routingNumber and upiCode', async () => {
+    const user = userEvent.setup();
+    const handleChange = vi.fn();
+    render(<Form handleChange={handleChange} />, { wrapper });
+
+    await user.type(screen.getByRole('textbox', { name: i18n.t('common.name') }), 'Swedbank');
+
+    await user.type(screen.getByRole('textbox', { name: i18n.t('common.accountNumber') }), '!!');
+    expect(await screen.findByText(i18n.t('common.accountNumberInvalid'))).toBeInTheDocument();
+
+    await user.type(screen.getByRole('textbox', { name: i18n.t('common.sortOrder') }), '1');
+    expect(await screen.findByText(i18n.t('common.sortCodeInvalid'))).toBeInTheDocument();
+
+    await user.type(screen.getByRole('textbox', { name: i18n.t('common.branchCode') }), '12');
+    expect(await screen.findByText(i18n.t('common.branchCodeInvalid'))).toBeInTheDocument();
+
+    await user.type(screen.getByRole('textbox', { name: i18n.t('common.routingNumber') }), '123');
+    expect(await screen.findByText(i18n.t('common.routingNumberInvalid'))).toBeInTheDocument();
+
+    await user.type(screen.getByRole('textbox', { name: i18n.t('common.upiCode') }), 'not-a-valid-upi');
+    expect(await screen.findByText(i18n.t('common.upiCodeInvalid'))).toBeInTheDocument();
+
+    await waitFor(() => expect(handleChange).toHaveBeenCalledWith(expect.objectContaining({ isFormValid: false })));
+  });
+
   it('pre-fills the form fields from an existing bank', () => {
     const bank: Bank = {
       id: 1,

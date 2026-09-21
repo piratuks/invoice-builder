@@ -5,10 +5,12 @@ import { I18nextProvider } from 'react-i18next';
 import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router-dom';
 import i18n from '../../../i18n';
+import { getApi } from '../../../shared/api/restApi';
 import type { Preset } from '../../../shared/types/preset';
 import { store } from '../../../state/configureStore';
 import { Form } from '../Form';
 
+vi.mock('../../../shared/api/restApi', () => ({ getApi: vi.fn(), isWebMode: () => true }));
 // jsdom has no real canvas 2d context; react-signature-canvas mounts one eagerly
 vi.mock('react-signature-canvas', () => ({ default: () => <div data-testid="signature-canvas-stub" /> }));
 
@@ -49,6 +51,21 @@ const wrapper = ({ children }: { children: ReactNode }) => (
 );
 
 describe('presets Form', () => {
+  const mockApi = {
+    getAllBanks: vi.fn(),
+    getAllBusinesses: vi.fn(),
+    getAllClients: vi.fn(),
+    getAllCurrencies: vi.fn(),
+    getAllStyleProfiles: vi.fn()
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.clear();
+    Object.values(mockApi).forEach(fn => fn.mockResolvedValue({ success: true, data: [] }));
+    vi.mocked(getApi).mockReturnValue(mockApi as never);
+  });
+
   it('reports an invalid form when the required name field is empty', async () => {
     const handleChange = vi.fn();
     render(<Form handleChange={handleChange} />, { wrapper });
@@ -93,5 +110,51 @@ describe('presets Form', () => {
     await user.click(archivedSwitch);
 
     expect(archivedSwitch).toBeChecked();
+  });
+
+  it('selects a business from the businesses dropdown and updates the preset', async () => {
+    const user = userEvent.setup();
+    const handleChange = vi.fn();
+    mockApi.getAllBusinesses.mockResolvedValue({
+      success: true,
+      data: [{ id: 2, name: 'Acme Corp', shortName: 'AC', invoiceCount: 0, quotesCount: 0, isArchived: false }]
+    });
+
+    render(<Form handleChange={handleChange} />, { wrapper });
+
+    await user.click(
+      screen.getByText((_content, element) => element?.textContent?.trim().startsWith('BUSINESS') ?? false, {
+        selector: 'div.MuiTypography-root'
+      })
+    );
+    const businessEntry = await screen.findByText('Acme Corp');
+    await user.click(businessEntry);
+
+    await waitFor(() =>
+      expect(handleChange).toHaveBeenCalledWith(
+        expect.objectContaining({ preset: expect.objectContaining({ businessId: 2, businessName: 'Acme Corp' }) })
+      )
+    );
+  });
+
+  it('selects a currency from the currencies dropdown and updates the preset', async () => {
+    const user = userEvent.setup();
+    const handleChange = vi.fn();
+    mockApi.getAllCurrencies.mockResolvedValue({
+      success: true,
+      data: [{ id: 3, code: 'USD', symbol: '$', text: 'US Dollar', invoiceCount: 0, quotesCount: 0, isArchived: false }]
+    });
+
+    render(<Form handleChange={handleChange} />, { wrapper });
+
+    await user.click(screen.getByText(new RegExp(`^${i18n.t('common.currency')}`, 'i')));
+    const currencyEntry = await screen.findByText('US Dollar');
+    await user.click(currencyEntry);
+
+    await waitFor(() =>
+      expect(handleChange).toHaveBeenCalledWith(
+        expect.objectContaining({ preset: expect.objectContaining({ currencyId: 3, currencyCode: 'USD' }) })
+      )
+    );
   });
 });

@@ -80,4 +80,27 @@ describe('items Form', () => {
 
     expect(archivedSwitch).toBeChecked();
   });
+
+  it('shows a required error when the amount field is cleared', async () => {
+    const user = userEvent.setup();
+    const handleChange = vi.fn();
+    render(<Form handleChange={handleChange} />, { wrapper });
+
+    const amountInput = screen.getByRole('textbox', { name: i18n.t('common.amount') });
+    await user.clear(amountInput);
+
+    await waitFor(() => expect(handleChange).toHaveBeenCalledWith(expect.objectContaining({ isFormValid: false })));
+  });
+
+  it('dispatches error toasts when retrieving units or categories fails', async () => {
+    mockApi.getAllUnits.mockResolvedValue({ success: false, message: 'Units failed' });
+    mockApi.getAllCategories.mockResolvedValue({ success: false, key: 'common.invalidForm' });
+
+    render(<Form />, { wrapper });
+
+    await waitFor(() => {
+      const messages = store.getState().pageSlice.toasts.map(toast => toast.message);
+      expect(messages).toEqual(expect.arrayContaining(['Units failed', i18n.t('common.invalidForm')]));
+    });
+  });
 });

@@ -290,4 +290,79 @@ describe('CRUDPage', () => {
 
     await waitFor(() => expect(exportExcelHandler).toHaveBeenCalledWith(items));
   });
+
+  it('dispatches an error toast when adding an item fails with a message', async () => {
+    const user = userEvent.setup();
+    render(
+      <CRUDPage
+        {...baseProps}
+        useRetrieve={() => ({ items: [], execute: vi.fn() })}
+        useAdd={({ onDone }) => ({
+          data: undefined,
+          execute: () => onDone?.({ success: false, message: 'Add failed' } as Response<Entity>)
+        })}
+      />,
+      { wrapper }
+    );
+
+    await user.click(screen.getByText('Add entity'));
+    await user.type(screen.getByLabelText('name-input'), 'New entity');
+    await user.click(screen.getByRole('button', { name: /save/i }));
+
+    await waitFor(() => expect(store.getState().pageSlice.toasts.at(-1)?.message).toBe('Add failed'));
+  });
+
+  it('dispatches an error toast when updating an item fails with a key', async () => {
+    const user = userEvent.setup();
+    const items = makeItems(1);
+    render(
+      <CRUDPage
+        {...baseProps}
+        useRetrieve={() => ({ items, execute: vi.fn() })}
+        useUpdate={({ onDone }) => ({
+          execute: () => onDone?.({ success: false, key: 'common.invalidForm' } as Response<Entity>)
+        })}
+        renderListItem={(item, _selected, onEdit) => (
+          <div key={item.id}>
+            <button onClick={() => onEdit(item)}>edit-{item.id}</button>
+          </div>
+        )}
+      />,
+      { wrapper }
+    );
+
+    await user.click(screen.getByText('edit-1'));
+    await user.type(screen.getByLabelText('name-input'), ' updated');
+    await user.click(screen.getByRole('button', { name: /save/i }));
+
+    await waitFor(() => expect(store.getState().pageSlice.toasts.at(-1)?.message).toBe(i18n.t('common.invalidForm')));
+  });
+
+  it('dispatches an error toast when deleting an item fails', async () => {
+    const user = userEvent.setup();
+    const items = makeItems(1);
+    render(
+      <CRUDPage
+        {...baseProps}
+        useRetrieve={() => ({ items, execute: vi.fn() })}
+        useDelete={({ onDone }) => ({
+          execute: () => onDone?.({ success: false, message: 'Delete failed' })
+        })}
+        renderListItem={(item, _selected, _onEdit, onDelete) => (
+          <div key={item.id}>
+            <button onClick={() => onDelete(item.id)}>delete-{item.id}</button>
+          </div>
+        )}
+      />,
+      { wrapper }
+    );
+
+    await user.click(screen.getByText('delete-1'));
+
+    const dialog = await screen.findByRole('dialog');
+    const confirmButton = within(dialog).getByRole('button', { name: /delete|common\.delete|confirm/i });
+    await user.click(confirmButton);
+
+    await waitFor(() => expect(store.getState().pageSlice.toasts.at(-1)?.message).toBe('Delete failed'));
+  });
 });

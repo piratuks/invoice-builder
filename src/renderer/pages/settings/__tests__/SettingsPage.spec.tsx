@@ -94,4 +94,32 @@ describe('SettingsPage', () => {
 
     await waitFor(() => expect(mockApi.exportAllData).toHaveBeenCalled());
   });
+
+  it('imports a JSON backup after confirming', async () => {
+    const user = userEvent.setup();
+    mockApi.importAllData.mockResolvedValue({ success: true, data: {} });
+    render(<SettingsPage />, { wrapper });
+
+    await user.click(screen.getByText(i18n.t('settingsMenuItems.titles.import')));
+    await user.click(screen.getByRole('button', { name: i18n.t('common.confirm') }));
+
+    await waitFor(() => expect(mockApi.importAllData).toHaveBeenCalled());
+  });
+
+  it.each([
+    'turnQuotes',
+    'turnReports',
+    'turnStyleProfiles',
+    'turnPresets',
+    'turnUBL',
+    'turnXRechnung',
+    'turnReceiptPrinting'
+  ])('toggles the %s setting and persists the change', async key => {
+    const user = userEvent.setup();
+    render(<SettingsPage />, { wrapper });
+
+    await user.click(screen.getByText(i18n.t(`settingsMenuItems.titles.${key}`)));
+
+    await waitFor(() => expect(mockApi.updateSettings).toHaveBeenCalled());
+  });
 });

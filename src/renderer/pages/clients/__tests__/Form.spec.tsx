@@ -4,8 +4,12 @@ import type { ReactNode } from 'react';
 import { I18nextProvider } from 'react-i18next';
 import { Provider } from 'react-redux';
 import i18n from '../../../i18n';
+import { AmountFormat } from '../../../shared/enums/amountFormat';
+import { DateFormat } from '../../../shared/enums/dateFormat';
+import { Language } from '../../../shared/enums/language';
 import type { Client } from '../../../shared/types/client';
 import { store } from '../../../state/configureStore';
+import { setSettings } from '../../../state/pageSlice';
 import { Form } from '../Form';
 
 const wrapper = ({ children }: { children: ReactNode }) => (
@@ -48,6 +52,50 @@ describe('clients Form', () => {
     await user.type(screen.getByRole('textbox', { name: i18n.t('common.name') }), 'John Doe');
     await user.type(screen.getByRole('textbox', { name: i18n.t('common.shortName') }), 'JD');
     await user.type(screen.getByRole('textbox', { name: i18n.t('common.email') }), 'not-an-email');
+
+    await waitFor(() => expect(handleChange).toHaveBeenCalledWith(expect.objectContaining({ isFormValid: false })));
+  });
+
+  it('shows validation errors for invalid phone, countryCode and PEPPOL fields', async () => {
+    store.dispatch(
+      setSettings({
+        id: 1,
+        language: Language.en,
+        amountFormat: AmountFormat.enUS,
+        dateFormat: DateFormat.MMddyyyy,
+        isDarkMode: false,
+        shouldIncludeYear: false,
+        shouldIncludeMonth: false,
+        shouldIncludeBusinessName: false,
+        quotesON: true,
+        styleProfilesON: false,
+        ublON: true,
+        xrechnungON: false,
+        receiptPrintingOn: false,
+        presetsON: false,
+        reportsON: false,
+        createdAt: '',
+        updatedAt: ''
+      })
+    );
+    const user = userEvent.setup();
+    const handleChange = vi.fn();
+    render(<Form handleChange={handleChange} />, { wrapper });
+
+    await user.type(screen.getByRole('textbox', { name: i18n.t('common.name') }), 'John Doe');
+    await user.type(screen.getByRole('textbox', { name: i18n.t('common.shortName') }), 'JD');
+
+    await user.type(screen.getByRole('textbox', { name: i18n.t('common.phone') }), 'not-a-phone');
+    expect(await screen.findByText(i18n.t('common.invalidPhone'))).toBeInTheDocument();
+
+    await user.type(screen.getByRole('textbox', { name: i18n.t('common.countryCode') }), '123');
+    expect(await screen.findByText(i18n.t('common.invalidCountryCode'))).toBeInTheDocument();
+
+    await user.type(screen.getByRole('textbox', { name: i18n.t('common.peppolEndpointId') }), '!!');
+    expect(await screen.findByText(i18n.t('common.invalidPeppolEndpointId'))).toBeInTheDocument();
+
+    await user.type(screen.getByRole('textbox', { name: i18n.t('common.peppolEndpointSchemeId') }), '!!');
+    expect(await screen.findByText(i18n.t('common.invalidPeppolEndpointSchemeId'))).toBeInTheDocument();
 
     await waitFor(() => expect(handleChange).toHaveBeenCalledWith(expect.objectContaining({ isFormValid: false })));
   });
