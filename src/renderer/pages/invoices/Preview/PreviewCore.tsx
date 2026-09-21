@@ -27,7 +27,8 @@ const PreviewCoreComponent: FC<Props> = ({ invoiceForm }) => {
   const [attachmentUrls, setAttachmentUrls] = useState<AttachmentURL[]>([]);
   const [signatureUrl, setSignatureUrl] = useState<string | undefined>();
   const [qrCodeUrl, setQrCodeUrl] = useState<string | undefined>();
-  const [loading, setLoading] = useState(true);
+  // Only gates the very first render; later updates keep the current preview visible until new assets resolve.
+  const [isReady, setIsReady] = useState(false);
   const pdfTextsDefaults = usePdfTexts({
     labelUpperCase: invoiceForm?.invoiceCustomization?.labelUpperCase,
     language: invoiceForm?.language
@@ -43,13 +44,8 @@ const PreviewCoreComponent: FC<Props> = ({ invoiceForm }) => {
 
   useEffect(() => {
     let cancelled = false;
-    setAttachmentUrls([]);
-    setLogoUrl(undefined);
-    setWatermarkUrl(undefined);
-    setWatermarkPaidUrl(undefined);
-    setQrCodeUrl(undefined);
-    setLoading(true);
 
+    // Assets are only swapped in once resolved, so the current preview stays visible instead of flashing blank.
     const loadData = async () => {
       const [logo, watermark, watermarkPaid, attachments, signature, qrCode] = await Promise.all([
         getLogoUrl(invoiceForm),
@@ -67,7 +63,7 @@ const PreviewCoreComponent: FC<Props> = ({ invoiceForm }) => {
         setAttachmentUrls(attachments);
         setSignatureUrl(signature);
         setQrCodeUrl(qrCode);
-        setLoading(false);
+        setIsReady(true);
       }
     };
 
@@ -78,14 +74,11 @@ const PreviewCoreComponent: FC<Props> = ({ invoiceForm }) => {
     };
   }, [invoiceForm]);
 
-  if (loading) return null;
+  if (!isReady) return null;
 
   return (
-    <PDFViewer
-      key={JSON.stringify(invoiceForm)}
-      style={{ width: '100%', height: '100%', border: 'none' }}
-      showToolbar={false}
-    >
+    // No key here: keeping the same instance lets @react-pdf update the existing preview instead of remounting it.
+    <PDFViewer style={{ width: '100%', height: '100%', border: 'none' }} showToolbar={false}>
       <PDFDocument
         invoiceForm={invoiceForm}
         storeSettings={storeSettings}

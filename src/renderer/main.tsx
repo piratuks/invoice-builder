@@ -19,6 +19,7 @@ import { ReportsPage } from './pages/reports';
 import { SettingsPage } from './pages/settings';
 import { StyleProfilesPage } from './pages/styleProfiles';
 import { UnitsPage } from './pages/units';
+import './polyfills';
 import reportWebVitals from './reportWebVitals';
 import { isWebMode } from './shared/api/restApi';
 import { GlobalErrorBoundaryWrapper } from './shared/components/feedback/globalErrorBoundaryWrapper/GlobalErrorBoundaryWrapper';
