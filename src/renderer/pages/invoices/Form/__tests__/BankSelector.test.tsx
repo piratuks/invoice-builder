@@ -1,8 +1,8 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { I18nextProvider } from 'react-i18next';
 import { describe, expect, it, vi } from 'vitest';
-import i18n from '../i18n';
-import { BankSelector } from '../pages/invoices/Form/BankSelector';
+import i18n from '../../../../i18n';
+import { BankSelector } from '../BankSelector';
 
 describe('BankSelector', () => {
   it('shows a clear action when a bank is selected and clears it on click', () => {

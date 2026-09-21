@@ -1,6 +1,6 @@
-import { FilterType } from '../shared/enums/filterType';
-import { SortType } from '../shared/enums/sortType';
-import { createCommonFilters, createInvoiceFilters, filterAndSortArray } from '../shared/utils/filterSortFunctions';
+import { FilterType } from '../../enums/filterType';
+import { SortType } from '../../enums/sortType';
+import { createCommonFilters, createInvoiceFilters, filterAndSortArray } from '../filterSortFunctions';
 
 const t = ((key: string) => key) as never;
 

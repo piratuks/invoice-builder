@@ -1,5 +1,5 @@
-import { AmountFormat } from '../shared/enums/amountFormat';
-import { CurrencyFormat } from '../shared/enums/currencyFormat';
+import { AmountFormat } from '../../enums/amountFormat';
+import { CurrencyFormat } from '../../enums/currencyFormat';
 import {
   createCurrencyFormatter,
   formatAmount,
@@ -9,7 +9,7 @@ import {
   getFormattingMeta,
   supportsCurrencySubunit,
   toUTCISOString
-} from '../shared/utils/formatFunctions';
+} from '../formatFunctions';
 
 describe('toUTCISOString', () => {
   it('converts a local date to a UTC ISO string using local field values', () => {

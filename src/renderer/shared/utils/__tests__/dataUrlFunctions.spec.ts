@@ -1,4 +1,4 @@
-import { base64ToBytes, isDataUrl, toDataUrl, toUint8Array } from '../shared/utils/dataUrlFunctions';
+import { base64ToBytes, isDataUrl, toDataUrl, toUint8Array } from '../dataUrlFunctions';
 
 const t = ((key: string) => key) as never;
 

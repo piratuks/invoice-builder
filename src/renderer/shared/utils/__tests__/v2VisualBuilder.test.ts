@@ -4,7 +4,7 @@ import {
   MAX_LAYOUT_NODE_COUNT,
   parseLayoutSchema,
   type LayoutNode
-} from '../shared/types/layouts';
+} from '../../types/layouts';
 import {
   addLayoutBuilderV2Node,
   addLayoutBuilderV2Region,
@@ -19,7 +19,7 @@ import {
   updateLayoutBuilderV2Node,
   updateLayoutBuilderV2Region,
   upgradeLayoutToV2
-} from '../shared/utils/visualBuilderV2';
+} from '../visualBuilderV2';
 
 const layout = {
   schemaVersion: 2 as const,

@@ -2,9 +2,9 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { I18nextProvider } from 'react-i18next';
 import { Provider } from 'react-redux';
 import { describe, expect, it, vi } from 'vitest';
-import i18n from '../i18n';
-import { Form } from '../pages/layouts/Form';
-import { store } from '../state/configureStore';
+import i18n from '../../../i18n';
+import { store } from '../../../state/configureStore';
+import { Form } from '../Form';
 
 vi.mock('monaco-editor', () => ({ editor: {} }));
 
@@ -13,7 +13,7 @@ vi.mock('@monaco-editor/react', () => ({
   loader: { config: vi.fn() }
 }));
 
-vi.mock('../pages/layouts/LayoutBuilder', () => ({
+vi.mock('../LayoutBuilder', () => ({
   LayoutBuilder: ({
     schema,
     onSchemaChange,

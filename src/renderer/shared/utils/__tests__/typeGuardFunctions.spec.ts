@@ -16,7 +16,7 @@ import {
   isPresetFromData,
   isStyleProfileFromData,
   isUnitFromData
-} from '../shared/utils/typeGuardFunctions';
+} from '../typeGuardFunctions';
 
 type Guard = (data: unknown) => boolean;
 

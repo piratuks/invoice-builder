@@ -1,5 +1,5 @@
 import ExcelJS from 'exceljs';
-import { exportExcel, importExcel } from '../shared/utils/fileFunctions';
+import { exportExcel, importExcel } from '../fileFunctions';
 
 vi.mock('file-saver', () => ({ saveAs: vi.fn() }));
 

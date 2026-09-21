@@ -1,4 +1,4 @@
-import { a11yProps } from '../shared/utils/generalFunctions';
+import { a11yProps } from '../generalFunctions';
 
 describe('a11yProps', () => {
   it('builds MUI tab accessibility props for the given index', () => {

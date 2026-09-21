@@ -1,4 +1,4 @@
-import { validateOnlyNumbersLetters, validators } from '../shared/utils/validatorFunctions';
+import { validateOnlyNumbersLetters, validators } from '../validatorFunctions';
 
 describe('validators.email', () => {
   it('accepts valid emails and rejects invalid ones', () => {

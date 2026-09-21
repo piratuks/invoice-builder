@@ -7,27 +7,27 @@ import { pdf } from '@react-pdf/renderer';
 import { resolve } from 'node:path';
 import { PDFDocument as PdfLibDocument } from 'pdf-lib';
 import { describe, expect, it, vi } from 'vitest';
-import { PDFDocument } from '../pages/invoices/Preview/PDFDocument';
-import { AmountFormat } from '../shared/enums/amountFormat';
-import { DateFormat } from '../shared/enums/dateFormat';
-import { FontFamily } from '../shared/enums/fontFamily';
-import { InvoiceType } from '../shared/enums/invoiceType';
-import { PageFormat } from '../shared/enums/pageFormat';
-import { SizeType } from '../shared/enums/sizeType';
-import type { InvoiceFromData, PdfTexts } from '../shared/types/invoice';
-import { parseLayoutSchema, type LayoutSchemaAny, type LayoutSchemaV2 } from '../shared/types/layouts';
-import type { Settings } from '../shared/types/settings';
+import { AmountFormat } from '../../../../shared/enums/amountFormat';
+import { DateFormat } from '../../../../shared/enums/dateFormat';
+import { FontFamily } from '../../../../shared/enums/fontFamily';
+import { InvoiceType } from '../../../../shared/enums/invoiceType';
+import { PageFormat } from '../../../../shared/enums/pageFormat';
+import { SizeType } from '../../../../shared/enums/sizeType';
+import type { InvoiceFromData, PdfTexts } from '../../../../shared/types/invoice';
+import { parseLayoutSchema, type LayoutSchemaAny, type LayoutSchemaV2 } from '../../../../shared/types/layouts';
+import type { Settings } from '../../../../shared/types/settings';
 import {
   addHeaderBlock,
   addLayoutSection,
   createLayoutBuilderState,
   serializeLayoutBuilderState
-} from '../shared/utils/visualBuilderV1';
+} from '../../../../shared/utils/visualBuilderV1';
 import {
   addLayoutBuilderV2Node,
   createLayoutBuilderV2State,
   serializeLayoutBuilderV2State
-} from '../shared/utils/visualBuilderV2';
+} from '../../../../shared/utils/visualBuilderV2';
+import { PDFDocument } from '../PDFDocument';
 
 vi.mock('@react-pdf/renderer', async () => {
   const actual = await vi.importActual<typeof import('@react-pdf/renderer')>('@react-pdf/renderer');

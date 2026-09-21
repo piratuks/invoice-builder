@@ -1,11 +1,11 @@
-import { AmountFormat } from '../shared/enums/amountFormat';
-import { CurrencyFormat } from '../shared/enums/currencyFormat';
-import { DiscountType } from '../shared/enums/discountType';
-import { InvoiceStatus } from '../shared/enums/invoiceStatus';
-import { ReportDateType } from '../shared/enums/reportDateType';
-import { InvoiceItemTaxType, InvoiceTaxType } from '../shared/enums/taxType';
-import type { Invoice, InvoiceItem, InvoicePayment } from '../shared/types/invoice';
-import type { Settings } from '../shared/types/settings';
+import { AmountFormat } from '../../enums/amountFormat';
+import { CurrencyFormat } from '../../enums/currencyFormat';
+import { DiscountType } from '../../enums/discountType';
+import { InvoiceStatus } from '../../enums/invoiceStatus';
+import { ReportDateType } from '../../enums/reportDateType';
+import { InvoiceItemTaxType, InvoiceTaxType } from '../../enums/taxType';
+import type { Invoice, InvoiceItem, InvoicePayment } from '../../types/invoice';
+import type { Settings } from '../../types/settings';
 import {
   aggregateInvoicesByCurrency,
   calcDiscount,
@@ -23,7 +23,7 @@ import {
   getPaidAmount,
   getPaidData,
   supportsCurrencySubunit
-} from '../shared/utils/invoiceFunctions';
+} from '../invoiceFunctions';
 
 const item = (overrides: Partial<InvoiceItem> = {}): InvoiceItem =>
   ({

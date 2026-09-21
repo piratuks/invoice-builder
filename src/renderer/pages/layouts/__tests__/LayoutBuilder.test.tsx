@@ -1,13 +1,13 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { LayoutBuilder } from '../pages/layouts/LayoutBuilder';
-import { parseLayoutSchema } from '../shared/types/layouts';
+import { parseLayoutSchema } from '../../../shared/types/layouts';
 import {
   addHeaderBlock,
   createLayoutBuilderState,
   moveBuilderNode,
   moveLayoutSection
-} from '../shared/utils/visualBuilderV1';
+} from '../../../shared/utils/visualBuilderV1';
+import { LayoutBuilder } from '../LayoutBuilder';
 
 const createDataTransfer = () => {
   const values = new Map<string, string>();

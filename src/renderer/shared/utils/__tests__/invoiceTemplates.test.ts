@@ -1,5 +1,4 @@
-import { describe, expect, it } from 'vitest';
-import { parseLayoutSchema, validHeaderBlockTypes, validTotalsRowBlockTypes } from '../shared/types/layouts';
+import { parseLayoutSchema, validHeaderBlockTypes, validTotalsRowBlockTypes } from '../../types/layouts';
 import {
   addHeaderBlock,
   addLayoutSection,
@@ -18,7 +17,7 @@ import {
   updateLayoutSection,
   updateTotalsRowBlock,
   type LayoutVisualBuilderSection
-} from '../shared/utils/visualBuilderV1';
+} from '../visualBuilderV1';
 
 const valid = JSON.stringify({
   schemaVersion: 1,

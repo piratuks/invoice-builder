@@ -1,12 +1,12 @@
-import { AmountFormat } from '../shared/enums/amountFormat';
-import { DateFormat } from '../shared/enums/dateFormat';
-import { DiscountType } from '../shared/enums/discountType';
-import { InvoiceStatus } from '../shared/enums/invoiceStatus';
-import { InvoiceType } from '../shared/enums/invoiceType';
-import { InvoiceItemTaxType, InvoiceTaxType } from '../shared/enums/taxType';
-import type { InvoiceFromData } from '../shared/types/invoice';
-import type { Settings } from '../shared/types/settings';
-import { buildReceiptHtml, type ReceiptTexts } from '../shared/utils/receiptFunctions';
+import { AmountFormat } from '../../enums/amountFormat';
+import { DateFormat } from '../../enums/dateFormat';
+import { DiscountType } from '../../enums/discountType';
+import { InvoiceStatus } from '../../enums/invoiceStatus';
+import { InvoiceType } from '../../enums/invoiceType';
+import { InvoiceItemTaxType, InvoiceTaxType } from '../../enums/taxType';
+import type { InvoiceFromData } from '../../types/invoice';
+import type { Settings } from '../../types/settings';
+import { buildReceiptHtml, type ReceiptTexts } from '../receiptFunctions';
 
 const texts: ReceiptTexts = {
   invoiceLabel: 'Invoice',

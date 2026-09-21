@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { LayoutBuilder } from '../pages/layouts/LayoutBuilder';
-import { parseLayoutSchema } from '../shared/types/layouts';
+import { parseLayoutSchema } from '../../../shared/types/layouts';
+import { LayoutBuilder } from '../LayoutBuilder';
 
 const renderBuilder = (schema: unknown) => {
   const onSchemaChange = vi.fn();

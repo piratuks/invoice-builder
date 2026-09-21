@@ -1,17 +1,17 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { List } from '../pages/layouts/List';
+import { List } from '../List';
 
 const { exportLayout, useExportLayout } = vi.hoisted(() => ({
   exportLayout: vi.fn(),
   useExportLayout: vi.fn()
 }));
 
-vi.mock('../shared/hooks/layouts/useLayoutExport', () => ({
+vi.mock('../../../shared/hooks/layouts/useLayoutExport', () => ({
   useExportLayout
 }));
 
-vi.mock('../shared/components/lists/genericList/GenericList', () => ({
+vi.mock('../../../shared/components/lists/genericList/GenericList', () => ({
   GenericList: ({
     onExport,
     getName
