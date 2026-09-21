@@ -40,7 +40,15 @@ export default defineConfig(({ mode }) => {
       setupFiles: './setupTests.ts',
       coverage: {
         include: ['src/**'],
-        exclude: ['src/**/vite-env.d.ts', 'src/**/main.tsx', 'src/**/reportWebVitals.ts', 'src/**/mocks'],
+        exclude: [
+          'src/**/vite-env.d.ts',
+          'src/**/main.tsx',
+          'src/**/reportWebVitals.ts',
+          'src/**/mocks',
+          'src/backend/main/assets/**',
+          'src/renderer/assets/**',
+          'src/**/types/**'
+        ],
         reporter: ['text', 'json', 'html']
       },
       exclude: [...configDefaults.exclude, 'node_modules'],
