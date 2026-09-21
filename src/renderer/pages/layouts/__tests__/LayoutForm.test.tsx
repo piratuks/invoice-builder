@@ -3,6 +3,8 @@ import { I18nextProvider } from 'react-i18next';
 import { Provider } from 'react-redux';
 import { describe, expect, it, vi } from 'vitest';
 import i18n from '../../../i18n';
+import { InvoiceFormMode } from '../../../shared/enums/invoiceFormMode';
+import type { Layout } from '../../../shared/types/layouts';
 import { store } from '../../../state/configureStore';
 import { Form } from '../Form';
 
@@ -43,6 +45,12 @@ vi.mock('../LayoutBuilder', () => ({
         invalidate builder
       </button>
     </div>
+  )
+}));
+
+vi.mock('../LayoutBuilderPreview', () => ({
+  LayoutBuilderPreview: ({ schema }: { schema: { meta?: { name?: string } } }) => (
+    <div data-testid="layout-preview">{schema.meta?.name}</div>
   )
 }));
 
@@ -115,5 +123,51 @@ describe('Layout Form S4 integration', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'invalidate builder' }));
     await waitFor(() => expect(handleChange.mock.lastCall?.[0].isFormValid).toBe(false));
+  });
+
+  it('renders only valid schemas in preview mode', () => {
+    const item: Layout = {
+      id: 4,
+      isArchived: false,
+      schema: { schemaVersion: 1, meta: { name: 'Preview layout' }, sections: [] },
+      invoiceCount: 0,
+      quotesCount: 0,
+      createdAt: '',
+      updatedAt: ''
+    };
+    const { rerender } = render(
+      <Provider store={store}>
+        <I18nextProvider i18n={i18n}>
+          <Form item={item} handleChange={vi.fn()} mode={InvoiceFormMode.preview} />
+        </I18nextProvider>
+      </Provider>
+    );
+
+    expect(screen.getByTestId('layout-preview')).toHaveTextContent('Preview layout');
+    rerender(
+      <Provider store={store}>
+        <I18nextProvider i18n={i18n}>
+          <Form
+            item={{ ...item, schema: { schemaVersion: 2 } } as unknown as Layout}
+            handleChange={vi.fn()}
+            mode={InvoiceFormMode.preview}
+          />
+        </I18nextProvider>
+      </Provider>
+    );
+    expect(screen.queryByTestId('layout-preview')).not.toBeInTheDocument();
+  });
+
+  it('propagates archived changes and ignores an empty file selection', async () => {
+    const handleChange = vi.fn();
+    const { container } = renderForm(handleChange);
+    const archived = container.querySelector('input[type="checkbox"]') as HTMLInputElement;
+    const upload = container.querySelector('input[type="file"]') as HTMLInputElement;
+
+    fireEvent.click(archived);
+    await waitFor(() => expect(handleChange.mock.lastCall?.[0].layout.isArchived).toBe(true));
+
+    fireEvent.change(upload, { target: { files: [] } });
+    expect(upload.value).toBe('');
   });
 });

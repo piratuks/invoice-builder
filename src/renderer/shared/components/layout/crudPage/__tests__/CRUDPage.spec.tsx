@@ -8,9 +8,17 @@ import i18n from '../../../../../i18n';
 import { store } from '../../../../../state/configureStore';
 import { FilterType } from '../../../../enums/filterType';
 import type { Response } from '../../../../types/response';
+import { importExcel } from '../../../../utils/fileFunctions';
 import { CRUDPage } from '../CRUDPage';
 
+vi.mock('../../../../utils/fileFunctions', () => ({
+  exportExcel: vi.fn(),
+  importExcel: vi.fn()
+}));
+
 // Force MUI's useMediaQuery to report a desktop viewport so both columns render.
+let isDesktop = true;
+
 beforeAll(() => {
   window.matchMedia =
     window.matchMedia ||
@@ -27,7 +35,7 @@ beforeAll(() => {
   vi.spyOn(window, 'matchMedia').mockImplementation(
     query =>
       ({
-        matches: true,
+        matches: isDesktop,
         media: query,
         onchange: null,
         addListener: () => {},
@@ -92,6 +100,8 @@ const baseProps = {
 describe('CRUDPage', () => {
   beforeEach(() => {
     localStorage.clear();
+    isDesktop = true;
+    vi.clearAllMocks();
   });
 
   it('shows the empty state and add button when there are no items', () => {
@@ -364,5 +374,119 @@ describe('CRUDPage', () => {
     await user.click(confirmButton);
 
     await waitFor(() => expect(store.getState().pageSlice.toasts.at(-1)?.message).toBe('Delete failed'));
+  });
+
+  it('delegates add clicks and lets the delegate open the form', async () => {
+    const user = userEvent.setup();
+    const onAddClick = vi.fn((defaultOnAdd: () => void) => defaultOnAdd());
+
+    render(<CRUDPage {...baseProps} onAddClick={onAddClick} useRetrieve={() => ({ items: [], execute: vi.fn() })} />, {
+      wrapper
+    });
+
+    await user.click(screen.getByText('Add entity'));
+
+    expect(onAddClick).toHaveBeenCalledWith(expect.any(Function));
+    expect(await screen.findByLabelText('name-input')).toBeInTheDocument();
+  });
+
+  it('normalizes imported rows and executes a batch add', async () => {
+    const user = userEvent.setup();
+    const addBatchExecute = vi.fn();
+    const validateAndNormalize = vi.fn(async (row: unknown) => row as Entity);
+    vi.mocked(importExcel).mockResolvedValue({
+      columns: ['name'],
+      rows: [{ name: 'Imported item' }]
+    });
+
+    const { container } = render(
+      <CRUDPage
+        {...baseProps}
+        excelData={{
+          excelColumns: ['name'],
+          excelFileName: 'entities',
+          excelFormat: 'xlsx',
+          excelTemplateData: []
+        }}
+        validateAndNormalize={validateAndNormalize}
+        useRetrieve={() => ({ items: [], execute: vi.fn() })}
+        useAddBatch={({ item, onDone }) => ({
+          execute: () => {
+            addBatchExecute(item);
+            onDone?.({ success: true, data: item ?? [] });
+          }
+        })}
+      />,
+      { wrapper }
+    );
+
+    await user.click(screen.getByRole('button', { name: i18n.t('common.importExport') }));
+    await user.click(screen.getByText(i18n.t('common.import')));
+    const fileInput = container.querySelector('input[type="file"]');
+    expect(fileInput).not.toBeNull();
+    await user.upload(fileInput as HTMLInputElement, new File(['sheet'], 'entities.xlsx'));
+
+    await waitFor(() => expect(addBatchExecute).toHaveBeenCalledWith([{ name: 'Imported item' }]));
+    expect(validateAndNormalize).toHaveBeenCalledWith({ name: 'Imported item' });
+  });
+
+  it('sorts the rendered list through the sort controls', async () => {
+    const user = userEvent.setup();
+    const items = [
+      { id: 1, name: 'Alpha' },
+      { id: 2, name: 'Zulu' }
+    ];
+
+    render(
+      <CRUDPage
+        {...baseProps}
+        componentId="entities-sort-test"
+        useRetrieve={() => ({ items, execute: vi.fn() })}
+        renderListItem={item => <div key={item.id}>{item.name}</div>}
+      />,
+      { wrapper }
+    );
+
+    await user.click(screen.getByRole('button', { name: i18n.t('ariaLabel.noSort') }));
+
+    await waitFor(() => {
+      const names = screen.getAllByText(/Alpha|Zulu/).map(node => node.textContent);
+      expect(names).toEqual(['Zulu', 'Alpha']);
+    });
+  });
+
+  it('returns to the list after saving an edit on mobile', async () => {
+    isDesktop = false;
+    const user = userEvent.setup();
+    const items = makeItems(1);
+    const updateExecute = vi.fn();
+
+    render(
+      <CRUDPage
+        {...baseProps}
+        componentId="entities-mobile-test"
+        useRetrieve={() => ({ items, execute: vi.fn() })}
+        useUpdate={({ onDone }) => ({
+          execute: () => {
+            updateExecute();
+            onDone?.({ success: true, data: { id: 1, name: 'Updated' } });
+          }
+        })}
+        renderListItem={(item, _selected, onEdit) => (
+          <button key={item.id} onClick={() => onEdit(item)}>
+            edit-{item.id}
+          </button>
+        )}
+      />,
+      { wrapper }
+    );
+
+    await user.click(screen.getByText('edit-1'));
+    expect(screen.queryByText('edit-1')).not.toBeInTheDocument();
+    await user.type(screen.getByLabelText('name-input'), ' updated');
+    await user.click(screen.getByRole('button', { name: /save/i }));
+
+    await waitFor(() => expect(updateExecute).toHaveBeenCalledTimes(1));
+    expect(await screen.findByText('edit-1')).toBeInTheDocument();
   });
 });

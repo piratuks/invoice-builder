@@ -234,4 +234,62 @@ describe('LayoutBuilder drag and drop', () => {
     expect(row).toBeTruthy();
     expect(column).toBeTruthy();
   });
+
+  it.each([
+    ['addGrid', 'grid'],
+    ['continue', 'continue'],
+    ['keepTogether', 'keepTogether']
+  ] as const)('upgrades V1 with the %s feature', (feature, expected) => {
+    const onSchemaChange = renderBuilder({
+      schemaVersion: 1,
+      meta: { name: `Upgrade ${feature}` },
+      sections: [{ type: 'header', visible: true }]
+    });
+
+    fireEvent.mouseDown(screen.getAllByRole('combobox')[1]);
+    fireEvent.click(screen.getByText(feature === 'addGrid' ? 'layouts.addGrid' : feature));
+
+    const upgraded = parseLayoutSchema(onSchemaChange.mock.lastCall?.[0] as string).schema;
+    expect(upgraded?.schemaVersion).toBe(2);
+    if (upgraded?.schemaVersion === 2) {
+      if (feature === 'addGrid') expect(upgraded.regions[0].children?.some(node => node.type === expected)).toBe(true);
+      else expect(upgraded.regions[0].overflow).toBe(expected);
+    }
+  });
+
+  it('adds an available V1 section through the section menu', () => {
+    const onSchemaChange = renderBuilder({
+      schemaVersion: 1,
+      meta: { name: 'Add section' },
+      sections: []
+    });
+
+    fireEvent.mouseDown(screen.getAllByRole('combobox')[2]);
+    fireEvent.click(screen.getByText('header'));
+
+    expect(changedSchema(onSchemaChange)?.sections?.map(section => section.type)).toEqual(['header']);
+  });
+
+  it('updates payment source for an expanded totals block', () => {
+    const onSchemaChange = renderBuilder({
+      schemaVersion: 1,
+      meta: { name: 'Totals properties' },
+      sections: [
+        {
+          type: 'totalsRow',
+          visible: true,
+          totalsBlocks: [{ type: 'paymentInfo', paymentSource: 'bank' }]
+        }
+      ]
+    });
+    const section = screen.getByText('totalsRow').closest('[role="treeitem"]') as HTMLElement;
+    fireEvent.click(within(section).getAllByRole('button', { name: 'layouts.properties' })[1]);
+    fireEvent.mouseDown(within(section).getAllByRole('combobox').at(-1)!);
+    fireEvent.click(screen.getByText('legacyBusiness'));
+
+    expect(changedSchema(onSchemaChange)?.sections?.[0].totalsBlocks?.[0]).toMatchObject({
+      type: 'paymentInfo',
+      paymentSource: 'legacyBusiness'
+    });
+  });
 });

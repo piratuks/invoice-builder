@@ -5,8 +5,10 @@ import { Provider } from 'react-redux';
 import i18n from '../../../../i18n';
 import { AmountFormat } from '../../../../shared/enums/amountFormat';
 import { DateFormat } from '../../../../shared/enums/dateFormat';
+import { DiscountType } from '../../../../shared/enums/discountType';
 import { InvoiceType } from '../../../../shared/enums/invoiceType';
 import { Language } from '../../../../shared/enums/language';
+import { InvoiceItemTaxType, InvoiceTaxType } from '../../../../shared/enums/taxType';
 import type { InvoiceFromData } from '../../../../shared/types/invoice';
 import { store } from '../../../../state/configureStore';
 import { setSettings } from '../../../../state/pageSlice';
@@ -33,11 +35,22 @@ vi.mock('../Dropdowns/SurchargeDropdown', () => ({
     ) : null
 }));
 vi.mock('../Dropdowns/AddPaymentDropdown', () => ({
-  AddPaymentDropdown: ({ isOpen, onClick }: { isOpen: boolean; onClick: (value: never) => void }) =>
+  AddPaymentDropdown: ({
+    isOpen,
+    onClick,
+    onClose
+  }: {
+    isOpen: boolean;
+    onClick: (value: never) => void;
+    onClose: () => void;
+  }) =>
     isOpen ? (
-      <button onClick={() => onClick({ paidAmount: 10, paidAt: '2024-01-01', paymentMethod: 'cash' } as never)}>
-        save-payment
-      </button>
+      <div>
+        <button onClick={() => onClick({ paidAmount: 10, paidAt: '2024-01-01', paymentMethod: 'cash' } as never)}>
+          save-payment
+        </button>
+        <button onClick={onClose}>close-payment</button>
+      </div>
     ) : null
 }));
 vi.mock('../Dropdowns/PaymentListDropdown', () => ({
@@ -166,11 +179,130 @@ describe('FinancialInfo callback branches', () => {
 
     const values = screen.getAllByText(/^(0\.00|10\.00)$/);
     await user.click(values[6]);
+    await user.click(screen.getByRole('button', { name: /edit-payment-row/i }));
+    await user.click(screen.getByRole('button', { name: /close-payment/i }));
+    await user.click(screen.getByRole('button', { name: /edit-payment-row/i }));
+    await user.click(screen.getByRole('button', { name: /save-payment/i }));
     await user.click(screen.getByRole('button', { name: /add-payment-row/i }));
     await user.click(screen.getByRole('button', { name: /save-payment/i }));
     await user.click(screen.getByRole('button', { name: /remove-payment-row/i }));
 
-    expect(onAdd).toHaveBeenCalled();
+    expect(onAdd).toHaveBeenCalledTimes(2);
     expect(onRemove).toHaveBeenCalledWith({ id: 2 });
+  });
+
+  it.each([
+    {
+      name: 'named exclusive tax',
+      form: { taxType: InvoiceTaxType.exclusive, taxName: 'VAT', taxRate: 20 },
+      label: 'VAT (20%)'
+    },
+    {
+      name: 'unnamed deducted tax',
+      form: { taxType: InvoiceTaxType.deducted, taxRate: 10 },
+      label: 'Tax (10%)'
+    },
+    {
+      name: 'named inclusive tax',
+      form: { taxType: InvoiceTaxType.inclusive, taxName: 'GST', taxRate: 8 },
+      label: 'GST (inc 8%)'
+    },
+    {
+      name: 'unnamed inclusive tax',
+      form: { taxType: InvoiceTaxType.inclusive, taxRate: 7 },
+      label: 'Tax (inc 7%)'
+    },
+    {
+      name: 'per-item exclusive tax',
+      form: {
+        invoiceItems: [
+          {
+            id: 1,
+            quantity: '1',
+            taxRate: 20,
+            taxType: InvoiceItemTaxType.exclusive,
+            invoiceItemSnapshot: { itemName: 'Item', unitPriceCents: '100' }
+          }
+        ]
+      },
+      label: 'Tax (Per Item)'
+    },
+    {
+      name: 'per-item inclusive tax',
+      form: {
+        invoiceItems: [
+          {
+            id: 1,
+            quantity: '1',
+            taxRate: 20,
+            taxType: InvoiceItemTaxType.inclusive,
+            invoiceItemSnapshot: { itemName: 'Item', unitPriceCents: '100' }
+          }
+        ]
+      },
+      label: 'Tax inc (Per Item)'
+    }
+  ])('renders $name', ({ form, label }) => {
+    render(
+      <FinancialInfo
+        invoiceForm={{ ...invoice, ...form } as InvoiceFromData}
+        onShippingFeesClick={vi.fn()}
+        onDiscountClick={vi.fn()}
+        onTaxesClick={vi.fn()}
+        onSurchargeClick={vi.fn()}
+        onAddPaymentClicked={vi.fn()}
+        onRemovePaymentClicked={vi.fn()}
+      />,
+      { wrapper }
+    );
+
+    expect(screen.getByText(label)).toBeInTheDocument();
+  });
+
+  it('renders percentage adjustments and hides payment totals for quotations', () => {
+    render(
+      <FinancialInfo
+        invoiceForm={
+          {
+            ...invoice,
+            invoiceType: InvoiceType.quotation,
+            discountType: DiscountType.percentage,
+            discountPercent: 5,
+            surchargeType: DiscountType.percentage,
+            surchargePercent: 6
+          } as InvoiceFromData
+        }
+        onShippingFeesClick={vi.fn()}
+        onDiscountClick={vi.fn()}
+        onTaxesClick={vi.fn()}
+        onSurchargeClick={vi.fn()}
+        onAddPaymentClicked={vi.fn()}
+        onRemovePaymentClicked={vi.fn()}
+      />,
+      { wrapper }
+    );
+
+    expect(screen.getByText('Discount (5%)')).toBeInTheDocument();
+    expect(screen.getByText('Surcharge (6%)')).toBeInTheDocument();
+    expect(screen.queryByText(i18n.t('invoices.paid'))).not.toBeInTheDocument();
+    expect(screen.queryByText(i18n.t('invoices.balanceDue'))).not.toBeInTheDocument();
+  });
+
+  it('renders financial defaults without invoice data', () => {
+    render(
+      <FinancialInfo
+        invoiceForm={undefined}
+        onShippingFeesClick={vi.fn()}
+        onDiscountClick={vi.fn()}
+        onTaxesClick={vi.fn()}
+        onSurchargeClick={vi.fn()}
+        onAddPaymentClicked={vi.fn()}
+        onRemovePaymentClicked={vi.fn()}
+      />,
+      { wrapper }
+    );
+
+    expect(screen.getByText(i18n.t('invoices.subTotal'))).toBeInTheDocument();
+    expect(screen.getByText('Tax (0%)')).toBeInTheDocument();
   });
 });

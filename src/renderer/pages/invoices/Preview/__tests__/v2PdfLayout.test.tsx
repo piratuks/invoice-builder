@@ -4,6 +4,7 @@
 // image files (see the "keeps fixed visual assets..." test). Run this file in the
 // plain Node environment since it doesn't need DOM APIs.
 import { pdf } from '@react-pdf/renderer';
+import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { PDFDocument as PdfLibDocument } from 'pdf-lib';
 import { describe, expect, it, vi } from 'vitest';
@@ -275,6 +276,7 @@ describe('V2 PDF layout rendering', () => {
 
   it('keeps fixed visual assets and page counters on a multi-page document', async () => {
     const imageSource = resolve(process.cwd(), 'src/renderer/assets/icon.png');
+    const imageDataUrl = `data:image/png;base64,${readFileSync(imageSource).toString('base64')}`;
     // Use a larger item set than the shared `items` fixture so the resulting page count
     // clears the 2-page threshold with a wide margin, avoiding cross-platform font
     // metric rounding differences flipping the count right at the boundary.
@@ -318,11 +320,11 @@ describe('V2 PDF layout rendering', () => {
           }
         }}
         storeSettings={settings}
-        attachmentUrls={[{ id: 1, url: imageSource }]}
+        attachmentUrls={[{ id: 1, url: imageDataUrl }]}
         pdfTexts={pdfTexts}
         layoutRequired="Layout required"
-        watermarkUrl={imageSource}
-        signatureUrl={imageSource}
+        watermarkUrl={imageDataUrl}
+        signatureUrl={imageDataUrl}
       />
     ).toBlob();
     const document = await PdfLibDocument.load(await blob.arrayBuffer());

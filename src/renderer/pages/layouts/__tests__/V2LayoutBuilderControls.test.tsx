@@ -325,4 +325,71 @@ describe('V2 LayoutBuilder controls', () => {
     expect(schema?.regions[0].children?.map(node => node.type)).toEqual(['section', 'section']);
     expect(schema?.regions[0].sections).toBeUndefined();
   });
+
+  it('updates region direction and overflow, including clearing overflow', () => {
+    const view = renderBuilder({
+      schemaVersion: 2,
+      meta: { name: 'Region options' },
+      regions: [{ id: 'main', width: '100%', direction: 'column', overflow: 'continue', children: [] }]
+    });
+
+    fireEvent.mouseDown(screen.getAllByRole('combobox')[2]);
+    fireEvent.click(screen.getByText('row'));
+    view.rerender(latestSchema(view.onSchemaChange));
+    fireEvent.mouseDown(screen.getAllByRole('combobox')[4]);
+    fireEvent.click(screen.getByText('keepTogether'));
+    view.rerender(latestSchema(view.onSchemaChange));
+    fireEvent.mouseDown(screen.getAllByRole('combobox')[4]);
+    fireEvent.click(screen.getByText('layouts.wrap'));
+
+    const region = latestSchema(view.onSchemaChange)?.regions[0];
+    expect(region?.direction).toBe('row');
+    expect(region).not.toHaveProperty('overflow');
+  });
+
+  it('adds, moves, and removes regions through toolbar actions', () => {
+    const view = renderBuilder({
+      schemaVersion: 2,
+      meta: { name: 'Region actions' },
+      regions: [{ id: 'main', width: '50%', direction: 'column', children: [] }]
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'layouts.addRegion' }));
+    const withRegion = latestSchema(view.onSchemaChange);
+    expect(withRegion?.regions).toHaveLength(2);
+    view.rerender(withRegion);
+
+    const mainRegion = screen.getByRole('textbox', { name: 'main' }).closest('[draggable="true"]') as HTMLElement;
+    fireEvent.click(within(mainRegion).getByRole('button', { name: 'layouts.moveDown' }));
+    const moved = latestSchema(view.onSchemaChange);
+    expect(moved?.regions[1].id).toBe('main');
+    view.rerender(moved);
+
+    const movedMain = screen.getByRole('textbox', { name: 'main' }).closest('[draggable="true"]') as HTMLElement;
+    fireEvent.click(within(movedMain).getByRole('button', { name: 'layouts.remove' }));
+    expect(latestSchema(view.onSchemaChange)?.regions).toHaveLength(1);
+  });
+
+  it('cancels and commits region renames from the keyboard', () => {
+    const view = renderBuilder({
+      schemaVersion: 2,
+      meta: { name: 'Keyboard rename' },
+      regions: [{ id: 'main', width: '100%', direction: 'column', children: [] }]
+    });
+    const nameField = screen.getByRole('textbox', { name: 'main' });
+
+    fireEvent.focus(nameField);
+    fireEvent.change(nameField, { target: { value: 'draft' } });
+    fireEvent.keyDown(nameField, { key: 'Escape' });
+    fireEvent.blur(nameField);
+    expect(latestSchema(view.onSchemaChange)?.regions[0].id).toBe('main');
+    view.onSchemaChange.mockClear();
+
+    const resetNameField = screen.getByRole('textbox', { name: 'main' });
+    fireEvent.focus(resetNameField);
+    fireEvent.change(resetNameField, { target: { value: 'content' } });
+    fireEvent.keyDown(resetNameField, { key: 'Enter' });
+    fireEvent.blur(resetNameField);
+    expect(latestSchema(view.onSchemaChange)?.regions[0].id).toBe('content');
+  });
 });

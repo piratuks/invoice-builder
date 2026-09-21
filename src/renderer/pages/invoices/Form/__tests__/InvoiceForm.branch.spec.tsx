@@ -7,6 +7,7 @@ import { MemoryRouter } from 'react-router-dom';
 import i18n from '../../../../i18n';
 import { AmountFormat } from '../../../../shared/enums/amountFormat';
 import { DateFormat } from '../../../../shared/enums/dateFormat';
+import { InvoiceStatus } from '../../../../shared/enums/invoiceStatus';
 import { InvoiceType } from '../../../../shared/enums/invoiceType';
 import { Language } from '../../../../shared/enums/language';
 import { PaymentType } from '../../../../shared/enums/paymentType';
@@ -184,6 +185,36 @@ vi.mock('../FinancialInfo', () => ({
       >
         add-payment
       </button>
+      <button
+        type="button"
+        onClick={() =>
+          onAddPaymentClicked({
+            id: 9,
+            paidAmount: 0.25,
+            paidAt: '2024-01-11',
+            paymentMethod: PaymentType.bank,
+            notes: 'updated'
+          })
+        }
+      >
+        update-payment
+      </button>
+      <button
+        type="button"
+        onClick={() =>
+          onAddPaymentClicked({
+            id: 404,
+            paidAmount: 2,
+            paidAt: '2024-01-12',
+            paymentMethod: PaymentType.cash
+          })
+        }
+      >
+        append-missing-payment
+      </button>
+      <button type="button" onClick={() => onAddPaymentClicked({ paidAmount: 0 })}>
+        invalid-payment
+      </button>
       <button type="button" onClick={() => onShippingFeesClick(12)}>
         set-shipping
       </button>
@@ -311,16 +342,19 @@ vi.mock('../ItemSelector', () => ({
 
 vi.mock('../Dropdowns/ItemsDropdown', () => ({
   ItemsDropdown: ({ onClick }: { onClick: (item: Record<string, unknown>, data: Record<string, unknown>) => void }) => (
-    <button
-      onClick={() =>
-        onClick(
-          { id: 8, name: 'Added item', unitName: 'hour' },
-          { quantity: 3, unitPrice: 2, header: 'Code', value: 'A', alignment: 'right', sortOrder: 2 }
-        )
-      }
-    >
-      select-item
-    </button>
+    <div>
+      <button
+        onClick={() =>
+          onClick(
+            { id: 8, name: 'Added item', unitName: 'hour' },
+            { quantity: 3, unitPrice: 2, header: 'Code', value: 'A', alignment: 'right', sortOrder: 2 }
+          )
+        }
+      >
+        select-item
+      </button>
+      <button onClick={() => onClick({ id: 9, name: 'Plain item' }, { unitPrice: 4 })}>select-plain-item</button>
+    </div>
   )
 }));
 
@@ -357,9 +391,14 @@ vi.mock('../Dropdowns/BusinessesDropdown', () => ({
 
 vi.mock('../Dropdowns/CurrenciesDropdown', () => ({
   CurrenciesDropdown: ({ onClick }: MockDropdownProps) => (
-    <button type="button" onClick={() => onClick({ id: 2, code: 'EUR', symbol: '€', subunit: 100, format: 'EUR' })}>
-      select-currency
-    </button>
+    <div>
+      <button type="button" onClick={() => onClick({ id: 2, code: 'EUR', symbol: '€', subunit: 100, format: 'EUR' })}>
+        select-currency
+      </button>
+      <button type="button" onClick={() => onClick({ id: 3, code: 'JPY', symbol: '¥', format: 'JPY' })}>
+        select-unitless-currency
+      </button>
+    </div>
   )
 }));
 
@@ -509,6 +548,7 @@ function InvoiceFormHarness({ initial = baseForm }: { initial?: InvoiceFromData 
       <div data-testid="business-name">{invoiceForm?.invoiceBusinessSnapshot?.businessName ?? 'none'}</div>
       <div data-testid="invoice-number">{invoiceForm?.invoiceNumber ?? 'none'}</div>
       <div data-testid="payment-method">{invoiceForm?.invoicePayments?.[0]?.paymentMethod ?? 'none'}</div>
+      <div data-testid="payment-amount">{invoiceForm?.invoicePayments?.[0]?.amountCents ?? 'none'}</div>
       <div data-testid="payment-count">{invoiceForm?.invoicePayments?.length ?? 0}</div>
       <div data-testid="item-count">{invoiceForm?.invoiceItems?.length ?? 0}</div>
       <div data-testid="item-quantity">{invoiceForm?.invoiceItems?.[0]?.quantity ?? 'none'}</div>
@@ -530,6 +570,8 @@ function InvoiceFormHarness({ initial = baseForm }: { initial?: InvoiceFromData 
       <div data-testid="signature">{invoiceForm?.signatureName ?? 'none'}</div>
       <div data-testid="thanks-notes">{invoiceForm?.thanksNotes ?? 'none'}</div>
       <div data-testid="terms-notes">{invoiceForm?.termsConditionNotes ?? 'none'}</div>
+      <div data-testid="second-item-alignment">{invoiceForm?.invoiceItems?.[1]?.customField?.alignment ?? 'none'}</div>
+      <div data-testid="third-item-alignment">{invoiceForm?.invoiceItems?.[2]?.customField?.alignment ?? 'none'}</div>
       <InvoiceForm invoiceForm={invoiceForm} setInvoiceForm={setInvoiceForm} type={InvoiceType.invoice} />
     </>
   );
@@ -611,13 +653,34 @@ describe('InvoiceForm branching behaviors', () => {
 
   it('updates item metadata when the item metadata save action is triggered', async () => {
     const user = userEvent.setup();
-    render(<InvoiceFormHarness />, { wrapper });
+    const initial = {
+      ...baseForm,
+      invoiceItems: [
+        {
+          ...baseForm.invoiceItems![0],
+          customField: { header: 'Custom', value: 'old', alignment: 'right', sortOrder: 1 }
+        },
+        {
+          ...baseForm.invoiceItems![0],
+          id: 2,
+          customField: { header: 'Custom', value: 'shared', alignment: 'right', sortOrder: 1 }
+        },
+        {
+          ...baseForm.invoiceItems![0],
+          id: 3,
+          customField: { header: 'Other', value: 'untouched', alignment: 'right', sortOrder: 2 }
+        }
+      ]
+    } as InvoiceFromData;
+    render(<InvoiceFormHarness initial={initial} />, { wrapper });
 
     await user.click(screen.getByRole('button', { name: /edit-item-1/i }));
     await user.click(screen.getByRole('button', { name: /save-item-metadata/i }));
 
     expect(screen.getByTestId('item-quantity')).toHaveTextContent('2');
     expect(screen.getByTestId('item-unit-price')).toHaveTextContent('150');
+    expect(screen.getByTestId('second-item-alignment')).toHaveTextContent('left');
+    expect(screen.getByTestId('third-item-alignment')).toHaveTextContent('right');
   });
 
   it('routes More Actions callbacks for an existing invoice', async () => {
@@ -659,6 +722,32 @@ describe('InvoiceForm branching behaviors', () => {
     expect(onDuplicate).toHaveBeenCalledWith(1, InvoiceType.quotation);
     expect(onDuplicate).toHaveBeenCalledWith(1, InvoiceType.invoice);
     expect(actionMocks.printReceipt).toHaveBeenCalledTimes(1);
+    expect(actionMocks.exportPdf).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps persisted-only actions inert while creating an invoice', async () => {
+    const user = userEvent.setup();
+    const invoiceForm = { ...baseForm, id: undefined } as InvoiceFromData;
+
+    render(<InvoiceForm invoiceForm={invoiceForm} setInvoiceForm={vi.fn()} type={InvoiceType.invoice} />, {
+      wrapper
+    });
+
+    for (const name of [
+      'action-print',
+      'action-delete',
+      'action-duplicate',
+      'action-make-invoice',
+      'action-pdf-ubl',
+      'action-ubl',
+      'action-xrechnung'
+    ]) {
+      await user.click(screen.getByRole('button', { name }));
+    }
+    await user.click(screen.getByRole('button', { name: 'action-pdf' }));
+
+    expect(actionMocks.printReceipt).not.toHaveBeenCalled();
+    expect(actionMocks.retrieveXML).not.toHaveBeenCalled();
     expect(actionMocks.exportPdf).toHaveBeenCalledTimes(1);
   });
 
@@ -726,5 +815,138 @@ describe('InvoiceForm branching behaviors', () => {
     expect(screen.getByTestId('item-count')).toHaveTextContent('2');
     await user.click(screen.getByRole('button', { name: 'remove-payment' }));
     expect(screen.getByTestId('payment-count')).toHaveTextContent('0');
+  });
+
+  it('converts values between currencies with and without subunits', async () => {
+    const user = userEvent.setup();
+    const initial = {
+      ...baseForm,
+      invoiceItems: [
+        {
+          ...baseForm.invoiceItems![0],
+          invoiceItemSnapshot: { ...baseForm.invoiceItems![0].invoiceItemSnapshot, unitPriceCents: '100' }
+        }
+      ]
+    } as InvoiceFromData;
+    const { unmount } = render(<InvoiceFormHarness initial={initial} />, { wrapper });
+
+    await user.click(screen.getByRole('button', { name: 'select-unitless-currency' }));
+    expect(screen.getByTestId('item-unit-price')).toHaveTextContent('1');
+    unmount();
+
+    render(
+      <InvoiceFormHarness
+        initial={
+          {
+            ...initial,
+            invoiceCurrencySnapshot: { currencyCode: 'JPY', currencySymbol: '¥' },
+            invoiceItems: [
+              {
+                ...initial.invoiceItems![0],
+                invoiceItemSnapshot: { ...initial.invoiceItems![0].invoiceItemSnapshot, unitPriceCents: '2' }
+              }
+            ]
+          } as InvoiceFromData
+        }
+      />,
+      { wrapper }
+    );
+
+    await user.click(screen.getByRole('button', { name: 'select-currency' }));
+    expect(screen.getByTestId('item-unit-price')).toHaveTextContent('200');
+  });
+
+  it('normalizes invalid currency values and creates plain items without metadata', async () => {
+    const user = userEvent.setup();
+    const initial = {
+      ...baseForm,
+      invoiceItems: [
+        {
+          ...baseForm.invoiceItems![0],
+          invoiceItemSnapshot: { ...baseForm.invoiceItems![0].invoiceItemSnapshot, unitPriceCents: 'invalid' }
+        }
+      ]
+    } as InvoiceFromData;
+    render(<InvoiceFormHarness initial={initial} />, { wrapper });
+
+    await user.click(screen.getByRole('button', { name: 'select-currency' }));
+    expect(screen.getByTestId('item-unit-price')).toHaveTextContent('0');
+    await user.click(screen.getByRole('button', { name: 'select-plain-item' }));
+    expect(screen.getByTestId('item-count')).toHaveTextContent('2');
+  });
+
+  it('updates an existing payment, appends a missing payment, and ignores invalid input', async () => {
+    const user = userEvent.setup();
+    const initial = {
+      ...baseForm,
+      invoicePayments: [{ id: 9, paidAt: '2024-01-01', paymentMethod: PaymentType.cash, amountCents: '50' }]
+    } as InvoiceFromData;
+    render(<InvoiceFormHarness initial={initial} />, { wrapper });
+
+    await user.click(screen.getByRole('button', { name: 'update-payment' }));
+    expect(screen.getByTestId('payment-count')).toHaveTextContent('1');
+    expect(screen.getByTestId('payment-amount')).toHaveTextContent('25');
+    expect(screen.getByTestId('status')).toHaveTextContent(InvoiceStatus.partiallyPaid);
+
+    await user.click(screen.getByRole('button', { name: 'append-missing-payment' }));
+    expect(screen.getByTestId('payment-count')).toHaveTextContent('2');
+    expect(screen.getByTestId('status')).toHaveTextContent(InvoiceStatus.paid);
+
+    await user.click(screen.getByRole('button', { name: 'invalid-payment' }));
+    expect(screen.getByTestId('payment-count')).toHaveTextContent('2');
+  });
+
+  it('propagates a selected custom-field alignment to matching items', async () => {
+    const user = userEvent.setup();
+    const initial = {
+      ...baseForm,
+      invoiceItems: [
+        {
+          ...baseForm.invoiceItems![0],
+          customField: { header: 'Code', value: 'old', alignment: 'left', sortOrder: 2 }
+        }
+      ]
+    } as InvoiceFromData;
+    render(<InvoiceFormHarness initial={initial} />, { wrapper });
+
+    await user.click(screen.getByRole('button', { name: 'select-item' }));
+
+    expect(screen.getByTestId('second-item-alignment')).toHaveTextContent('right');
+    expect(screen.getByTestId('item-count')).toHaveTextContent('2');
+  });
+
+  it('handles optional callbacks and undefined form data without mutating persisted actions', async () => {
+    const user = userEvent.setup();
+    const setInvoiceForm = vi.fn();
+    render(<InvoiceForm invoiceForm={undefined} setInvoiceForm={setInvoiceForm} type={InvoiceType.invoice} />, {
+      wrapper
+    });
+
+    for (const name of [
+      'select-business',
+      'select-bank',
+      'clear-bank',
+      'select-style',
+      'select-currency',
+      'select-item',
+      'select-language'
+    ]) {
+      await user.click(screen.getByRole('button', { name }));
+    }
+
+    expect(actionMocks.retrieveXML).not.toHaveBeenCalled();
+  });
+
+  it('opens More Actions from the keyboard', async () => {
+    const user = userEvent.setup();
+    render(<InvoiceFormHarness />, { wrapper });
+
+    await user.tab();
+    while (document.activeElement?.getAttribute('aria-label') !== i18n.t('ariaLabel.moreActions')) {
+      await user.tab();
+    }
+    await user.keyboard('{Enter}');
+
+    expect(document.activeElement).toHaveAttribute('aria-label', i18n.t('ariaLabel.moreActions'));
   });
 });
