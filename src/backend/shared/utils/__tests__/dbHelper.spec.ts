@@ -1,5 +1,6 @@
-import { DatabaseType } from '../shared/enums/databaseType';
-import type { DatabaseAdapter } from '../shared/types/DatabaseAdapter';
+import { DatabaseType } from '../../enums/databaseType';
+import { createTestDatabase } from '../../services/__tests__/testDb';
+import type { DatabaseAdapter } from '../../types/DatabaseAdapter';
 import {
   boolToInt,
   convertBooleanFields,
@@ -15,8 +16,7 @@ import {
   isTableExists,
   prepareUpdate,
   toDbValue
-} from '../shared/utils/dbHelper';
-import { createTestDatabase } from './testDb';
+} from '../dbHelper';
 
 describe('boolToInt', () => {
   it('converts booleans to 0/1 and passes through other values', () => {

@@ -1,14 +1,14 @@
-import { InvoiceStatus } from '../shared/enums/invoiceStatus';
-import { InvoiceType } from '../shared/enums/invoiceType';
-import { Language } from '../shared/enums/language';
-import { addInvoice, duplicateInvoice, getNextSequence, updateInvoice } from '../shared/services/invoices';
-import type { DatabaseAdapter } from '../shared/types/DatabaseAdapter';
+import { InvoiceStatus } from '../../enums/invoiceStatus';
+import { InvoiceType } from '../../enums/invoiceType';
+import { Language } from '../../enums/language';
+import type { DatabaseAdapter } from '../../types/DatabaseAdapter';
 import type {
   Invoice,
   InvoiceBusinessSnapshots,
   InvoiceClientSnapshots,
   InvoiceCurrencySnapshots
-} from '../shared/types/invoice';
+} from '../../types/invoice';
+import { addInvoice, duplicateInvoice, getNextSequence, updateInvoice } from '../invoices';
 import { createTestDatabase } from './testDb';
 
 const insertBusiness = async (db: DatabaseAdapter, name: string, shortName: string) => {

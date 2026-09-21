@@ -1,6 +1,6 @@
-import { DiscountType } from '../shared/enums/discountType';
-import { InvoiceItemTaxType, InvoiceTaxType } from '../shared/enums/taxType';
-import type { Invoice, InvoiceItem, InvoicePayment } from '../shared/types/invoice';
+import { DiscountType } from '../../../enums/discountType';
+import { InvoiceItemTaxType, InvoiceTaxType } from '../../../enums/taxType';
+import type { Invoice, InvoiceItem, InvoicePayment } from '../../../types/invoice';
 import {
   aggregateVat,
   calculateDiscount,
@@ -10,7 +10,7 @@ import {
   getInvoiceItemAmount,
   getTotalAmountPaidCents,
   getTotalUnitPrice
-} from '../shared/utils/einvoice/invoiceFunctions';
+} from '../invoiceFunctions';
 
 const item = (overrides: Partial<InvoiceItem> = {}): InvoiceItem =>
   ({

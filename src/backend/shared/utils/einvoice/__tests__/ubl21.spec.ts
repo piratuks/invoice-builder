@@ -1,8 +1,8 @@
-import { DiscountType } from '../shared/enums/discountType';
-import { EInvoice } from '../shared/enums/einvoice';
-import { InvoiceItemTaxType, InvoiceTaxType } from '../shared/enums/taxType';
-import type { Invoice } from '../shared/types/invoice';
-import { generateUBLInvoiceXML } from '../shared/utils/einvoice/ubl21';
+import { DiscountType } from '../../../enums/discountType';
+import { EInvoice } from '../../../enums/einvoice';
+import { InvoiceItemTaxType, InvoiceTaxType } from '../../../enums/taxType';
+import type { Invoice } from '../../../types/invoice';
+import { generateUBLInvoiceXML } from '../ubl21';
 
 const baseInvoice = (overrides: Partial<Invoice> = {}): Invoice =>
   ({

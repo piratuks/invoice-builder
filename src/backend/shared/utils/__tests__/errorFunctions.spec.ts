@@ -1,5 +1,5 @@
-import { DatabaseType } from '../shared/enums/databaseType';
-import { isDatabaseError, mapDatabaseError } from '../shared/utils/errorFunctions';
+import { DatabaseType } from '../../enums/databaseType';
+import { isDatabaseError, mapDatabaseError } from '../errorFunctions';
 
 describe('isDatabaseError', () => {
   it('identifies errors with a string code', () => {

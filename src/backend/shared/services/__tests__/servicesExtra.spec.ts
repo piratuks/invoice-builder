@@ -1,33 +1,33 @@
-import { AmountFormat } from '../shared/enums/amountFormat';
-import { DateFormat } from '../shared/enums/dateFormat';
-import { Language } from '../shared/enums/language';
-import { addBusiness } from '../shared/services/businesses';
-import { addCategory } from '../shared/services/categories';
-import { addClient } from '../shared/services/clients';
-import { exportAllData, importAllData } from '../shared/services/importExport';
-import { addItem, batchAddItem, deleteItem, getAllItems, updateItem } from '../shared/services/items';
-import { addLayout, deleteLayout, exportLayout, getAllLayouts, updateLayout } from '../shared/services/layouts';
-import { addPreset, batchAddPreset, deletePreset, getAllPresets, updatePreset } from '../shared/services/presets';
-import { getAllSettings, updateSettings } from '../shared/services/settings';
+import { AmountFormat } from '../../enums/amountFormat';
+import { DateFormat } from '../../enums/dateFormat';
+import { Language } from '../../enums/language';
+import type { DatabaseAdapter } from '../../types/DatabaseAdapter';
+import type { Business } from '../../types/business';
+import type { Category } from '../../types/category';
+import type { Client } from '../../types/client';
+import type { EntityWithCounts } from '../../types/entityWithCounts';
+import type { Item } from '../../types/item';
+import type { Layout } from '../../types/layouts';
+import type { Preset } from '../../types/preset';
+import type { Settings } from '../../types/settings';
+import type { StyleProfile } from '../../types/styleProfiles';
+import type { Unit } from '../../types/unit';
+import { addBusiness } from '../businesses';
+import { addCategory } from '../categories';
+import { addClient } from '../clients';
+import { exportAllData, importAllData } from '../importExport';
+import { addItem, batchAddItem, deleteItem, getAllItems, updateItem } from '../items';
+import { addLayout, deleteLayout, exportLayout, getAllLayouts, updateLayout } from '../layouts';
+import { addPreset, batchAddPreset, deletePreset, getAllPresets, updatePreset } from '../presets';
+import { getAllSettings, updateSettings } from '../settings';
 import {
   addStyleProfile,
   batchAddStyleProfile,
   deleteStyleProfile,
   getAllStyleProfiles,
   updateStyleProfile
-} from '../shared/services/styleProfiles';
-import { addUnit } from '../shared/services/units';
-import type { DatabaseAdapter } from '../shared/types/DatabaseAdapter';
-import type { Business } from '../shared/types/business';
-import type { Category } from '../shared/types/category';
-import type { Client } from '../shared/types/client';
-import type { EntityWithCounts } from '../shared/types/entityWithCounts';
-import type { Item } from '../shared/types/item';
-import type { Layout } from '../shared/types/layouts';
-import type { Preset } from '../shared/types/preset';
-import type { Settings } from '../shared/types/settings';
-import type { StyleProfile } from '../shared/types/styleProfiles';
-import type { Unit } from '../shared/types/unit';
+} from '../styleProfiles';
+import { addUnit } from '../units';
 import { createTestDatabase } from './testDb';
 
 const timestamps = () => ({ createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });

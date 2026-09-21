@@ -1,6 +1,6 @@
-import { DatabaseType } from '../shared/enums/databaseType';
-import { FilterType } from '../shared/enums/filterType';
-import { getHavingClauseFromFilters, getWhereClauseFromFilters } from '../shared/utils/filterFunctions';
+import { DatabaseType } from '../../enums/databaseType';
+import { FilterType } from '../../enums/filterType';
+import { getHavingClauseFromFilters, getWhereClauseFromFilters } from '../filterFunctions';
 
 describe('getWhereClauseFromFilters', () => {
   it('returns 1=1 when there are no filters', () => {

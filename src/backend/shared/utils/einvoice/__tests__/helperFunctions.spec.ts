@@ -1,4 +1,4 @@
-import { formatDate, formatXml, splitAddress, xmlEscape } from '../shared/utils/einvoice/helperFunctions';
+import { formatDate, formatXml, splitAddress, xmlEscape } from '../helperFunctions';
 
 describe('splitAddress', () => {
   it('returns an empty object for missing input', () => {

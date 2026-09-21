@@ -1,34 +1,16 @@
-import { addBank, batchAddBank, deleteBank, getAllBanks, updateBank } from '../shared/services/banks';
-import {
-  addBusiness,
-  batchAddBusiness,
-  deleteBusiness,
-  getAllBusinesses,
-  updateBusiness
-} from '../shared/services/businesses';
-import {
-  addCategory,
-  batchAddCategory,
-  deleteCategory,
-  getAllCategories,
-  updateCategory
-} from '../shared/services/categories';
-import { addClient, batchAddClient, deleteClient, getAllClients, updateClient } from '../shared/services/clients';
-import {
-  addCurrency,
-  batchAddCurrency,
-  deleteCurrency,
-  getAllCurrencies,
-  updateCurrency
-} from '../shared/services/currencies';
-import { addUnit, batchAddUnit, deleteUnit, getAllUnits, updateUnit } from '../shared/services/units';
-import type { DatabaseAdapter } from '../shared/types/DatabaseAdapter';
-import type { Bank } from '../shared/types/bank';
-import type { Business } from '../shared/types/business';
-import type { Category } from '../shared/types/category';
-import type { Client } from '../shared/types/client';
-import type { Currency } from '../shared/types/currency';
-import type { Unit } from '../shared/types/unit';
+import type { DatabaseAdapter } from '../../types/DatabaseAdapter';
+import type { Bank } from '../../types/bank';
+import type { Business } from '../../types/business';
+import type { Category } from '../../types/category';
+import type { Client } from '../../types/client';
+import type { Currency } from '../../types/currency';
+import type { Unit } from '../../types/unit';
+import { addBank, batchAddBank, deleteBank, getAllBanks, updateBank } from '../banks';
+import { addBusiness, batchAddBusiness, deleteBusiness, getAllBusinesses, updateBusiness } from '../businesses';
+import { addCategory, batchAddCategory, deleteCategory, getAllCategories, updateCategory } from '../categories';
+import { addClient, batchAddClient, deleteClient, getAllClients, updateClient } from '../clients';
+import { addCurrency, batchAddCurrency, deleteCurrency, getAllCurrencies, updateCurrency } from '../currencies';
+import { addUnit, batchAddUnit, deleteUnit, getAllUnits, updateUnit } from '../units';
 import { createTestDatabase } from './testDb';
 
 const timestamps = () => ({ createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });

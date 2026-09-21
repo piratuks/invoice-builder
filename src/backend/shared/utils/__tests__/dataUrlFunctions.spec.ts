@@ -1,9 +1,9 @@
-import type { Bank } from '../shared/types/bank';
-import type { Business } from '../shared/types/business';
-import type { EntityWithCounts } from '../shared/types/entityWithCounts';
-import type { InvoiceBankSnapshots, InvoiceBusinessSnapshots, InvoiceCustomization } from '../shared/types/invoice';
-import type { Preset } from '../shared/types/preset';
-import type { StyleProfile } from '../shared/types/styleProfiles';
+import type { Bank } from '../../types/bank';
+import type { Business } from '../../types/business';
+import type { EntityWithCounts } from '../../types/entityWithCounts';
+import type { InvoiceBankSnapshots, InvoiceBusinessSnapshots, InvoiceCustomization } from '../../types/invoice';
+import type { Preset } from '../../types/preset';
+import type { StyleProfile } from '../../types/styleProfiles';
 import {
   decodeBank,
   decodeInvoice,
@@ -33,7 +33,7 @@ import {
   encodeResultPreset,
   encodeResultStyleProfile,
   encodeStyleProfile
-} from '../shared/utils/dataUrlFunctions';
+} from '../dataUrlFunctions';
 
 describe('decodeLogo/encodeLogo', () => {
   it('decodes a base64 logo to a buffer and back', () => {
@@ -306,21 +306,20 @@ describe('encodeInvoiceExport/decodeInvoiceImport', () => {
   it('round-trips invoice signatureData', () => {
     const encoded = encodeInvoiceExport({
       signatureData: Buffer.from('sig')
-    } as unknown as import('../shared/types/invoice').Invoice);
+    } as unknown as import('../../types/invoice').Invoice);
     expect(encoded?.signatureData).toBe(Buffer.from('sig').toString('base64'));
 
-    const decoded = decodeInvoiceImport(encoded as unknown as import('../shared/types/invoice').Invoice);
+    const decoded = decodeInvoiceImport(encoded as unknown as import('../../types/invoice').Invoice);
     expect(decoded.signatureData?.toString()).toBe('sig');
   });
 
   it('handles null invoice input and signature', () => {
     expect(encodeInvoiceExport(null)).toBeNull();
     expect(
-      encodeInvoiceExport({ signatureData: null } as unknown as import('../shared/types/invoice').Invoice)
-        ?.signatureData
+      encodeInvoiceExport({ signatureData: null } as unknown as import('../../types/invoice').Invoice)?.signatureData
     ).toBeNull();
     expect(
-      decodeInvoiceImport({ signatureData: null } as unknown as import('../shared/types/invoice').Invoice).signatureData
+      decodeInvoiceImport({ signatureData: null } as unknown as import('../../types/invoice').Invoice).signatureData
     ).toBeNull();
   });
 });
@@ -364,7 +363,7 @@ describe('encodeResultInvoices/decodeResultInvoices', () => {
     );
 
     const decodedResult = decodeResultInvoices(
-      encodedResult as unknown as import('../shared/types/response').Response<Record<string, unknown>[]>
+      encodedResult as unknown as import('../../types/response').Response<Record<string, unknown>[]>
     );
     expect((decodedResult.data as { signatureData: Buffer }[])[0].signatureData?.toString()).toBe('sig');
   });
@@ -380,7 +379,7 @@ describe('encodeResultInvoices/decodeResultInvoices', () => {
     expect(encodedResult.data).toHaveProperty('signatureData', Buffer.from('sig').toString('base64'));
 
     const decodedResult = decodeResultInvoices(
-      encodedResult as unknown as import('../shared/types/response').Response<Record<string, unknown>>
+      encodedResult as unknown as import('../../types/response').Response<Record<string, unknown>>
     );
     expect((decodedResult.data as { signatureData: Buffer })?.signatureData?.toString()).toBe('sig');
   });

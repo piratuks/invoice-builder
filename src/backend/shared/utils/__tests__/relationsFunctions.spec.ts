@@ -1,11 +1,11 @@
-import { addCategory } from '../shared/services/categories';
-import { addUnit } from '../shared/services/units';
-import type { Category } from '../shared/types/category';
-import type { DatabaseAdapter } from '../shared/types/DatabaseAdapter';
-import type { Item } from '../shared/types/item';
-import type { Unit } from '../shared/types/unit';
-import { getOrCreateByName, resolveItemRelations } from '../shared/utils/relationsFunctions';
-import { createTestDatabase } from './testDb';
+import { createTestDatabase } from '../../services/__tests__/testDb';
+import { addCategory } from '../../services/categories';
+import { addUnit } from '../../services/units';
+import type { Category } from '../../types/category';
+import type { DatabaseAdapter } from '../../types/DatabaseAdapter';
+import type { Item } from '../../types/item';
+import type { Unit } from '../../types/unit';
+import { getOrCreateByName, resolveItemRelations } from '../relationsFunctions';
 
 const makeUnit = (name: string): Unit => ({
   name,

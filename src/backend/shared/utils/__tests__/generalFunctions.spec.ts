@@ -1,4 +1,4 @@
-import { fromBase64 } from '../shared/utils/generalFunctions';
+import { fromBase64 } from '../generalFunctions';
 
 describe('fromBase64', () => {
   it('decodes a base64 string into a Buffer', () => {

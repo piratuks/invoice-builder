@@ -1,11 +1,11 @@
 import sqlite3 from 'sqlite3';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { createSqliteAdapter } from '../shared/db/client';
-import { initSchema } from '../shared/db/setup';
-import { up as createLayouts } from '../shared/migrations/20260902-27-invoice_layouts';
-import { up as seedLayouts } from '../shared/migrations/20260902-28-layout-schema-seeds';
-import { up as repairLayoutSchemas } from '../shared/migrations/20260915-30-layout-schema-repair';
-import type { DatabaseAdapter } from '../shared/types/DatabaseAdapter';
+import { createSqliteAdapter } from '../../db/client';
+import { initSchema } from '../../db/setup';
+import type { DatabaseAdapter } from '../../types/DatabaseAdapter';
+import { up as createLayouts } from '../20260902-27-invoice_layouts';
+import { up as seedLayouts } from '../20260902-28-layout-schema-seeds';
+import { up as repairLayoutSchemas } from '../20260915-30-layout-schema-repair';
 
 type LayoutRow = { id: number; schema: string; isArchived: number };
 
