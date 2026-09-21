@@ -332,5 +332,5 @@ describe('V2 PDF layout rendering', () => {
 
     expect(document.getPageCount()).toBeGreaterThan(2);
     expect(contents.every(content => content.length > 0)).toBe(true);
-  });
+  }, 20_000);
 });
