@@ -69,7 +69,7 @@
     "lint:fix": "eslint --fix .",
     "test": "vitest",
     "test:e2e": "playwright test",
-    "test:coverage": "vitest --coverage",
+    "test:coverage": "vitest run --coverage",
     "sort:i18n": "node scripts/sort-i18n.js",
     "package": "npm run build && electron-builder --win --x64",
     "release:win": "npm run build && electron-builder --win --x64 --publish always",
