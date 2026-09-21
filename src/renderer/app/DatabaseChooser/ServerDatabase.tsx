@@ -85,6 +85,10 @@ export const ServerDatabase: FC<Props> = ({ onDatabaseRead }) => {
 
   const handleOpenSaved = useCallback(
     async (config: PostgresConfig) => {
+      // Guard against duplicate/overlapping init calls (e.g. rapid double-clicks) which
+      // can race with the backend's shared database connection and intermittently
+      // fail with "database not initialized".
+      if (isInitializing) return;
       const { password, ...rest } = config;
       void password;
       const newList = Array.from(new Set([rest, ...savedDbs]));
@@ -92,7 +96,7 @@ export const ServerDatabase: FC<Props> = ({ onDatabaseRead }) => {
       setIsInitializing(true);
       initDB();
     },
-    [savedDbs, initDB, saveDbList]
+    [savedDbs, initDB, saveDbList, isInitializing]
   );
 
   useEffect(() => {
@@ -212,7 +216,9 @@ export const ServerDatabase: FC<Props> = ({ onDatabaseRead }) => {
                 }}
               >
                 <ListItemButton
+                  disabled={isInitializing}
                   onClick={() => {
+                    if (isInitializing) return;
                     setConnection(item);
                   }}
                   sx={{

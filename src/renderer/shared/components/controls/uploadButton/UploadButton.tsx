@@ -36,6 +36,9 @@ export const UploadButton: React.FC<UploadSquareProps> = ({ onUpload, maxSizeMB 
     } else {
       const url = await toDataUrl(file);
       setImageSrc(url);
+      // Blur first: the input can still hold focus here, and MUI's Dialog hides the
+      // rest of the app with aria-hidden, which conflicts with a focused descendant.
+      event.target.blur();
       setCropDialogOpen(true);
     }
   };

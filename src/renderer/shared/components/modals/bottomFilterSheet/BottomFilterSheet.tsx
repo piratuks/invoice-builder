@@ -160,7 +160,16 @@ export const BottomFilterSheet: FC<Props> = ({ filters, onFilter = () => {}, sel
   return (
     <>
       <Tooltip title={t('ariaLabel.filters')}>
-        <IconButton color="primary" onClick={onOpen} aria-label={t('ariaLabel.filters')}>
+        <IconButton
+          color="primary"
+          onClick={e => {
+            // Blur first: MUI's SwipeableDrawer hides the rest of the app with
+            // aria-hidden, which conflicts with this button retaining focus.
+            e.currentTarget.blur();
+            onOpen();
+          }}
+          aria-label={t('ariaLabel.filters')}
+        >
           <FilterListIcon />
         </IconButton>
       </Tooltip>

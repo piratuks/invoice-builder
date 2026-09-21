@@ -1,5 +1,15 @@
 # Invoice Builder
 
+## {DATE}, version {VERSION}
+
+New features & improvements
+
+Bug fixes
+
+- Fixed the PDF preview flickering/remounting on every invoice or customization change by dropping the per-render `key` on `PDFViewer` and keeping the current preview visible until newly loaded assets are ready.
+- Fixed a `Buffer is not defined` error from `@react-pdf/layout` in the renderer by adding a minimal `Buffer.isBuffer` polyfill, relaxed the CSP `script-src` to `wasm-unsafe-eval` to support it, and fixed a browser console warning ("Blocked aria-hidden on an element because its descendant retained focus") shown when opening the image crop dialog or the filter drawer by blurring the triggering button/input before the modal opens.
+- Fixed an intermittent "database not initialized" / "failed to initialize" error when opening a database in web/Docker mode, caused by overlapping database initialization requests racing on the shared connection; initialization is now serialized on the backend and duplicate open requests are ignored on the frontend while one is in progress.
+
 ## 2026-09-16, version 2.9.0
 
 New features & improvements

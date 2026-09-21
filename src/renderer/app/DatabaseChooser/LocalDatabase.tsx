@@ -103,12 +103,16 @@ export const LocalDatabase: FC<Props> = ({ onDatabaseRead }) => {
 
   const handleOpenSaved = useCallback(
     async (fullPath: string) => {
+      // Guard against duplicate/overlapping init calls (e.g. rapid double-clicks) which
+      // can race with the backend's shared database connection and intermittently
+      // fail with "database not initialized".
+      if (isInitializing) return;
       const newList = Array.from(new Set([fullPath, ...savedDbs]));
       saveDbList(newList);
       setIsInitializing(true);
       initDB();
     },
-    [savedDbs, initDB, saveDbList]
+    [savedDbs, initDB, saveDbList, isInitializing]
   );
 
   const handleSelectPath = async () => {
@@ -234,7 +238,9 @@ export const LocalDatabase: FC<Props> = ({ onDatabaseRead }) => {
               }}
             >
               <ListItemButton
+                disabled={isInitializing}
                 onClick={() => {
+                  if (isInitializing) return;
                   setSelectionMode(DBInitType.open);
                   setSelectedPath(item);
                 }}
