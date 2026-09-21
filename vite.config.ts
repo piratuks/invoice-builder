@@ -47,7 +47,8 @@ export default defineConfig(({ mode }) => {
           'src/**/mocks',
           'src/backend/main/assets/**',
           'src/renderer/assets/**',
-          'src/**/types/**'
+          'src/**/types/**',
+          'src/**/utils/workers/**'
         ],
         reporter: ['text', 'json', 'html']
       },
