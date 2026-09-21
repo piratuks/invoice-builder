@@ -460,6 +460,7 @@ Please open an issue before starting major work to ensure alignment.
 
 | Version | Status                |
 | ------- | --------------------- |
+| v2.10.0 | ✅ Actively supported |
 | v2.9.0  | ✅ Actively supported |
 | v2.8.0  | ✅ Actively supported |
 | v2.7.1  | ✅ Actively supported |

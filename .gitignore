@@ -34,6 +34,7 @@ dist-be
 .env.production
 .env.test
 /coverage
+/coverage*
 
 release
 

@@ -50,7 +50,13 @@ export default defineConfig(({ mode }) => {
           'src/**/types/**',
           'src/**/utils/workers/**'
         ],
-        reporter: ['text', 'json', 'html']
+        reporter: ['text', 'json', 'html'],
+        thresholds: {
+          lines: 80,
+          functions: 80,
+          statements: 80,
+          branches: 80
+        }
       },
       exclude: [...configDefaults.exclude, 'node_modules'],
       include: ['src/**/__tests__/*.{test,spec}.{js,ts,jsx,tsx}']

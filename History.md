@@ -1,8 +1,10 @@
 # Invoice Builder
 
-## {DATE}, version {VERSION}
+## {DATE}, version 2.10.0
 
 New features & improvements
+
+- Added automated test coverage reaching at least 80% overall.
 
 Bug fixes
 
