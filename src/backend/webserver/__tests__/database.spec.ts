@@ -1,3 +1,4 @@
+import path from 'path';
 import { DatabaseType } from '../../shared/enums/databaseType';
 import type { DatabaseAdapter } from '../../shared/types/DatabaseAdapter';
 
@@ -54,16 +55,21 @@ describe('webserver database setup', () => {
     mocks.openSqlLite.mockResolvedValueOnce({ db: firstDb }).mockResolvedValueOnce({ db: secondDb });
     const { setupDB } = await import('../database');
 
-    await setupDB({ dbType: DatabaseType.sqlite, sqliteConfig: { fullPath: 'C:\\data\\first.db' } });
+    // Build paths with the host separator so the dirname assertion holds on Windows and Linux CI.
+    const dataDir = path.join('tmp', 'data');
+    const firstPath = path.join(dataDir, 'first.db');
+    const secondPath = path.join(dataDir, 'second.db');
+
+    await setupDB({ dbType: DatabaseType.sqlite, sqliteConfig: { fullPath: firstPath } });
     await setupDB({
       dbType: DatabaseType.sqlite,
-      sqliteConfig: { fullPath: 'C:\\data\\second.db' },
+      sqliteConfig: { fullPath: secondPath },
       createIfMissing: false
     });
 
     expect(firstDb.close).toHaveBeenCalledTimes(1);
-    expect(mocks.mkdirSync).toHaveBeenCalledWith('C:\\data', { recursive: true });
-    expect(mocks.openSqlLite).toHaveBeenLastCalledWith({ fullPath: 'C:\\data\\second.db', createIfMissing: false });
+    expect(mocks.mkdirSync).toHaveBeenCalledWith(dataDir, { recursive: true });
+    expect(mocks.openSqlLite).toHaveBeenLastCalledWith({ fullPath: secondPath, createIfMissing: false });
     expect(mocks.initSchema).toHaveBeenCalledTimes(1);
   });
 
