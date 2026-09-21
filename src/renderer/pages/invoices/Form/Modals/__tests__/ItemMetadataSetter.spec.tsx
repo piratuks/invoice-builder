@@ -5,6 +5,7 @@ import { I18nextProvider } from 'react-i18next';
 import { Provider } from 'react-redux';
 import i18n from '../../../../../i18n';
 import { getApi } from '../../../../../shared/api/restApi';
+import { Alignment } from '../../../../../shared/enums/alignment';
 import { InvoiceType } from '../../../../../shared/enums/invoiceType';
 import { store } from '../../../../../state/configureStore';
 import { ItemMetadataSetter } from '../ItemMetadataSetter';
@@ -89,5 +90,62 @@ describe('ItemMetadataSetter', () => {
     await user.click(screen.getByRole('button', { name: i18n.t('ariaLabel.back') }));
 
     expect(onCancel).toHaveBeenCalled();
+  });
+
+  it('requires all metadata after a selected alignment is cleared, then saves when restored', async () => {
+    const user = userEvent.setup();
+    const onSave = vi.fn();
+    render(
+      <ItemMetadataSetter
+        isOpen={true}
+        type={InvoiceType.invoice}
+        headerOptions={[]}
+        currQuantity="3"
+        currUnitPrice={25}
+        customField={{ header: 'Code', value: 'A-1', sortOrder: 2, alignment: Alignment.right }}
+        onSave={onSave}
+      />,
+      { wrapper }
+    );
+
+    const rightAlignment = screen.getByRole('radio', { name: Alignment.right });
+    const saveButton = screen.getByRole('button', { name: i18n.t('common.save') });
+    await user.click(rightAlignment);
+    await waitFor(() => expect(saveButton).toBeDisabled());
+
+    await user.click(rightAlignment);
+    await waitFor(() => expect(saveButton).toBeEnabled());
+    await user.click(saveButton);
+
+    expect(onSave).toHaveBeenCalledWith(
+      expect.objectContaining({ header: 'Code', value: 'A-1', sortOrder: 2, alignment: Alignment.right })
+    );
+  });
+
+  it('renders custom headers returned by the API without duplicating supplied options', async () => {
+    const user = userEvent.setup();
+    mockApi.getCustomHeaders.mockResolvedValue({
+      success: true,
+      data: [
+        { header: 'Department', sortOrder: 1, alignment: Alignment.left },
+        { header: 'Region', sortOrder: 2, alignment: Alignment.center }
+      ]
+    });
+
+    render(
+      <ItemMetadataSetter
+        isOpen={true}
+        type={InvoiceType.invoice}
+        headerOptions={[{ header: 'Department', sortOrder: 1, alignment: Alignment.left }]}
+      />,
+      { wrapper }
+    );
+
+    const headerInput = screen.getByRole('combobox', { name: /custom field header/i });
+    await user.click(headerInput);
+
+    expect(await screen.findByRole('option', { name: 'Department' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Region' })).toBeInTheDocument();
+    expect(screen.getAllByRole('option', { name: 'Department' })).toHaveLength(1);
   });
 });

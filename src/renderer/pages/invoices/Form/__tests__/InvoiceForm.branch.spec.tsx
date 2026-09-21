@@ -1,4 +1,4 @@
-﻿import { render, screen } from '@testing-library/react';
+﻿import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState, type ReactNode } from 'react';
 import { I18nextProvider } from 'react-i18next';
@@ -25,9 +25,38 @@ const mockApi = {
   getCustomHeaders: vi.fn().mockResolvedValue({ success: true, data: [] })
 };
 
+const actionMocks = vi.hoisted(() => ({
+  exportPdf: vi.fn(),
+  exportXML: vi.fn(),
+  exportPdfWithXml: vi.fn(),
+  printReceipt: vi.fn(),
+  retrieveXML: vi.fn(),
+  xmlOptions: undefined as
+    { onDone: (result: { success: boolean; data?: Uint8Array; message?: string; key?: string }) => void } | undefined
+}));
+
 vi.mock('../../../../shared/api/restApi', () => ({
   getApi: vi.fn(() => mockApi),
   isWebMode: () => true
+}));
+
+vi.mock('../../../../shared/hooks/fileExport/useExportPdf', () => ({
+  useExportPdf: () => ({ exportPdf: actionMocks.exportPdf })
+}));
+vi.mock('../../../../shared/hooks/fileExport/useExportXML', () => ({
+  useExportXML: () => ({ exportXML: actionMocks.exportXML })
+}));
+vi.mock('../../../../shared/hooks/fileExport/useExportPdfWithXml', () => ({
+  useExportPdfWithXml: () => ({ exportPdfWithXml: actionMocks.exportPdfWithXml })
+}));
+vi.mock('../../../../shared/hooks/print/usePrintReceipt', () => ({
+  usePrintReceipt: () => ({ printReceipt: actionMocks.printReceipt })
+}));
+vi.mock('../../../../shared/hooks/invoices/useGetEInvoiceXML', () => ({
+  useGetEInvoiceXML: (options: typeof actionMocks.xmlOptions) => {
+    actionMocks.xmlOptions = options;
+    return { execute: actionMocks.retrieveXML };
+  }
 }));
 
 vi.mock('react-signature-canvas', () => ({ default: () => <div data-testid="signature-canvas-stub" /> }));
@@ -45,6 +74,7 @@ type MockItemMetadataSetterProps = {
 
 type MockFinancialInfoProps = {
   onAddPaymentClicked: (data: Record<string, unknown>) => void;
+  onRemovePaymentClicked: (data: Record<string, unknown>) => void;
   onShippingFeesClick: (value: number) => void;
   onDiscountClick: (value: Record<string, unknown>) => void;
   onSurchargeClick: (value: Record<string, unknown>) => void;
@@ -133,6 +163,7 @@ vi.mock('../Modals/ItemMetadataSetter', () => ({
 vi.mock('../FinancialInfo', () => ({
   FinancialInfo: ({
     onAddPaymentClicked,
+    onRemovePaymentClicked,
     onShippingFeesClick,
     onDiscountClick,
     onSurchargeClick,
@@ -170,6 +201,9 @@ vi.mock('../FinancialInfo', () => ({
       </button>
       <button type="button" onClick={() => onTaxesClick({ taxName: 'VAT', taxRate: 20, invoiceItems: [] })}>
         set-tax
+      </button>
+      <button type="button" onClick={() => onRemovePaymentClicked({ id: 9 })}>
+        remove-payment
       </button>
     </div>
   )
@@ -267,6 +301,29 @@ vi.mock('../AttachmentsList', () => ({
   )
 }));
 
+vi.mock('../BusinessSelector', () => ({
+  BusinessSelector: ({ onEdit }: { onEdit: () => void }) => <button onClick={onEdit}>edit-business</button>
+}));
+
+vi.mock('../ItemSelector', () => ({
+  ItemSelector: ({ onEdit }: { onEdit: () => void }) => <button onClick={onEdit}>edit-items</button>
+}));
+
+vi.mock('../Dropdowns/ItemsDropdown', () => ({
+  ItemsDropdown: ({ onClick }: { onClick: (item: Record<string, unknown>, data: Record<string, unknown>) => void }) => (
+    <button
+      onClick={() =>
+        onClick(
+          { id: 8, name: 'Added item', unitName: 'hour' },
+          { quantity: 3, unitPrice: 2, header: 'Code', value: 'A', alignment: 'right', sortOrder: 2 }
+        )
+      }
+    >
+      select-item
+    </button>
+  )
+}));
+
 vi.mock('../Dropdowns/BusinessesDropdown', () => ({
   BusinessesDropdown: ({ onClick }: MockDropdownProps) => (
     <button
@@ -322,6 +379,55 @@ vi.mock('../Dropdowns/InvoiceInformationDropdown', () => ({
     >
       select-invoice-info
     </button>
+  )
+}));
+
+vi.mock('../Dropdowns/MoreActionDropdown', () => ({
+  MoreActionDropdown: ({
+    onPrintReceipt,
+    onDelete,
+    onDuplicate,
+    onMakeInvoice,
+    onExportPDF,
+    onExportPDFUBL,
+    onExportUBLXML,
+    onExportXRechnungXML
+  }: {
+    onPrintReceipt: () => void;
+    onDelete: () => void;
+    onDuplicate: () => void;
+    onMakeInvoice: () => void;
+    onExportPDF: () => void;
+    onExportPDFUBL: () => void;
+    onExportUBLXML: () => void;
+    onExportXRechnungXML: () => void;
+  }) => (
+    <div>
+      <button type="button" onClick={onPrintReceipt}>
+        action-print
+      </button>
+      <button type="button" onClick={onDelete}>
+        action-delete
+      </button>
+      <button type="button" onClick={onDuplicate}>
+        action-duplicate
+      </button>
+      <button type="button" onClick={onMakeInvoice}>
+        action-make-invoice
+      </button>
+      <button type="button" onClick={onExportPDF}>
+        action-pdf
+      </button>
+      <button type="button" onClick={onExportPDFUBL}>
+        action-pdf-ubl
+      </button>
+      <button type="button" onClick={onExportUBLXML}>
+        action-ubl
+      </button>
+      <button type="button" onClick={onExportXRechnungXML}>
+        action-xrechnung
+      </button>
+    </div>
   )
 }));
 
@@ -403,6 +509,8 @@ function InvoiceFormHarness({ initial = baseForm }: { initial?: InvoiceFromData 
       <div data-testid="business-name">{invoiceForm?.invoiceBusinessSnapshot?.businessName ?? 'none'}</div>
       <div data-testid="invoice-number">{invoiceForm?.invoiceNumber ?? 'none'}</div>
       <div data-testid="payment-method">{invoiceForm?.invoicePayments?.[0]?.paymentMethod ?? 'none'}</div>
+      <div data-testid="payment-count">{invoiceForm?.invoicePayments?.length ?? 0}</div>
+      <div data-testid="item-count">{invoiceForm?.invoiceItems?.length ?? 0}</div>
       <div data-testid="item-quantity">{invoiceForm?.invoiceItems?.[0]?.quantity ?? 'none'}</div>
       <div data-testid="item-unit-price">
         {invoiceForm?.invoiceItems?.[0]?.invoiceItemSnapshot.unitPriceCents ?? 'none'}
@@ -420,6 +528,8 @@ function InvoiceFormHarness({ initial = baseForm }: { initial?: InvoiceFromData 
       <div data-testid="customer-notes">{invoiceForm?.customerNotes ?? 'none'}</div>
       <div data-testid="attachment-count">{invoiceForm?.invoiceAttachments?.length ?? 0}</div>
       <div data-testid="signature">{invoiceForm?.signatureName ?? 'none'}</div>
+      <div data-testid="thanks-notes">{invoiceForm?.thanksNotes ?? 'none'}</div>
+      <div data-testid="terms-notes">{invoiceForm?.termsConditionNotes ?? 'none'}</div>
       <InvoiceForm invoiceForm={invoiceForm} setInvoiceForm={setInvoiceForm} type={InvoiceType.invoice} />
     </>
   );
@@ -427,6 +537,8 @@ function InvoiceFormHarness({ initial = baseForm }: { initial?: InvoiceFromData 
 
 describe('InvoiceForm branching behaviors', () => {
   beforeEach(() => {
+    vi.clearAllMocks();
+    actionMocks.xmlOptions = undefined;
     store.dispatch(
       setSettings({
         id: 1,
@@ -506,5 +618,113 @@ describe('InvoiceForm branching behaviors', () => {
 
     expect(screen.getByTestId('item-quantity')).toHaveTextContent('2');
     expect(screen.getByTestId('item-unit-price')).toHaveTextContent('150');
+  });
+
+  it('routes More Actions callbacks for an existing invoice', async () => {
+    const user = userEvent.setup();
+    const onDelete = vi.fn();
+    const onDuplicate = vi.fn();
+    const invoiceForm = { ...baseForm, invoiceType: InvoiceType.quotation } as InvoiceFromData;
+
+    render(
+      <InvoiceForm
+        invoiceForm={invoiceForm}
+        setInvoiceForm={vi.fn()}
+        handleDelete={onDelete}
+        handleDuplicate={onDuplicate}
+        type={InvoiceType.quotation}
+      />,
+      { wrapper }
+    );
+
+    await user.click(screen.getByRole('button', { name: /action-print/i }));
+    await user.click(screen.getByRole('button', { name: /action-delete/i }));
+    await user.click(screen.getByRole('button', { name: /action-duplicate/i }));
+    await user.click(screen.getByRole('button', { name: /action-make-invoice/i }));
+    await user.click(screen.getByRole('button', { name: 'action-pdf' }));
+    await user.click(screen.getByRole('button', { name: 'action-pdf-ubl' }));
+    await waitFor(() => expect(actionMocks.retrieveXML).toHaveBeenCalledTimes(1));
+    actionMocks.xmlOptions!.onDone({ success: true, data: new Uint8Array([1]) });
+    expect(actionMocks.exportPdfWithXml).toHaveBeenCalledTimes(1);
+    await user.click(screen.getByRole('button', { name: 'action-ubl' }));
+    await waitFor(() => expect(actionMocks.retrieveXML).toHaveBeenCalledTimes(2));
+    actionMocks.xmlOptions!.onDone({ success: true, data: new Uint8Array([2]) });
+    expect(actionMocks.exportXML).toHaveBeenCalled();
+    await user.click(screen.getByRole('button', { name: 'action-xrechnung' }));
+    await waitFor(() => expect(actionMocks.retrieveXML).toHaveBeenCalledTimes(3));
+    actionMocks.xmlOptions!.onDone({ success: false, message: 'XML failed' });
+    actionMocks.xmlOptions!.onDone({ success: false, key: 'error.failedToLoad' });
+
+    expect(onDelete).toHaveBeenCalledWith(1);
+    expect(onDuplicate).toHaveBeenCalledWith(1, InvoiceType.quotation);
+    expect(onDuplicate).toHaveBeenCalledWith(1, InvoiceType.invoice);
+    expect(actionMocks.printReceipt).toHaveBeenCalledTimes(1);
+    expect(actionMocks.exportPdf).toHaveBeenCalledTimes(1);
+  });
+
+  it('updates all ancillary invoice details', async () => {
+    const user = userEvent.setup();
+    const initial = {
+      ...baseForm,
+      invoicePayments: [{ id: 9, paidAt: '2024-01-01', paymentMethod: PaymentType.cash, amountCents: '50' }],
+      invoiceAttachments: [
+        { id: 1, fileName: 'old.txt', fileType: 'text/plain', fileSize: 1, data: new Uint8Array([111, 108, 100]) }
+      ],
+      invoiceCustomization: { color: '#000000' }
+    } as InvoiceFromData;
+    render(<InvoiceFormHarness initial={initial} />, { wrapper });
+
+    for (const name of [
+      'set-shipping',
+      'set-discount',
+      'set-surcharge',
+      'archive',
+      'set-status',
+      'customer-note',
+      'thanks-note',
+      'terms-note',
+      'set-signature',
+      'attach-file',
+      'clear-file',
+      'clear-bank',
+      'select-bank',
+      'select-style',
+      'select-language',
+      'select-client',
+      'set-tax'
+    ]) {
+      await user.click(screen.getByRole('button', { name }));
+    }
+
+    expect(screen.getByTestId('shipping')).toHaveTextContent('1200');
+    expect(screen.getByTestId('discount')).toHaveTextContent('300');
+    expect(screen.getByTestId('surcharge')).toHaveTextContent('400');
+    expect(screen.getByTestId('tax-rate')).toHaveTextContent('20');
+    expect(screen.getByTestId('archived')).toHaveTextContent('true');
+    expect(screen.getByTestId('status')).toHaveTextContent('paid');
+    expect(screen.getByTestId('customer-notes')).toHaveTextContent('Customer');
+    expect(screen.getByTestId('thanks-notes')).toHaveTextContent('Thanks');
+    expect(screen.getByTestId('terms-notes')).toHaveTextContent('Terms');
+    expect(screen.getByTestId('signature')).toHaveTextContent('Signer');
+    expect(screen.getByTestId('attachment-count')).toHaveTextContent('1');
+    expect(screen.getByTestId('bank-id')).toHaveTextContent('3');
+    expect(screen.getByTestId('style-id')).toHaveTextContent('4');
+    expect(screen.getByTestId('language')).toHaveTextContent(Language.de);
+    expect(screen.getByTestId('client-id')).toHaveTextContent('6');
+  });
+
+  it('adds a selected item with custom metadata and removes a payment', async () => {
+    const user = userEvent.setup();
+    const initial = {
+      ...baseForm,
+      invoicePayments: [{ id: 9, paidAt: '2024-01-01', paymentMethod: PaymentType.cash, amountCents: '100' }]
+    } as InvoiceFromData;
+    render(<InvoiceFormHarness initial={initial} />, { wrapper });
+
+    await user.click(screen.getByRole('button', { name: 'edit-items' }));
+    await user.click(screen.getByRole('button', { name: 'select-item' }));
+    expect(screen.getByTestId('item-count')).toHaveTextContent('2');
+    await user.click(screen.getByRole('button', { name: 'remove-payment' }));
+    expect(screen.getByTestId('payment-count')).toHaveTextContent('0');
   });
 });
