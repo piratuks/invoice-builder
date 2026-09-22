@@ -1,10 +1,11 @@
 # Invoice Builder
 
-## {DATE}, version 2.10.0
+## 2026-09-22, version 2.10.0
 
 New features & improvements
 
 - Added automated test coverage reaching at least 80% overall.
+- Added isolated multi-session database contexts for web/Docker mode, including server-issued session tokens, per-database session/workspace metadata, SQLite/PostgreSQL restart recovery, automatic session cleanup, and PostgreSQL pool lifecycle management.
 
 Bug fixes
 

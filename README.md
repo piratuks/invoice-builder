@@ -151,6 +151,17 @@ Users can now choose between:
 
 This makes Invoice Builder flexible for both lightweight personal use and more advanced multi‑device or multi‑user environments.
 
+### Multi-session web mode
+
+Web/Docker mode supports multiple independent browser sessions without a shared server-wide current database:
+
+- Each browser session receives an opaque server-issued session token.
+- Each session/workspace is bound to its selected SQLite or PostgreSQL database.
+- Requests resolve the database from the session context, so one browser cannot switch another browser's active database.
+- Sessions expire automatically and stale database handles are cleaned up.
+
+This is session isolation, not account authentication. The current application has no user login, roles, or workspace membership system. Electron desktop windows use separate database contexts locally.
+
 ## 🧑‍💻 Self-Hosting (Docker)
 
 Invoice Builder can also be self-hosted using Docker for users who prefer running it on their own server or NAS.
