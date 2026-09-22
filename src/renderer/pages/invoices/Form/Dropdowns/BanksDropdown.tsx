@@ -1,12 +1,11 @@
 import { SwipeableDrawer, useMediaQuery, useTheme } from '@mui/material';
 import { memo, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CRUDPage } from '../../../../shared/components/layout/crudPage/CRUDPage';
+import { useGetBanksQuery } from '../../../../shared/api/banksApi';
+import { CRUDPageRTK } from '../../../../shared/components/layout/crudPage/CRUDPageRTK';
 import { FilterType } from '../../../../shared/enums/filterType';
-import { useBanksRetrieve } from '../../../../shared/hooks/banks/useBanksRetrieve';
 import type { Bank, BankAdd, BankUpdate } from '../../../../shared/types/bank';
-import type { Filter, FilterData } from '../../../../shared/types/filter';
-import type { Response } from '../../../../shared/types/response';
+import type { Filter } from '../../../../shared/types/filter';
 import { createCommonFilters, createInvoiceFilters } from '../../../../shared/utils/filterSortFunctions';
 import { List as BankList } from '../../../banks/List';
 
@@ -25,10 +24,6 @@ const BanksDropdownComponent: FC<Props> = ({ isOpen, onClose, onOpen, onClick })
   ];
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
-  const useBanksCRUDRetrieve = (args: { filter?: FilterData[]; onDone?: (data: Response<Bank[]>) => void }) => {
-    const { banks, execute } = useBanksRetrieve({ filter: args.filter, onDone: args.onDone });
-    return { items: banks, execute };
-  };
   return (
     <>
       <SwipeableDrawer
@@ -51,12 +46,12 @@ const BanksDropdownComponent: FC<Props> = ({ isOpen, onClose, onOpen, onClick })
           }
         }}
       >
-        <CRUDPage<Bank, BankAdd, BankUpdate>
+        <CRUDPageRTK<Bank, BankAdd, BankUpdate>
           componentId="invoices:banks"
           filters={filters}
           showRightSide={false}
           showAddButton={false}
-          useRetrieve={useBanksCRUDRetrieve}
+          useRetrieve={useGetBanksQuery}
           searchField={'name'}
           sortOptions={[
             { label: t('common.name'), value: 'name' },
