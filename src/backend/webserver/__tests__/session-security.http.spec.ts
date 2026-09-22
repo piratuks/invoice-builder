@@ -47,8 +47,9 @@ describe('webserver HTTP session security', () => {
 
   const createProtectedApp = async () => {
     const { sessionDatabaseMiddleware, databaseContextMiddleware } = await import('../main');
-    const { requireDB } = await import('../utils/functions');
+    const { requireDB, sessionAuthorizationLimiter } = await import('../utils/functions');
     const app = express();
+    app.use(sessionAuthorizationLimiter);
     app.use(sessionDatabaseMiddleware);
     app.use(databaseContextMiddleware);
     app.get('/protected', requireDB, (req, res) => {
@@ -63,6 +64,19 @@ describe('webserver HTTP session security', () => {
 
     expect(response.status).toBe(401);
     await expect(response.json()).resolves.toMatchObject({ key: 'error.sessionExpired' });
+  });
+
+  it('rate limits repeated authorization attempts', async () => {
+    const app = await createProtectedApp();
+
+    for (let attempt = 0; attempt < 10; attempt += 1) {
+      expect((await request(app, { 'x-session-token': 'forged-token' })).status).toBe(401);
+    }
+
+    const response = await request(app, { 'x-session-token': 'forged-token' });
+
+    expect(response.status).toBe(429);
+    await expect(response.json()).resolves.toMatchObject({ key: 'error.rateLimiter' });
   });
 
   it('rejects unauthorized workspace access', async () => {

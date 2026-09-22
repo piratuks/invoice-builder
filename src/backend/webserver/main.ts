@@ -14,6 +14,7 @@ import {
   restoreSqliteDatabase
 } from './database';
 import { authenticateSession, getSessionTokenFromRequest } from './session';
+import { sessionAuthorizationLimiter } from './utils/functions';
 
 const port = Number(process.env.PORT) || Number(APP_CONFIG.PORT);
 const server = process.env.DEV_SERVER_URL || APP_CONFIG.DEV_SERVER_URL;
@@ -90,6 +91,7 @@ export const databaseContextMiddleware = (req: Request, _res: Response, next: Ne
   next();
 };
 
+app.use(sessionAuthorizationLimiter);
 app.use(sessionDatabaseMiddleware);
 app.use(databaseContextMiddleware);
 app.use(

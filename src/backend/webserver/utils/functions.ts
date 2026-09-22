@@ -67,3 +67,15 @@ export const listDbLimiter = rateLimit({
     key: 'error.rateLimiter'
   }
 });
+
+export const sessionAuthorizationLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: undefined,
+    key: 'error.rateLimiter'
+  }
+});
