@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { I18nextProvider } from 'react-i18next';
 import { Provider } from 'react-redux';
 import i18n from '../../../i18n';
+import { categoriesApi } from '../../../shared/api/categoriesApi';
 import { getApi } from '../../../shared/api/restApi';
 import type { Item } from '../../../shared/types/item';
 import { store } from '../../../state/configureStore';
@@ -25,6 +26,7 @@ describe('items Form', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    store.dispatch(categoriesApi.util.resetApiState());
     mockApi.getAllUnits.mockResolvedValue({ success: true, data: [] });
     mockApi.getAllCategories.mockResolvedValue({ success: true, data: [] });
     vi.mocked(getApi).mockReturnValue(mockApi as never);
@@ -35,6 +37,23 @@ describe('items Form', () => {
     render(<Form handleChange={handleChange} />, { wrapper });
 
     await waitFor(() => expect(handleChange).toHaveBeenCalledWith(expect.objectContaining({ isFormValid: false })));
+  });
+
+  it('shows the loading cursor while categories are being fetched', async () => {
+    let resolveCategories: (value: { success: true; data: never[] }) => void = () => {};
+    mockApi.getAllCategories.mockReturnValue(
+      new Promise(resolve => {
+        resolveCategories = resolve;
+      })
+    );
+
+    render(<Form />, { wrapper });
+
+    await waitFor(() => expect(document.body.style.cursor).toBe('wait'));
+
+    resolveCategories({ success: true, data: [] });
+
+    await waitFor(() => expect(document.body.style.cursor).toBe('default'));
   });
 
   it('becomes valid once name and amount are filled in', async () => {

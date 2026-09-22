@@ -15,7 +15,6 @@ const initialState: PageState = {
   dbReady: false,
   toasts: [],
   settings: undefined,
-  categoryOptions: [],
   unitOptions: [],
   clientSnapshotOptions: [],
   businessSnapshotOptions: [],
@@ -61,7 +60,6 @@ export const pageSlice = createSlice({
     logout: state => {
       state.dbReady = false;
       state.settings = undefined;
-      state.categoryOptions = [];
       state.unitOptions = [];
       state.clientSnapshotOptions = [];
       state.businessSnapshotOptions = [];
@@ -88,9 +86,6 @@ export const pageSlice = createSlice({
     },
     setUnitOptions: (state, action: PayloadAction<Array<{ label: string; value: number }>>) => {
       state.unitOptions = action.payload;
-    },
-    setCategoryOptions: (state, action: PayloadAction<Array<{ label: string; value: number }>>) => {
-      state.categoryOptions = action.payload;
     },
     setClientSnapshotOptions: (state, action: PayloadAction<Array<{ label: string; value: string }>>) => {
       state.clientSnapshotOptions = action.payload;
@@ -197,7 +192,6 @@ export const selectState = (state: RootState) => state.pageSlice;
 export const selectIsLoading = createSelector(selectState, state => state.isLoading);
 export const selectToasts = createSelector(selectState, state => state.toasts);
 export const selectSettings = createSelector(selectState, state => state.settings);
-export const selectCategoriesOptions = createSelector(selectState, state => state.categoryOptions ?? []);
 export const selectUnitsOptions = createSelector(selectState, state => state.unitOptions ?? []);
 export const selectClientsSnapshotsOptions = createSelector(selectState, state => state.clientSnapshotOptions ?? []);
 export const selectBusinessesSnapshotsOptions = createSelector(
@@ -230,7 +224,6 @@ export const {
   setUpdateMessage,
   setCustomInvoiseSettings,
   setLanguageDate,
-  setCategoryOptions,
   setUnitOptions,
   setBusinessSnapshotOptions,
   setClientSnapshotOptions,

@@ -13,7 +13,6 @@ import {
   removeToast,
   selectAllowed,
   selectBusinessesSnapshotsOptions,
-  selectCategoriesOptions,
   selectClientsSnapshotsOptions,
   selectDbReady,
   selectIsLoading,
@@ -25,7 +24,6 @@ import {
   selectVersion,
   setAllowed,
   setBusinessSnapshotOptions,
-  setCategoryOptions,
   setClientSnapshotOptions,
   setCustomInvoiseSettings,
   setDbReady,
@@ -150,7 +148,6 @@ describe('pageSlice reducer', () => {
       ...initialState,
       dbReady: true,
       settings: makeSettings(),
-      categoryOptions: [{ label: 'A', value: 1 }],
       unitOptions: [{ label: 'B', value: 2 }],
       clientSnapshotOptions: [{ label: 'C', value: 'c' }],
       businessSnapshotOptions: [{ label: 'D', value: 'd' }]
@@ -159,7 +156,6 @@ describe('pageSlice reducer', () => {
     const result = pageReducer(populated, logout());
     expect(result.dbReady).toBe(false);
     expect(result.settings).toBeUndefined();
-    expect(result.categoryOptions).toEqual([]);
     expect(result.unitOptions).toEqual([]);
     expect(result.clientSnapshotOptions).toEqual([]);
     expect(result.businessSnapshotOptions).toEqual([]);
@@ -178,11 +174,8 @@ describe('pageSlice reducer', () => {
     expect(document.body.style.cursor).toBe('default');
   });
 
-  it('sets category/unit/client/business options', () => {
-    let state = pageReducer(initialState, setCategoryOptions([{ label: 'Cat', value: 1 }]));
-    expect(state.categoryOptions).toEqual([{ label: 'Cat', value: 1 }]);
-
-    state = pageReducer(state, setUnitOptions([{ label: 'Unit', value: 2 }]));
+  it('sets unit/client/business options', () => {
+    let state = pageReducer(initialState, setUnitOptions([{ label: 'Unit', value: 2 }]));
     expect(state.unitOptions).toEqual([{ label: 'Unit', value: 2 }]);
 
     state = pageReducer(state, setClientSnapshotOptions([{ label: 'Client', value: 'c1' }]));
@@ -289,7 +282,6 @@ describe('pageSlice selectors', () => {
       newVersion: '1.1.0',
       updateMessage: 'msg',
       isAllowedToLeave: false,
-      categoryOptions: [{ label: 'a', value: 1 }],
       unitOptions: [{ label: 'b', value: 2 }],
       clientSnapshotOptions: [{ label: 'c', value: 'c' }],
       businessSnapshotOptions: [{ label: 'd', value: 'd' }],
@@ -303,7 +295,6 @@ describe('pageSlice selectors', () => {
     expect(selectNewVersion(rootState)).toBe('1.1.0');
     expect(selectUpdateMessage(rootState)).toBe('msg');
     expect(selectAllowed(rootState)).toBe(false);
-    expect(selectCategoriesOptions(rootState)).toEqual([{ label: 'a', value: 1 }]);
     expect(selectUnitsOptions(rootState)).toEqual([{ label: 'b', value: 2 }]);
     expect(selectClientsSnapshotsOptions(rootState)).toEqual([{ label: 'c', value: 'c' }]);
     expect(selectBusinessesSnapshotsOptions(rootState)).toEqual([{ label: 'd', value: 'd' }]);
@@ -312,13 +303,11 @@ describe('pageSlice selectors', () => {
 
   it('falls back to empty arrays when option lists are undefined', () => {
     const rootState = buildRootState({
-      categoryOptions: undefined as never,
       unitOptions: undefined as never,
       clientSnapshotOptions: undefined as never,
       businessSnapshotOptions: undefined as never
     });
 
-    expect(selectCategoriesOptions(rootState)).toEqual([]);
     expect(selectUnitsOptions(rootState)).toEqual([]);
     expect(selectClientsSnapshotsOptions(rootState)).toEqual([]);
     expect(selectBusinessesSnapshotsOptions(rootState)).toEqual([]);

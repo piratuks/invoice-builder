@@ -8,7 +8,6 @@ export interface PageState {
   dbReady: boolean;
   toasts: ToastMeta[];
   settings?: Settings;
-  categoryOptions?: Array<{ label: string; value: number }>;
   unitOptions?: Array<{ label: string; value: number }>;
   clientSnapshotOptions?: Array<{ label: string; value: string }>;
   businessSnapshotOptions?: Array<{ label: string; value: string }>;
