@@ -6,6 +6,7 @@ import { businessesApi } from '../shared/api/businessesApi';
 import { categoriesApi } from '../shared/api/categoriesApi';
 import { clientsApi } from '../shared/api/clientsApi';
 import { currenciesApi } from '../shared/api/currenciesApi';
+import { presetsApi } from '../shared/api/presetsApi';
 import { styleProfilesApi } from '../shared/api/styleProfilesApi';
 import { unitsApi } from '../shared/api/unitsApi';
 import { pageSlice } from './pageSlice';
@@ -28,7 +29,8 @@ export const store = configureStore({
     [clientsApi.reducerPath]: clientsApi.reducer,
     [currenciesApi.reducerPath]: currenciesApi.reducer,
     [unitsApi.reducerPath]: unitsApi.reducer,
-    [styleProfilesApi.reducerPath]: styleProfilesApi.reducer
+    [styleProfilesApi.reducerPath]: styleProfilesApi.reducer,
+    [presetsApi.reducerPath]: presetsApi.reducer
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware({
@@ -40,7 +42,8 @@ export const store = configureStore({
       clientsApi.middleware,
       currenciesApi.middleware,
       unitsApi.middleware,
-      styleProfilesApi.middleware
+      styleProfilesApi.middleware,
+      presetsApi.middleware
     )
 });
 
