@@ -42,14 +42,9 @@ describe('Electron IPC registration', () => {
     vi.clearAllMocks();
   });
 
-  it('rejects an unavailable database', () => {
-    expect(() => initIpcHandler(undefined as never, {} as never)).toThrow('error.databaseNotInitialized');
-  });
-
   it('registers the URL handler and every module initializer', async () => {
-    const db = { query: vi.fn() } as never;
     const window = {} as never;
-    initIpcHandler(db, window);
+    initIpcHandler(window);
 
     expect(ipc.handle).toHaveBeenCalledWith('open-url', expect.any(Function));
     Object.values(initializers).forEach(initializer => expect(initializer).toHaveBeenCalled());

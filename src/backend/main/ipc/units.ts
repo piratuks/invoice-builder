@@ -1,12 +1,14 @@
 import { ipcMain } from 'electron';
 import * as unitsService from '../../shared/services/units';
-import type { DatabaseAdapter } from '../../shared/types/DatabaseAdapter';
 import type { Unit } from '../../shared/types/unit';
+import { requireDatabase } from '../database';
 
-export const initUnitsHandlers = (db: DatabaseAdapter) => {
-  ipcMain.handle('add-unit', async (_event, data: Unit) => unitsService.addUnit(db, data));
-  ipcMain.handle('update-unit', async (_event, data: Unit) => unitsService.updateUnit(db, data));
-  ipcMain.handle('delete-unit', async (_event, id: number) => unitsService.deleteUnit(db, id));
-  ipcMain.handle('batch-add-unit', async (_event, data: Unit[]) => unitsService.batchAddUnit(db, data));
-  ipcMain.handle('get-all-units', async (_event, filter) => unitsService.getAllUnits(db, filter));
+export const initUnitsHandlers = () => {
+  ipcMain.handle('add-unit', async (event, data: Unit) => unitsService.addUnit(requireDatabase(event), data));
+  ipcMain.handle('update-unit', async (event, data: Unit) => unitsService.updateUnit(requireDatabase(event), data));
+  ipcMain.handle('delete-unit', async (event, id: number) => unitsService.deleteUnit(requireDatabase(event), id));
+  ipcMain.handle('batch-add-unit', async (event, data: Unit[]) =>
+    unitsService.batchAddUnit(requireDatabase(event), data)
+  );
+  ipcMain.handle('get-all-units', async (event, filter) => unitsService.getAllUnits(requireDatabase(event), filter));
 };

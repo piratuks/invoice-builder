@@ -6,6 +6,7 @@ import { DatabaseType } from '../../shared/enums/databaseType';
 import { DBInitType } from '../../shared/enums/dbInitType';
 import { APP_CONFIG } from '../config';
 import { setupDB } from '../database';
+import { bindSessionDatabase, getSessionTokenFromRequest, issueSession, revokeSession } from '../session';
 import { listDbLimiter } from '../utils/functions';
 
 export const dbDir = path.resolve(process.cwd(), process.env.DB_DIRECTORY || APP_CONFIG.DB_DIRECTORY);
@@ -42,11 +43,19 @@ export const initDatabaseController = (app: Express) => {
     }
   });
   app.post('/api/databases', async (req: Request, res: Response) => {
+    let sessionToken: string | undefined;
     try {
       const name = String(req.body?.fullPath ?? '');
       const mode = String(req.body?.mode ?? '');
       const dbType = req.body?.dbType ?? DatabaseType.sqlite;
       const postgresConfig = req.body?.postgresConfig;
+      const databaseKey = String(req.body?.databaseKey ?? '');
+      const workspaceId = String(req.body?.workspaceId ?? '');
+      const existingToken = getSessionTokenFromRequest(req);
+      const session =
+        req.sessionId && existingToken ? { token: req.sessionId, workspaceId: req.workspaceId } : undefined;
+      sessionToken = session?.token ?? issueSession(workspaceId || undefined).token;
+      const selectedWorkspaceId = session?.workspaceId ?? (workspaceId || undefined);
       const fullPath = path.resolve(dbDir, name);
       const createIfMissing = mode === DBInitType.create || typeof mode === 'undefined';
 
@@ -58,10 +67,15 @@ export const initDatabaseController = (app: Express) => {
         sqliteConfig: { fullPath: fullPath },
         dbType: dbType,
         createIfMissing,
-        postgresConfig: postgresConfig
+        postgresConfig: postgresConfig,
+        databaseKey,
+        sessionId: sessionToken,
+        workspaceId: selectedWorkspaceId
       });
-      res.json({ success: true });
+      bindSessionDatabase(sessionToken, databaseKey);
+      res.json({ success: true, sessionToken, workspaceId: selectedWorkspaceId });
     } catch (err) {
+      if (sessionToken && sessionToken !== req.sessionId) revokeSession(sessionToken);
       res.status(500).json({ success: false, message: (err as Error).message });
     }
   });

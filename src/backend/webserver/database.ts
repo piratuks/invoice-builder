@@ -1,3 +1,4 @@
+import type { Request } from 'express';
 import fs from 'fs';
 import path from 'path';
 import { initInitialData, initSchema, openPostgreSql, openSqlLite } from '../shared/db/setup';
@@ -6,12 +7,67 @@ import type { DatabaseAdapter } from '../shared/types/DatabaseAdapter';
 import type { PostgresConfig } from '../shared/types/postgresConfig';
 import type { SqLiteConfig } from '../shared/types/sqliteConfig';
 import { runMigrations } from './migration';
+import { bindSessionDatabase, getSession } from './session';
 
-export let dbInstance: DatabaseAdapter | null = null;
+const requestDbRegistry = new Map<string, DatabaseAdapter>();
+const sessionDatabaseRegistry = new Map<string, string>();
+const workspaceDatabaseRegistry = new Map<string, string>();
 
-// Serializes setupDB calls so concurrent requests (e.g. duplicate open clicks or dev
-// double-invocation) never overlap while swapping the shared dbInstance, which was
-// causing intermittent "database not initialized" / "failed to initialize" errors.
+export type SessionDatabaseContext = {
+  sessionId?: string;
+  workspaceId?: string;
+  databaseKey?: string;
+};
+
+export const normalizeDatabaseKey = (value?: string | null): string | undefined => {
+  const raw = typeof value === 'string' ? value.trim() : '';
+  return raw ? raw : undefined;
+};
+
+export const registerSessionDatabase = (context: SessionDatabaseContext) => {
+  const databaseKey = normalizeDatabaseKey(context.databaseKey);
+  const sessionId = normalizeDatabaseKey(context.sessionId);
+  const workspaceId = normalizeDatabaseKey(context.workspaceId);
+
+  if (sessionId && databaseKey && !sessionDatabaseRegistry.has(sessionId)) {
+    sessionDatabaseRegistry.set(sessionId, databaseKey);
+  }
+  if (workspaceId && databaseKey && !workspaceDatabaseRegistry.has(workspaceId)) {
+    workspaceDatabaseRegistry.set(workspaceId, databaseKey);
+  }
+
+  return databaseKey;
+};
+
+export const clearSessionDatabase = (sessionId?: string, workspaceId?: string) => {
+  if (sessionId) sessionDatabaseRegistry.delete(sessionId);
+  if (workspaceId) workspaceDatabaseRegistry.delete(workspaceId);
+};
+
+export const getDatabaseKeyFromRequest = (req: Request): string | undefined => {
+  const sessionId = normalizeDatabaseKey(req.sessionId);
+  const workspaceId = normalizeDatabaseKey(req.workspaceId);
+  const rawKey = req.headers['x-database-key'] ?? req.headers['x-db-key'] ?? req.headers['database-key'];
+  const directKey = normalizeDatabaseKey(Array.isArray(rawKey) ? rawKey[0] : rawKey);
+  const session = sessionId ? getSession(sessionId) : undefined;
+  const sessionDatabaseKey = session?.databaseKey ?? (sessionId ? sessionDatabaseRegistry.get(sessionId) : undefined);
+  const workspaceDatabaseKey = workspaceId ? workspaceDatabaseRegistry.get(workspaceId) : undefined;
+
+  if (sessionDatabaseKey && directKey && sessionDatabaseKey !== directKey) return undefined;
+  if (workspaceDatabaseKey && directKey && workspaceDatabaseKey !== directKey) return undefined;
+  if (sessionDatabaseKey) return sessionDatabaseKey;
+  if (workspaceDatabaseKey) return workspaceDatabaseKey;
+  return directKey;
+};
+
+export const getRequestDatabase = (req: Request): DatabaseAdapter | null => {
+  const databaseKey = getDatabaseKeyFromRequest(req);
+  if (databaseKey) return requestDbRegistry.get(databaseKey) ?? null;
+  return null;
+};
+
+// Serializes setupDB calls so concurrent requests never overlap while replacing a
+// database context during initialization.
 let dbSetupQueue: Promise<unknown> = Promise.resolve();
 
 export const setupDB = (opts: {
@@ -19,6 +75,9 @@ export const setupDB = (opts: {
   createIfMissing?: boolean;
   postgresConfig?: PostgresConfig;
   sqliteConfig?: SqLiteConfig;
+  databaseKey: string;
+  sessionId?: string;
+  workspaceId?: string;
 }): Promise<void> => {
   const task = dbSetupQueue.then(() => performSetup(opts));
   // Swallow the error here so a failed setup doesn't block the next queued call;
@@ -32,33 +91,68 @@ const performSetup = async (opts: {
   createIfMissing?: boolean;
   postgresConfig?: PostgresConfig;
   sqliteConfig?: SqLiteConfig;
+  databaseKey: string;
+  sessionId?: string;
+  workspaceId?: string;
 }): Promise<void> => {
-  const { sqliteConfig, createIfMissing = true, dbType, postgresConfig } = opts;
+  const { sqliteConfig, createIfMissing = true, dbType, postgresConfig, databaseKey, sessionId, workspaceId } = opts;
+  const resolvedKey = normalizeDatabaseKey(databaseKey);
+  if (!resolvedKey) throw new Error('error.databaseContextRequired');
+  registerSessionDatabase({ sessionId, workspaceId, databaseKey: resolvedKey });
+  const previousDb = requestDbRegistry.get(resolvedKey);
 
-  if (dbInstance) {
-    await (dbInstance as DatabaseAdapter).close();
-    dbInstance = null;
+  if (previousDb) {
+    await previousDb.close();
+    if (resolvedKey) {
+      requestDbRegistry.delete(resolvedKey);
+    }
   }
+
+  let newDb: DatabaseAdapter | null = null;
 
   if (dbType === DatabaseType.postgre) {
     if (!postgresConfig) throw new Error('error.postgresConfig');
-    const { db: newDb } = await openPostgreSql(postgresConfig);
-    dbInstance = newDb;
+    const { db } = await openPostgreSql(postgresConfig);
+    newDb = db;
   } else if (dbType === DatabaseType.sqlite) {
     if (sqliteConfig?.fullPath) fs.mkdirSync(path.dirname(sqliteConfig?.fullPath), { recursive: true });
-    const { db: newDb } = await openSqlLite({ fullPath: sqliteConfig?.fullPath, createIfMissing: createIfMissing });
-    dbInstance = newDb;
+    const { db } = await openSqlLite({ fullPath: sqliteConfig?.fullPath, createIfMissing: createIfMissing });
+    newDb = db;
   }
 
-  if (!dbInstance) throw new Error('error.noDatabase');
+  if (!newDb) throw new Error('error.noDatabase');
+
+  if (resolvedKey) {
+    requestDbRegistry.set(resolvedKey, newDb);
+    if (sessionId) {
+      bindSessionDatabase(sessionId, resolvedKey);
+      sessionDatabaseRegistry.set(sessionId, resolvedKey);
+    }
+    if (workspaceId) workspaceDatabaseRegistry.set(workspaceId, resolvedKey);
+  }
 
   if (createIfMissing) {
-    await initSchema(dbInstance);
-    await initInitialData(dbInstance);
+    await initSchema(newDb);
+    await initInitialData(newDb);
   }
 
-  const migrationResult = await runMigrations(dbInstance);
+  const migrationResult = await runMigrations(newDb);
   if (migrationResult && !migrationResult.success) {
     throw new Error(migrationResult.message ?? 'error.failedMigration');
   }
 };
+
+export const closeAllDatabases = async () => {
+  await Promise.allSettled([...requestDbRegistry.values()].map(db => db.close()));
+  requestDbRegistry.clear();
+  sessionDatabaseRegistry.clear();
+  workspaceDatabaseRegistry.clear();
+};
+
+declare module 'express' {
+  interface Request {
+    db?: DatabaseAdapter | null;
+    sessionId?: string;
+    workspaceId?: string;
+  }
+}

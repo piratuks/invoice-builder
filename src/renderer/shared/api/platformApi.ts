@@ -90,6 +90,41 @@ const mapAttachmentToWeb = async (ia: InvoiceAttachment) => ({
   data: await fileToBase64(ia.data)
 });
 
+const getWorkspaceId = () => {
+  const storage = typeof window !== 'undefined' ? window.sessionStorage : undefined;
+  const storageKey = 'invoice-builder-workspace-id';
+  const existing = storage?.getItem(storageKey);
+
+  if (existing) return existing;
+
+  const nextWorkspace = `workspace-${Math.random().toString(36).slice(2, 12)}`;
+  storage?.setItem(storageKey, nextWorkspace);
+  return nextWorkspace;
+};
+
+const getSessionToken = () => {
+  const storage = typeof window !== 'undefined' ? window.sessionStorage : undefined;
+  return storage?.getItem('invoice-builder-session-token') ?? undefined;
+};
+
+const getDatabaseKey = () => {
+  const storage = typeof window !== 'undefined' ? window.sessionStorage : undefined;
+  const storageKey = 'invoice-builder-database-key';
+  const existing = storage?.getItem(storageKey);
+
+  if (existing) return existing;
+
+  const nextKey = `browser-${Math.random().toString(36).slice(2, 10)}`;
+  storage?.setItem(storageKey, nextKey);
+  return nextKey;
+};
+
+const getDatabaseHeaders = () => ({
+  'x-database-key': getDatabaseKey(),
+  'x-workspace-id': getWorkspaceId(),
+  ...(getSessionToken() ? { 'x-session-token': getSessionToken() } : {})
+});
+
 const mapInvoiceFromWeb = (i: InvoiceWeb) => ({
   ...i,
   signatureData: base64ToBytesOrUndef(i.signatureData),
@@ -153,7 +188,9 @@ const apiGet = async <T>(path: string, params?: Record<string, string>): Promise
   if (params) {
     Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
   }
-  const res = await fetch(url.toString());
+  const res = await fetch(url.toString(), {
+    headers: getDatabaseHeaders()
+  });
   return res.json() as Promise<T>;
 };
 
@@ -163,7 +200,9 @@ const apiGetBlob = async (path: string, params?: Record<string, string>): Promis
     Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
   }
 
-  const res = await fetch(url.toString());
+  const res = await fetch(url.toString(), {
+    headers: getDatabaseHeaders()
+  });
   if (res.ok) {
     const buffer = await res.arrayBuffer();
     return { success: true, data: new Uint8Array(buffer) } as Response<Uint8Array | undefined>;
@@ -175,12 +214,18 @@ const apiGetBlob = async (path: string, params?: Record<string, string>): Promis
 const apiPost = async <T>(path: string, body?: unknown): Promise<T> => {
   const url = baseUrl() + path;
 
-  const options: RequestInit = { method: 'POST' };
+  const options: RequestInit = {
+    method: 'POST',
+    headers: getDatabaseHeaders()
+  };
 
   if (body instanceof FormData) {
     options.body = body;
   } else if (body !== undefined) {
-    options.headers = { 'Content-Type': 'application/json' };
+    options.headers = {
+      ...getDatabaseHeaders(),
+      'Content-Type': 'application/json'
+    };
     options.body = JSON.stringify(body);
   }
 
@@ -192,7 +237,10 @@ const apiPut = async <T>(path: string, body?: unknown): Promise<T> => {
   const url = baseUrl() + path;
   const res = await fetch(url, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      ...getDatabaseHeaders(),
+      'Content-Type': 'application/json'
+    },
     body: body !== undefined ? JSON.stringify(body) : undefined
   });
   return res.json() as Promise<T>;
@@ -200,7 +248,7 @@ const apiPut = async <T>(path: string, body?: unknown): Promise<T> => {
 
 const apiDelete = async <T>(path: string): Promise<T> => {
   const url = baseUrl() + path;
-  const res = await fetch(url, { method: 'DELETE' });
+  const res = await fetch(url, { method: 'DELETE', headers: getDatabaseHeaders() });
   return res.json() as Promise<T>;
 };
 
@@ -237,12 +285,22 @@ export const webApi = () => {
       Promise.resolve({ success: true, data: { canceled: true, filePath: '' } } as Response<DBSelector>),
     openDatabase: () =>
       Promise.resolve({ success: true, data: { canceled: true, filePath: '' } } as Response<DBSelector>),
-    initializeDatabase: (data: {
+    initializeDatabase: async (data: {
       postgresConfig?: PostgresConfig;
       dbType: DatabaseType;
       fullPath?: string;
       mode?: DBInitType;
-    }) => apiPost<{ success: boolean; message?: string }>('/api/databases', data),
+    }) => {
+      const response = await apiPost<{ success: boolean; message?: string; sessionToken?: string }>('/api/databases', {
+        ...data,
+        databaseKey: getDatabaseKey(),
+        workspaceId: getWorkspaceId()
+      });
+      if (response.success && response.sessionToken) {
+        window.sessionStorage.setItem('invoice-builder-session-token', response.sessionToken);
+      }
+      return response;
+    },
     getDatabaseList: () => apiGet<Response<string[]>>('/api/databases'),
     testConnection: (data: PostgresConfig) => apiPost<Response<unknown>>('/api/databases/test', data),
 

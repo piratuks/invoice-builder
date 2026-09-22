@@ -27,10 +27,12 @@ vi.mock('../../../shared/utils/dataUrlFunctions', () => ({
   decodeLogo: (value: unknown) => value,
   encodeResultBusiness: (value: unknown) => ({ encoded: value })
 }));
-vi.mock('../../database', () => ({ dbInstance: { type: 'sqlite' } }));
 vi.mock('../../utils/functions', () => ({
   parseFilter: (value: string) => ({ parsed: value }),
-  requireDB: (_req: unknown, _res: unknown, next: () => void) => next()
+  requireDB: (req: { db?: unknown }, _res: unknown, next: () => void) => {
+    req.db = { type: 'sqlite' };
+    next();
+  }
 }));
 
 const app = {
@@ -50,7 +52,7 @@ const app = {
 
 const invoke = async (method: string, path: string, request: Record<string, unknown>) => {
   const json = vi.fn();
-  await routes.handlers.get(`${method}:${path}`)?.(request, { json });
+  await routes.handlers.get(`${method}:${path}`)?.({ ...request, db: { type: 'sqlite' } }, { json });
 };
 
 describe('simple webserver controller bodies', () => {

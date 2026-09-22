@@ -1,9 +1,11 @@
 import { ipcMain } from 'electron';
 import * as settingsService from '../../shared/services/settings';
-import type { DatabaseAdapter } from '../../shared/types/DatabaseAdapter';
 import type { Settings } from '../../shared/types/settings';
+import { requireDatabase } from '../database';
 
-export const initSettingsHandlers = (db: DatabaseAdapter) => {
-  ipcMain.handle('get-all-settings', async () => settingsService.getAllSettings(db));
-  ipcMain.handle('update-settings', async (_event, data: Settings) => settingsService.updateSettings(db, data));
+export const initSettingsHandlers = () => {
+  ipcMain.handle('get-all-settings', async event => settingsService.getAllSettings(requireDatabase(event)));
+  ipcMain.handle('update-settings', async (event, data: Settings) =>
+    settingsService.updateSettings(requireDatabase(event), data)
+  );
 };

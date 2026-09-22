@@ -3,7 +3,7 @@ import { type Request, type Response } from 'express';
 import rateLimit from 'express-rate-limit';
 import { FilterType } from '../../shared/enums/filterType';
 import type { FilterData } from '../../shared/types/invoiceFilter';
-import { dbInstance } from '../database';
+import { getRequestDatabase } from '../database';
 
 export const parseFilter = (query: string | undefined): FilterData[] | undefined => {
   if (!query) return undefined;
@@ -35,14 +35,24 @@ export const parseFilter = (query: string | undefined): FilterData[] | undefined
   return result.length ? result : undefined;
 };
 
-export const requireDB = (_req: Request, res: Response, next: NextFunction) => {
-  if (!dbInstance) {
+export const requireDB = (req: Request, res: Response, next: NextFunction) => {
+  if (!req.sessionId) {
+    return res.status(401).json({
+      success: false,
+      message: undefined,
+      key: 'error.sessionRequired'
+    });
+  }
+  const db = getRequestDatabase(req);
+  if (!db) {
     return res.status(400).json({
       success: false,
       message: undefined,
       key: 'error.databaseNotInitialized'
     });
   }
+
+  req.db = db;
   next();
 };
 

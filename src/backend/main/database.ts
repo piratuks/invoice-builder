@@ -1,50 +1,64 @@
-import type { BrowserWindow } from 'electron';
+import type { IpcMainInvokeEvent } from 'electron';
 import { initInitialData, initSchema, openPostgreSql, openSqlLite } from '../shared/db/setup';
 import { DatabaseType } from '../shared/enums/databaseType';
 import type { DatabaseAdapter } from '../shared/types/DatabaseAdapter';
 import type { PostgresConfig } from '../shared/types/postgresConfig';
 import type { SqLiteConfig } from '../shared/types/sqliteConfig';
-import { initIpcHandler } from './ipc';
 import { runMigrations } from './migration';
 
-let dbInstance: DatabaseAdapter | null = null;
+const databases = new Map<number, DatabaseAdapter>();
+
+const requireDatabase = (event: IpcMainInvokeEvent): DatabaseAdapter => {
+  const database = databases.get(event.sender.id);
+  if (!database) throw new Error('error.databaseNotInitialized');
+  return database;
+};
 
 const setupDB = async (opts: {
   dbType: DatabaseType;
   createIfMissing?: boolean;
   postgresConfig?: PostgresConfig;
   sqliteConfig?: SqLiteConfig;
-  mainWindow: BrowserWindow;
+  windowId: number;
 }) => {
-  const { sqliteConfig, createIfMissing = true, mainWindow, dbType, postgresConfig } = opts;
-
-  if (dbInstance) {
-    await (dbInstance as DatabaseAdapter).close();
-    dbInstance = null;
+  const { sqliteConfig, createIfMissing = true, windowId, dbType, postgresConfig } = opts;
+  const currentDatabase = databases.get(windowId);
+  if (currentDatabase) {
+    databases.delete(windowId);
+    await currentDatabase.close();
   }
+
+  let database: DatabaseAdapter | null = null;
 
   if (dbType === DatabaseType.postgre) {
     if (!postgresConfig) throw new Error('error.postgresConfig');
     const { db: newDb } = await openPostgreSql(postgresConfig);
-    dbInstance = newDb;
+    database = newDb;
   } else if (dbType === DatabaseType.sqlite) {
     const { db: newDb } = await openSqlLite({ fullPath: sqliteConfig?.fullPath, createIfMissing: createIfMissing });
-    dbInstance = newDb;
+    database = newDb;
   }
 
-  if (!dbInstance) throw new Error('error.noDatabase');
+  if (!database) throw new Error('error.noDatabase');
 
   if (createIfMissing) {
-    await initSchema(dbInstance);
-    await initInitialData(dbInstance);
+    await initSchema(database);
+    await initInitialData(database);
   }
 
-  const migrationResult = await runMigrations(dbInstance);
+  const migrationResult = await runMigrations(database);
   if (migrationResult && !migrationResult.success) {
     throw new Error(migrationResult.message ?? 'error.failedMigration');
   }
 
-  initIpcHandler(dbInstance, mainWindow);
+  databases.set(windowId, database);
 };
 
-export { dbInstance as db, setupDB };
+const cleanupDatabase = async (windowId: number) => {
+  const database = databases.get(windowId);
+  if (!database) return;
+  databases.delete(windowId);
+  await database.close();
+};
+
+export { cleanupDatabase, databases, requireDatabase, setupDB };

@@ -71,7 +71,10 @@ describe('webApi', () => {
     const api = webApi();
     await api.getAllSettings();
     await api.updateSettings({ language: 'en' } as never);
-    expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining('/api/settings'));
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining('/api/settings'),
+      expect.objectContaining({ headers: expect.objectContaining({ 'x-database-key': expect.any(String) }) })
+    );
   });
 
   describe('businesses (with logo mapping)', () => {
@@ -263,7 +266,10 @@ describe('webApi', () => {
     it('filters by FilterData when provided', async () => {
       const api = webApi();
       await api.getAllClients([{ type: 'Active' } as never]);
-      expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining('filter='));
+      expect(fetchMock).toHaveBeenCalledWith(
+        expect.stringContaining('filter='),
+        expect.objectContaining({ headers: expect.objectContaining({ 'x-database-key': expect.any(String) }) })
+      );
     });
   });
 

@@ -4,8 +4,6 @@ const registered = vi.hoisted(() => ({
   routes: [] as string[]
 }));
 
-vi.mock('../../database', () => ({ dbInstance: { type: 'sqlite' } }));
-
 const app = {
   get: (path: string) => registered.routes.push(`GET:${path}`),
   post: (path: string) => registered.routes.push(`POST:${path}`),

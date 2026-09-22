@@ -2,11 +2,12 @@ import { dialog, ipcMain } from 'electron';
 import { promises as fs } from 'fs';
 import { join } from 'path';
 import * as importExportService from '../../shared/services/importExport';
-import type { DatabaseAdapter } from '../../shared/types/DatabaseAdapter';
 import { mapDatabaseError } from '../../shared/utils/errorFunctions';
+import { requireDatabase } from '../database';
 
-export const initImportExportHandlers = (db: DatabaseAdapter) => {
-  ipcMain.handle('export-all-data', async () => {
+export const initImportExportHandlers = () => {
+  ipcMain.handle('export-all-data', async event => {
+    const db = requireDatabase(event);
     try {
       const payload = await importExportService.exportAllData(db);
 
@@ -27,7 +28,8 @@ export const initImportExportHandlers = (db: DatabaseAdapter) => {
     }
   });
 
-  ipcMain.handle('import-all-data', async () => {
+  ipcMain.handle('import-all-data', async event => {
+    const db = requireDatabase(event);
     try {
       const { canceled, filePaths } = await dialog.showOpenDialog({
         title: 'Import',

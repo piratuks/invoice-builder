@@ -2,6 +2,8 @@ import { config } from 'dotenv';
 import { app, BrowserWindow } from 'electron';
 import { join, resolve } from 'path';
 import { APP_CONFIG } from './config';
+import { cleanupDatabase } from './database';
+import { initIpcHandler } from './ipc';
 import { initDBDialogsHandlers } from './ipc/dbDialogs';
 
 config();
@@ -32,6 +34,7 @@ const createWindow = () => {
       contextIsolation: true
     }
   });
+  const windowId = mainWindow.id;
 
   if (isDev) {
     mainWindow.loadURL(devServer);
@@ -40,6 +43,10 @@ const createWindow = () => {
     if (indexHtmlPath) mainWindow.loadFile(indexHtmlPath);
   }
 
+  mainWindow.on('closed', () => {
+    void cleanupDatabase(windowId);
+  });
+
   // mainWindow.once('ready-to-show', () => {
   //   mainWindow.show();
   // });
@@ -47,7 +54,8 @@ const createWindow = () => {
 
 app.whenReady().then(() => {
   createWindow();
-  initDBDialogsHandlers(dbName, mainWindow);
+  initIpcHandler(mainWindow);
+  initDBDialogsHandlers(dbName);
 });
 
 app.on('window-all-closed', () => {

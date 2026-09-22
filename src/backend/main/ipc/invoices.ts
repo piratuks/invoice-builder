@@ -1,11 +1,12 @@
 import { ipcMain } from 'electron';
 import * as invoicesService from '../../shared/services/invoices';
-import type { DatabaseAdapter } from '../../shared/types/DatabaseAdapter';
 import type { Invoice } from '../../shared/types/invoice';
 import { mapDatabaseError } from '../../shared/utils/errorFunctions';
+import { requireDatabase } from '../database';
 
-export const initInvoicesHandlers = (db: DatabaseAdapter) => {
-  ipcMain.handle('get-einvoice-xml', async (_event, data) => {
+export const initInvoicesHandlers = () => {
+  ipcMain.handle('get-einvoice-xml', async (event, data) => {
+    const db = requireDatabase(event);
     try {
       const result = await invoicesService.getInvoiceXML(db, data);
       if (!result.success) return result;
@@ -18,13 +19,25 @@ export const initInvoicesHandlers = (db: DatabaseAdapter) => {
     }
   });
 
-  ipcMain.handle('get-next-sequence', async (_event, data) => invoicesService.getNextSequence(db, data));
-  ipcMain.handle('get-custom-headers', async (_event, type) => invoicesService.getCustomHeaders(db, type));
-  ipcMain.handle('get-all-invoices', async (_event, type, filter) => invoicesService.getAllInvoices(db, type, filter));
-  ipcMain.handle('delete-invoice', async (_event, id: number) => invoicesService.deleteInvoice(db, id));
-  ipcMain.handle('add-invoice', async (_event, data: Invoice) => invoicesService.addInvoice(db, data));
-  ipcMain.handle('update-invoice', async (_event, data: Invoice) => invoicesService.updateInvoice(db, data));
-  ipcMain.handle('duplicate-invoice', async (_event, invoiceId: number, invoiceType: 'quotation' | 'invoice') =>
-    invoicesService.duplicateInvoice(db, invoiceId, invoiceType)
+  ipcMain.handle('get-next-sequence', async (event, data) =>
+    invoicesService.getNextSequence(requireDatabase(event), data)
+  );
+  ipcMain.handle('get-custom-headers', async (event, type) =>
+    invoicesService.getCustomHeaders(requireDatabase(event), type)
+  );
+  ipcMain.handle('get-all-invoices', async (event, type, filter) =>
+    invoicesService.getAllInvoices(requireDatabase(event), type, filter)
+  );
+  ipcMain.handle('delete-invoice', async (event, id: number) =>
+    invoicesService.deleteInvoice(requireDatabase(event), id)
+  );
+  ipcMain.handle('add-invoice', async (event, data: Invoice) =>
+    invoicesService.addInvoice(requireDatabase(event), data)
+  );
+  ipcMain.handle('update-invoice', async (event, data: Invoice) =>
+    invoicesService.updateInvoice(requireDatabase(event), data)
+  );
+  ipcMain.handle('duplicate-invoice', async (event, invoiceId: number, invoiceType: 'quotation' | 'invoice') =>
+    invoicesService.duplicateInvoice(requireDatabase(event), invoiceId, invoiceType)
   );
 };

@@ -16,6 +16,7 @@ const electron = vi.hoisted(() => ({
 const mocks = vi.hoisted(() => ({
   testPostgresConnection: vi.fn(),
   setupDB: vi.fn(),
+  requireDatabase: vi.fn(),
   writeFile: vi.fn(),
   getAllLayouts: vi.fn(),
   addLayout: vi.fn(),
@@ -34,7 +35,7 @@ vi.mock('fs', () => ({
   promises: { writeFile: mocks.writeFile }
 }));
 vi.mock('../../../shared/db/setup', () => ({ testPostgresConnection: mocks.testPostgresConnection }));
-vi.mock('../../database', () => ({ setupDB: mocks.setupDB }));
+vi.mock('../../database', () => ({ setupDB: mocks.setupDB, requireDatabase: mocks.requireDatabase }));
 vi.mock('../../../shared/services/layouts', () => ({
   getAllLayouts: mocks.getAllLayouts,
   addLayout: mocks.addLayout,
@@ -48,6 +49,7 @@ describe('database dialog IPC handlers', () => {
     vi.clearAllMocks();
     electron.handlers.clear();
     mocks.setupDB.mockResolvedValue(undefined);
+    mocks.requireDatabase.mockReturnValue({ type: DatabaseType.sqlite });
     mocks.testPostgresConnection.mockResolvedValue(undefined);
   });
 
@@ -56,7 +58,7 @@ describe('database dialog IPC handlers', () => {
     electron.showOpenDialog
       .mockResolvedValueOnce({ canceled: false, filePaths: ['C:\\data\\existing.db'] })
       .mockResolvedValueOnce({ canceled: true, filePaths: [] });
-    initDBDialogsHandlers('company', {} as never);
+    initDBDialogsHandlers('company');
 
     await expect(electron.handlers.get('show-save-db-dialog')?.()).resolves.toMatchObject({
       success: true,
@@ -71,7 +73,7 @@ describe('database dialog IPC handlers', () => {
   });
 
   it('reports connection success and mapped failure', async () => {
-    initDBDialogsHandlers('company', {} as never);
+    initDBDialogsHandlers('company');
     const handler = electron.handlers.get('test-connection');
 
     await expect(handler?.({}, undefined)).resolves.toEqual({ success: true });
@@ -80,21 +82,21 @@ describe('database dialog IPC handlers', () => {
   });
 
   it('initializes create and open modes and maps setup failures', async () => {
-    const mainWindow = {} as never;
-    initDBDialogsHandlers('company', mainWindow);
+    initDBDialogsHandlers('company');
     const handler = electron.handlers.get('initialize-db');
 
     await expect(
-      handler?.({}, { fullPath: 'new.db', dbType: DatabaseType.sqlite, mode: DBInitType.create })
+      handler?.({ sender: { id: 1 } }, { fullPath: 'new.db', dbType: DatabaseType.sqlite, mode: DBInitType.create })
     ).resolves.toEqual({ success: true });
-    expect(mocks.setupDB).toHaveBeenLastCalledWith(expect.objectContaining({ createIfMissing: true, mainWindow }));
-    expect(electron.removeHandler).toHaveBeenCalledWith('open-url');
+    expect(mocks.setupDB).toHaveBeenLastCalledWith(expect.objectContaining({ createIfMissing: true, windowId: 1 }));
 
-    await handler?.({}, { fullPath: 'old.db', dbType: DatabaseType.sqlite, mode: DBInitType.open });
+    await handler?.({ sender: { id: 1 } }, { fullPath: 'old.db', dbType: DatabaseType.sqlite, mode: DBInitType.open });
     expect(mocks.setupDB).toHaveBeenLastCalledWith(expect.objectContaining({ createIfMissing: false }));
 
     mocks.setupDB.mockRejectedValueOnce(new Error('open failed'));
-    await expect(handler?.({}, { dbType: DatabaseType.postgre })).resolves.toMatchObject({ success: false });
+    await expect(handler?.({ sender: { id: 1 } }, { dbType: DatabaseType.postgre })).resolves.toMatchObject({
+      success: false
+    });
   });
 });
 
@@ -104,16 +106,17 @@ describe('layout IPC handlers', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     electron.handlers.clear();
+    mocks.requireDatabase.mockReturnValue(db);
   });
 
   it('forwards CRUD channels to the layout service', async () => {
-    initLayoutsHandlers(db);
+    initLayoutsHandlers();
     const layout = { id: 7, schema: {} };
 
-    await electron.handlers.get('get-all-layouts')?.({}, ['active']);
-    await electron.handlers.get('add-layout')?.({}, layout);
-    await electron.handlers.get('update-layout')?.({}, layout);
-    await electron.handlers.get('delete-layout')?.({}, 7);
+    await electron.handlers.get('get-all-layouts')?.({ sender: { id: 1 } }, ['active']);
+    await electron.handlers.get('add-layout')?.({ sender: { id: 1 } }, layout);
+    await electron.handlers.get('update-layout')?.({ sender: { id: 1 } }, layout);
+    await electron.handlers.get('delete-layout')?.({ sender: { id: 1 } }, 7);
 
     expect(mocks.getAllLayouts).toHaveBeenCalledWith(db, ['active']);
     expect(mocks.addLayout).toHaveBeenCalledWith(db, layout);
@@ -122,27 +125,27 @@ describe('layout IPC handlers', () => {
   });
 
   it('returns unsuccessful exports and canceled save dialogs without writing', async () => {
-    initLayoutsHandlers(db);
+    initLayoutsHandlers();
     const handler = electron.handlers.get('export-layout');
     mocks.exportLayout.mockResolvedValueOnce({ success: false }).mockResolvedValueOnce({ success: true });
 
-    await expect(handler?.({}, 1)).resolves.toEqual({ success: false });
-    await expect(handler?.({}, 2)).resolves.toEqual({ success: true });
+    await expect(handler?.({ sender: { id: 1 } }, 1)).resolves.toEqual({ success: false });
+    await expect(handler?.({ sender: { id: 1 } }, 2)).resolves.toEqual({ success: true });
 
     mocks.exportLayout.mockResolvedValue({ success: true, data: { schema: { meta: { name: 'Layout' } } } });
     electron.showSaveDialog.mockResolvedValue({ canceled: true });
-    await expect(handler?.({}, 3)).resolves.toEqual({ success: false });
+    await expect(handler?.({ sender: { id: 1 } }, 3)).resolves.toEqual({ success: false });
     expect(mocks.writeFile).not.toHaveBeenCalled();
   });
 
   it('sanitizes the export name, writes JSON, and maps write failures', async () => {
-    initLayoutsHandlers(db);
+    initLayoutsHandlers();
     const handler = electron.handlers.get('export-layout');
     mocks.exportLayout.mockResolvedValue({ success: true, data: { schema: { meta: { name: 'A/B:*?' } } } });
     electron.showSaveDialog.mockResolvedValue({ canceled: false, filePath: 'C:\\tmp\\layout.json' });
     mocks.writeFile.mockResolvedValue(undefined);
 
-    await expect(handler?.({}, 4)).resolves.toEqual({
+    await expect(handler?.({ sender: { id: 1 } }, 4)).resolves.toEqual({
       success: true,
       data: { filePath: 'C:\\tmp\\layout.json' }
     });
@@ -157,10 +160,10 @@ describe('layout IPC handlers', () => {
 
     mocks.exportLayout.mockResolvedValue({ success: true, data: { schema: { meta: { name: '***' } } } });
     electron.showSaveDialog.mockResolvedValue({ canceled: false, filePath: undefined });
-    await expect(handler?.({}, 5)).resolves.toEqual({ success: false });
+    await expect(handler?.({ sender: { id: 1 } }, 5)).resolves.toEqual({ success: false });
 
     electron.showSaveDialog.mockResolvedValue({ canceled: false, filePath: 'layout.json' });
     mocks.writeFile.mockRejectedValue(new Error('disk full'));
-    await expect(handler?.({}, 6)).resolves.toMatchObject({ success: false });
+    await expect(handler?.({ sender: { id: 1 } }, 6)).resolves.toMatchObject({ success: false });
   });
 });

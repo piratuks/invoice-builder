@@ -1,12 +1,14 @@
 import { ipcMain } from 'electron';
 import * as banksService from '../../shared/services/banks';
-import type { DatabaseAdapter } from '../../shared/types/DatabaseAdapter';
 import type { Bank } from '../../shared/types/bank';
+import { requireDatabase } from '../database';
 
-export const initBanksHandlers = (db: DatabaseAdapter) => {
-  ipcMain.handle('add-bank', async (_event, data: Bank) => banksService.addBank(db, data));
-  ipcMain.handle('update-bank', async (_event, data: Bank) => banksService.updateBank(db, data));
-  ipcMain.handle('delete-bank', async (_event, id: number) => banksService.deleteBank(db, id));
-  ipcMain.handle('batch-add-bank', async (_event, data: Bank[]) => banksService.batchAddBank(db, data));
-  ipcMain.handle('get-all-banks', async (_event, filter) => banksService.getAllBanks(db, filter));
+export const initBanksHandlers = () => {
+  ipcMain.handle('add-bank', async (event, data: Bank) => banksService.addBank(requireDatabase(event), data));
+  ipcMain.handle('update-bank', async (event, data: Bank) => banksService.updateBank(requireDatabase(event), data));
+  ipcMain.handle('delete-bank', async (event, id: number) => banksService.deleteBank(requireDatabase(event), id));
+  ipcMain.handle('batch-add-bank', async (event, data: Bank[]) =>
+    banksService.batchAddBank(requireDatabase(event), data)
+  );
+  ipcMain.handle('get-all-banks', async (event, filter) => banksService.getAllBanks(requireDatabase(event), filter));
 };

@@ -2,16 +2,17 @@ import { dialog, ipcMain } from 'electron';
 import { promises as fs } from 'fs';
 import { join } from 'path';
 import * as service from '../../shared/services/layouts';
-import type { DatabaseAdapter } from '../../shared/types/DatabaseAdapter';
 import type { Layout } from '../../shared/types/layouts';
 import { mapDatabaseError } from '../../shared/utils/errorFunctions';
+import { requireDatabase } from '../database';
 
-export const initLayoutsHandlers = (db: DatabaseAdapter) => {
-  ipcMain.handle('get-all-layouts', (_event, filter) => service.getAllLayouts(db, filter));
-  ipcMain.handle('add-layout', (_event, data: Layout) => service.addLayout(db, data));
-  ipcMain.handle('update-layout', (_event, data: Layout) => service.updateLayout(db, data));
-  ipcMain.handle('delete-layout', (_event, id: number) => service.deleteLayout(db, id));
-  ipcMain.handle('export-layout', async (_event, id: number) => {
+export const initLayoutsHandlers = () => {
+  ipcMain.handle('get-all-layouts', (event, filter) => service.getAllLayouts(requireDatabase(event), filter));
+  ipcMain.handle('add-layout', (event, data: Layout) => service.addLayout(requireDatabase(event), data));
+  ipcMain.handle('update-layout', (event, data: Layout) => service.updateLayout(requireDatabase(event), data));
+  ipcMain.handle('delete-layout', (event, id: number) => service.deleteLayout(requireDatabase(event), id));
+  ipcMain.handle('export-layout', async (event, id: number) => {
+    const db = requireDatabase(event);
     try {
       const layout = await service.exportLayout(db, id);
       if (!layout.success || !layout.data) return layout;
