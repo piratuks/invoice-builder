@@ -1,6 +1,7 @@
 import { memo, useCallback, useDeferredValue, useEffect, useRef, useState, useTransition, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n';
+import { useAddStyleProfileMutation } from '../../shared/api/styleProfilesApi';
 import { FontFamily } from '../../shared/enums/fontFamily';
 import { InvoiceFormMode } from '../../shared/enums/invoiceFormMode';
 import { InvoiceStatus } from '../../shared/enums/invoiceStatus';
@@ -10,7 +11,6 @@ import { PageFormat } from '../../shared/enums/pageFormat';
 import { SizeType } from '../../shared/enums/sizeType';
 import { TableHeaderStyle } from '../../shared/enums/tableHeaderStyle';
 import { TableRowStyle } from '../../shared/enums/tableRowStyle';
-import { useAddStyleProfileMutation } from '../../shared/api/styleProfilesApi';
 import { useFormDirtyCheck } from '../../shared/hooks/form/useFormDirtyCheck';
 import type { Invoice, InvoiceFromData } from '../../shared/types/invoice';
 import type { Preset } from '../../shared/types/preset';
