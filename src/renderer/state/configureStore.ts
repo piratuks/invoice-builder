@@ -5,6 +5,7 @@ import { banksApi } from '../shared/api/banksApi';
 import { businessesApi } from '../shared/api/businessesApi';
 import { categoriesApi } from '../shared/api/categoriesApi';
 import { clientsApi } from '../shared/api/clientsApi';
+import { currenciesApi } from '../shared/api/currenciesApi';
 import { pageSlice } from './pageSlice';
 
 // Entity payloads carry binary fields (logos, QR codes, signatures, watermarks) as Uint8Array,
@@ -22,12 +23,19 @@ export const store = configureStore({
     [businessesApi.reducerPath]: businessesApi.reducer,
     [banksApi.reducerPath]: banksApi.reducer,
     [categoriesApi.reducerPath]: categoriesApi.reducer,
-    [clientsApi.reducerPath]: clientsApi.reducer
+    [clientsApi.reducerPath]: clientsApi.reducer,
+    [currenciesApi.reducerPath]: currenciesApi.reducer
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware({
       serializableCheck: { isSerializable: isSerializableValue }
-    }).concat(businessesApi.middleware, banksApi.middleware, categoriesApi.middleware, clientsApi.middleware)
+    }).concat(
+      businessesApi.middleware,
+      banksApi.middleware,
+      categoriesApi.middleware,
+      clientsApi.middleware,
+      currenciesApi.middleware
+    )
 });
 
 export type RootState = ReturnType<typeof store.getState>;
