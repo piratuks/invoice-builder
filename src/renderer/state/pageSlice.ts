@@ -10,6 +10,8 @@ import type { RootState } from './configureStore';
 
 const initialState: PageState = {
   isLoading: false,
+  loadingCount: 0,
+  loadingCursorCount: 0,
   dbReady: false,
   toasts: [],
   settings: undefined,
@@ -27,17 +29,22 @@ export const pageSlice = createSlice({
   name: 'pageSlice',
   initialState,
   reducers: {
-    enableLoadingCursor: () => {
+    // Reference-counted so concurrent loading sources don't clear the cursor while another is still busy.
+    enableLoadingCursor: state => {
+      state.loadingCursorCount += 1;
       document.body.style.cursor = 'wait';
     },
-    disableLoadingCursor: () => {
-      document.body.style.cursor = 'default';
+    disableLoadingCursor: state => {
+      state.loadingCursorCount = Math.max(0, state.loadingCursorCount - 1);
+      if (state.loadingCursorCount === 0) document.body.style.cursor = 'default';
     },
     enableLoading: state => {
+      state.loadingCount += 1;
       state.isLoading = true;
     },
     disableLoading: state => {
-      state.isLoading = false;
+      state.loadingCount = Math.max(0, state.loadingCount - 1);
+      state.isLoading = state.loadingCount > 0;
     },
     setVersion: (state, action: PayloadAction<string>) => {
       state.version = action.payload;
@@ -58,6 +65,11 @@ export const pageSlice = createSlice({
       state.unitOptions = [];
       state.clientSnapshotOptions = [];
       state.businessSnapshotOptions = [];
+      // Logout is a hard reset boundary: any stuck/mis-tracked in-flight counter shouldn't survive it.
+      state.isLoading = false;
+      state.loadingCount = 0;
+      state.loadingCursorCount = 0;
+      document.body.style.cursor = 'default';
     },
     setUpdateMessage: (state, action: PayloadAction<string | undefined>) => {
       state.updateMessage = action.payload;

@@ -3,6 +3,8 @@ import type { ToastMeta } from './toastMeta';
 
 export interface PageState {
   isLoading: boolean;
+  loadingCount: number;
+  loadingCursorCount: number;
   dbReady: boolean;
   toasts: ToastMeta[];
   settings?: Settings;
