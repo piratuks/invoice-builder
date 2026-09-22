@@ -4,6 +4,7 @@ import { I18nextProvider } from 'react-i18next';
 import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router-dom';
 import i18n from '../../../i18n';
+import { categoriesApi } from '../../../shared/api/categoriesApi';
 import { getApi } from '../../../shared/api/restApi';
 import { store } from '../../../state/configureStore';
 import { CategoriesPage } from '../index';
@@ -58,6 +59,7 @@ describe('CategoriesPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    store.dispatch(categoriesApi.util.resetApiState());
     vi.mocked(getApi).mockReturnValue(mockApi as never);
   });
 

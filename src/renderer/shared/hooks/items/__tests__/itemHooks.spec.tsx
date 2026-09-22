@@ -4,6 +4,7 @@ import { I18nextProvider } from 'react-i18next';
 import { Provider } from 'react-redux';
 import i18n from '../../../../i18n';
 import { store } from '../../../../state/configureStore';
+import { categoriesApi, useGetCategoriesQuery } from '../../../api/categoriesApi';
 import { getApi } from '../../../api/restApi';
 import { useItemAdd } from '../useItemAdd';
 import { useItemAddBatch } from '../useItemAddBatch';
@@ -11,7 +12,7 @@ import { useItemDelete } from '../useItemDelete';
 import { useItemsRetrieve } from '../useItemsRetrieve';
 import { useItemUpdate } from '../useItemUpdate';
 
-vi.mock('../../../api/restApi', () => ({ getApi: vi.fn() }));
+vi.mock('../../../api/restApi', () => ({ getApi: vi.fn(), isWebMode: () => true }));
 
 const wrapper = ({ children }: { children: ReactNode }) => (
   <Provider store={store}>
@@ -32,6 +33,7 @@ describe('item hooks', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    store.dispatch(categoriesApi.util.resetApiState());
     mockApi.getAllUnits.mockResolvedValue({ success: true, data: [] });
     mockApi.getAllCategories.mockResolvedValue({ success: true, data: [] });
     vi.mocked(getApi).mockReturnValue(mockApi as never);
@@ -98,16 +100,21 @@ describe('item hooks', () => {
   });
 
   describe('useItemAddBatch', () => {
-    it('batch adds items and reloads units/categories on completion', async () => {
+    it('batch adds items, reloads units, and invalidates the categories cache so active subscribers refetch', async () => {
       mockApi.addBatchItem.mockResolvedValue({ success: true });
       const items = [{ name: 'Item A' } as never];
+
+      const { result: categoriesResult } = renderHook(() => useGetCategoriesQuery(undefined), { wrapper });
+      await waitFor(() => expect(categoriesResult.current.isSuccess).toBe(true));
+      expect(mockApi.getAllCategories).toHaveBeenCalledTimes(1);
+
       const { result } = renderHook(() => useItemAddBatch({ items }), { wrapper });
 
       await waitFor(() => expect(result.current.loading).toBe(false));
       expect(mockApi.addBatchItem).toHaveBeenCalledWith(items);
       expect(result.current.data).toEqual({ success: true });
       await waitFor(() => expect(mockApi.getAllUnits).toHaveBeenCalled());
-      await waitFor(() => expect(mockApi.getAllCategories).toHaveBeenCalled());
+      await waitFor(() => expect(mockApi.getAllCategories).toHaveBeenCalledTimes(2));
     });
 
     it('resolves to a failure result when no items are provided', async () => {
