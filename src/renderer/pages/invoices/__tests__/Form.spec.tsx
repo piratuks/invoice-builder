@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { I18nextProvider } from 'react-i18next';
@@ -24,8 +24,7 @@ import { Form } from '../Form';
 const mockInvoiceForm = vi.fn();
 const mockInvoicesPreview = vi.fn();
 const styleProfileMocks = vi.hoisted(() => ({
-  execute: vi.fn(),
-  options: undefined as { onDone: (result: { success: boolean; message?: string; key?: string }) => void } | undefined
+  trigger: vi.fn()
 }));
 
 type MockInvoiceFormProps = { invoiceForm?: { businessId?: number } };
@@ -34,12 +33,13 @@ type MockPreviewProps = {
   onSaveProfile: (data: Record<string, unknown>) => void;
 };
 
-vi.mock('../../../shared/hooks/styleProfiles/useStyleProfileAdd', () => ({
-  useStyleProfileAdd: (options: typeof styleProfileMocks.options) => {
-    styleProfileMocks.options = options;
-    return { execute: styleProfileMocks.execute, data: undefined };
-  }
-}));
+vi.mock('../../../shared/api/styleProfilesApi', async importOriginal => {
+  const actual = await importOriginal<typeof import('../../../shared/api/styleProfilesApi')>();
+  return {
+    ...actual,
+    useAddStyleProfileMutation: () => [styleProfileMocks.trigger, { isLoading: false }]
+  };
+});
 
 vi.mock('../Form/index', () => ({
   InvoiceForm: ({ invoiceForm }: MockInvoiceFormProps) => {
@@ -70,7 +70,6 @@ const wrapper = ({ children }: { children: ReactNode }) => (
 describe('invoices Form wrapper', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    styleProfileMocks.options = undefined;
     store.dispatch(
       setSettings({
         id: 1,
@@ -282,16 +281,18 @@ describe('invoices Form wrapper', () => {
 
   it('creates a style profile from preview and handles service errors', async () => {
     const user = userEvent.setup();
+    const findSaveProfileButton = () => screen.findByRole('button', { name: /en/i });
+
+    styleProfileMocks.trigger.mockResolvedValueOnce({ error: { message: 'Profile failed' } });
     render(<Form type={InvoiceType.quotation} mode={InvoiceFormMode.preview} />, { wrapper });
 
-    await user.click(await screen.findByRole('button', { name: /en/i }));
-    await waitFor(() => expect(styleProfileMocks.execute).toHaveBeenCalledTimes(1));
-    act(() => {
-      styleProfileMocks.options!.onDone({ success: false, message: 'Profile failed' });
-    });
-    act(() => {
-      styleProfileMocks.options!.onDone({ success: false, key: 'error.failedToLoad' });
-    });
-    expect(store.getState().pageSlice.toasts.at(-1)?.severity).toBe('error');
+    await user.click(await findSaveProfileButton());
+    await waitFor(() => expect(styleProfileMocks.trigger).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(store.getState().pageSlice.toasts.at(-1)?.message).toBe('Profile failed'));
+
+    styleProfileMocks.trigger.mockResolvedValueOnce({ error: { key: 'error.failedToLoad' } });
+    await user.click(await findSaveProfileButton());
+    await waitFor(() => expect(styleProfileMocks.trigger).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(store.getState().pageSlice.toasts.at(-1)?.message).toBe(i18n.t('error.failedToLoad')));
   });
 });
