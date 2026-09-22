@@ -1,12 +1,11 @@
 import { SwipeableDrawer, useMediaQuery, useTheme } from '@mui/material';
 import { memo, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CRUDPage } from '../../../../shared/components/layout/crudPage/CRUDPage';
+import { useGetCurrenciesQuery } from '../../../../shared/api/currenciesApi';
+import { CRUDPageRTK } from '../../../../shared/components/layout/crudPage/CRUDPageRTK';
 import { FilterType } from '../../../../shared/enums/filterType';
-import { useCurrenciesRetrieve } from '../../../../shared/hooks/currencies/useCurrenciesRetrieve';
 import type { Currency, CurrencyAdd, CurrencyUpdate } from '../../../../shared/types/currency';
-import type { Filter, FilterData } from '../../../../shared/types/filter';
-import type { Response } from '../../../../shared/types/response';
+import type { Filter } from '../../../../shared/types/filter';
 import { createCommonFilters, createInvoiceFilters } from '../../../../shared/utils/filterSortFunctions';
 import { List as CurrenciesList } from '../../../currencies/List';
 
@@ -25,13 +24,6 @@ const CurrenciesDropdownComponent: FC<Props> = ({ isOpen, onClose, onOpen, onCli
   ];
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
-  const useCurrenciesCRUDRetrieve = (args: {
-    filter?: FilterData[];
-    onDone?: (data: Response<Currency[]>) => void;
-  }) => {
-    const { currencies, execute } = useCurrenciesRetrieve({ filter: args.filter, onDone: args.onDone });
-    return { items: currencies, execute };
-  };
   return (
     <>
       <SwipeableDrawer
@@ -54,12 +46,12 @@ const CurrenciesDropdownComponent: FC<Props> = ({ isOpen, onClose, onOpen, onCli
           }
         }}
       >
-        <CRUDPage<Currency, CurrencyAdd, CurrencyUpdate>
+        <CRUDPageRTK<Currency, CurrencyAdd, CurrencyUpdate>
           componentId="invoices:currencies"
           filters={filters}
           showRightSide={false}
           showAddButton={false}
-          useRetrieve={useCurrenciesCRUDRetrieve}
+          useRetrieve={useGetCurrenciesQuery}
           searchField={'text'}
           sortOptions={[
             { label: t('common.text'), value: 'text' },
