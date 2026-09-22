@@ -4,6 +4,7 @@ import { I18nextProvider } from 'react-i18next';
 import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router-dom';
 import i18n from '../../../i18n';
+import { layoutsApi } from '../../../shared/api/layoutsApi';
 import { getApi } from '../../../shared/api/restApi';
 import { store } from '../../../state/configureStore';
 import { LayoutsPage } from '../index';
@@ -59,6 +60,7 @@ describe('LayoutsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    store.dispatch(layoutsApi.util.resetApiState());
     vi.mocked(getApi).mockReturnValue(mockApi as never);
   });
 
