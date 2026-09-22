@@ -39,11 +39,11 @@ const mocks = vi.hoisted(() => ({
   languageProps: undefined as
     { onLanguageFormat: (data: never) => void; onBack: () => void; showBack: boolean } | undefined,
   confirmation: undefined as { isOpen: boolean; onCancel: () => void; onConfirm: () => void } | undefined,
-  retrieveOptions: undefined as HookOptions<Settings> | undefined,
-  updateOptions: undefined as HookOptions<unknown> | undefined,
   exportOptions: undefined as HookOptions<{ filePath?: string }> | undefined,
   importOptions: undefined as HookOptions<unknown> | undefined,
-  getSettings: vi.fn(),
+  isUpdating: false,
+  shouldRejectUpdate: false,
+  updateError: undefined as { message?: string; key?: string } | undefined,
   update: vi.fn(),
   exportJson: vi.fn(),
   importJson: vi.fn()
@@ -53,18 +53,21 @@ vi.mock('@mui/material', async importOriginal => {
   const actual = await importOriginal<typeof import('@mui/material')>();
   return { ...actual, useMediaQuery: () => mocks.desktop };
 });
-vi.mock('../../../shared/hooks/settings/useSettingsRetrieve', () => ({
-  useSettingsRetrieve: (options: HookOptions<Settings>) => {
-    mocks.retrieveOptions = options;
-    return { execute: mocks.getSettings };
-  }
-}));
-vi.mock('../../../shared/hooks/settings/useSettingsUpdate', () => ({
-  useSettingsUpdate: (options: HookOptions<unknown>) => {
-    mocks.updateOptions = options;
-    return { execute: mocks.update };
-  }
-}));
+vi.mock('../../../shared/api/settingsApi', async importOriginal => {
+  const actual = await importOriginal<typeof import('../../../shared/api/settingsApi')>();
+  return {
+    ...actual,
+    useUpdateSettingsMutation: () => [
+      (arg: unknown) => {
+        mocks.update(arg);
+        return {
+          unwrap: () => (mocks.shouldRejectUpdate ? Promise.reject(mocks.updateError) : Promise.resolve(arg))
+        };
+      },
+      { isLoading: mocks.isUpdating }
+    ]
+  };
+});
 vi.mock('../../../shared/hooks/backup/useExportJson', () => ({
   useExportJson: (options: HookOptions<{ filePath?: string }>) => {
     mocks.exportOptions = options;
@@ -134,6 +137,9 @@ describe('SettingsPage callback branches', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.desktop = true;
+    mocks.isUpdating = false;
+    mocks.shouldRejectUpdate = false;
+    mocks.updateError = undefined;
     store.dispatch(setSettings(settings));
     for (const toast of store.getState().pageSlice.toasts)
       store.dispatch({ type: 'pageSlice/removeToast', payload: toast.id });
@@ -222,13 +228,21 @@ describe('SettingsPage callback branches', () => {
     act(() => mocks.exportOptions?.onDone({ success: true, data: {} }));
     expect(latestToast()?.message).toBe(i18n.t('common.exported'));
     act(() => mocks.importOptions?.onDone({ success: true }));
-    expect(mocks.getSettings).toHaveBeenCalledTimes(1);
     expect(latestToast()?.message).toBe(i18n.t('common.imported'));
   });
 
+  it('reports an update failure via toast', async () => {
+    mocks.shouldRejectUpdate = true;
+    mocks.updateError = { message: 'literal failure' };
+    render(<SettingsPage />, { wrapper });
+
+    act(() => mocks.menuProps?.onModeChange(true));
+
+    await waitFor(() => expect(latestToast()?.severity).toBe('error'));
+    expect(latestToast()?.message).toBe('literal failure');
+  });
+
   it.each([
-    ['retrieve', () => mocks.retrieveOptions?.onDone, { success: false, message: 'common.error' }],
-    ['update', () => mocks.updateOptions?.onDone, { success: false, message: 'literal failure' }],
     ['export', () => mocks.exportOptions?.onDone, { success: false, key: 'common.error' }],
     ['import', () => mocks.importOptions?.onDone, { success: false }]
   ] as const)('handles %s failure responses', (_name, getOnDone, response) => {
