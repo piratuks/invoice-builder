@@ -5,7 +5,7 @@
 New features & improvements
 
 - Added automated test coverage reaching at least 80% overall.
-- Added isolated multi-session database contexts for web/Docker mode, including server-issued `HttpOnly` cookie sessions, per-database session/workspace metadata, SQLite restart recovery, automatic session cleanup, and PostgreSQL pool lifecycle management.
+- Added isolated multi-session database contexts for web/Docker mode, including server-issued `HttpOnly` cookie sessions, per-database session/workspace metadata, automatic session cleanup, and PostgreSQL pool lifecycle management.
 
 Bug fixes
 

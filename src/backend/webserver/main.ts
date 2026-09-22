@@ -4,13 +4,7 @@ import { startCleanupScheduler, stopCleanupScheduler } from './cleanup';
 import { APP_CONFIG } from './config';
 import { initControllers } from './controllers';
 import { initDatabaseController } from './controllers/database';
-import {
-  closeAllDatabases,
-  getDatabaseKeyFromRequest,
-  getRequestDatabase,
-  registerSessionDatabase,
-  restoreSqliteDatabase
-} from './database';
+import { closeAllDatabases, getDatabaseKeyFromRequest, getRequestDatabase, registerSessionDatabase } from './database';
 import { authenticateSession, getSessionTokenFromRequest } from './session';
 import { createSessionAuthorizationLimiter } from './utils/functions';
 
@@ -36,19 +30,7 @@ app.use(express.json({ limit: '50mb' }));
 export const sessionDatabaseMiddleware = async (req: Request, _res: Response, next: NextFunction) => {
   try {
     const token = getSessionTokenFromRequest(req);
-    let session = token ? await authenticateSession(token) : undefined;
-
-    if (token && !session) {
-      const databaseKey = typeof req.headers['x-database-key'] === 'string' ? req.headers['x-database-key'] : undefined;
-      const databasePath =
-        typeof req.headers['x-database-path'] === 'string' ? req.headers['x-database-path'] : undefined;
-      const databaseType =
-        typeof req.headers['x-database-type'] === 'string' ? req.headers['x-database-type'] : undefined;
-      if (databaseKey && databaseType === 'sqlite' && databasePath) {
-        const restoredDb = await restoreSqliteDatabase(databaseKey, databasePath);
-        session = await authenticateSession(token, restoredDb);
-      }
-    }
+    const session = token ? await authenticateSession(token) : undefined;
 
     if (token && !session && !isDatabaseBootstrapRequest(req)) {
       _res.status(401).json({ success: false, key: 'error.sessionExpired' });

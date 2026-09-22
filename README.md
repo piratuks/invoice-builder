@@ -160,7 +160,7 @@ Web/Docker mode supports multiple independent browser sessions without a shared 
 - Requests resolve the database from the session context, so one browser cannot switch another browser's active database.
 - Sessions expire automatically and stale database handles are cleaned up.
 - Session tokens are held in `HttpOnly` cookies and are not accessible to browser scripts.
-- PostgreSQL credentials are never persisted in the browser; reconnect after a backend restart.
+- Connection details are never persisted in the browser; reconnect after a backend restart.
 
 This is session isolation, not account authentication. The current application has no user login, roles, or workspace membership system. Electron desktop windows use separate database contexts locally.
 

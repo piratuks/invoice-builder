@@ -114,21 +114,9 @@ const getDatabaseKey = () => {
   return nextKey;
 };
 
-const getDatabasePath = () => {
-  const storage = typeof window !== 'undefined' ? window.sessionStorage : undefined;
-  return storage?.getItem('invoice-builder-database-path') ?? undefined;
-};
-
-const getDatabaseType = () => {
-  const storage = typeof window !== 'undefined' ? window.sessionStorage : undefined;
-  return storage?.getItem('invoice-builder-database-type') ?? undefined;
-};
-
 const getDatabaseHeaders = () => ({
   'x-database-key': getDatabaseKey(),
-  'x-workspace-id': getWorkspaceId(),
-  ...(getDatabaseType() ? { 'x-database-type': getDatabaseType() } : {}),
-  ...(getDatabasePath() ? { 'x-database-path': getDatabasePath() } : {})
+  'x-workspace-id': getWorkspaceId()
 });
 
 const mapInvoiceFromWeb = (i: InvoiceWeb) => ({
@@ -314,10 +302,6 @@ export const webApi = () => {
         databaseKey: getDatabaseKey(),
         workspaceId: getWorkspaceId()
       });
-      if (response.success) {
-        window.sessionStorage.setItem('invoice-builder-database-type', dbType);
-        if (fullPath) window.sessionStorage.setItem('invoice-builder-database-path', fullPath);
-      }
       return response;
     },
     getDatabaseList: () => apiGet<Response<string[]>>('/api/databases'),

@@ -15,6 +15,7 @@ describe('webApi', () => {
   let fetchMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
+    window.sessionStorage.clear();
     fetchMock = vi.fn().mockResolvedValue(jsonResponse({ success: true, data: {} }));
     vi.stubGlobal('fetch', fetchMock);
     URL.createObjectURL = vi.fn(() => 'blob:mock');
@@ -75,6 +76,8 @@ describe('webApi', () => {
     );
     expect(window.sessionStorage.getItem('invoice-builder-session-token')).toBeNull();
     expect(window.sessionStorage.getItem('invoice-builder-postgres-config')).toBeNull();
+    expect(window.sessionStorage.getItem('invoice-builder-database-path')).toBeNull();
+    expect(window.sessionStorage.getItem('invoice-builder-database-type')).toBeNull();
   });
 
   it('gets and updates settings', async () => {
