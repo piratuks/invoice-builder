@@ -75,7 +75,7 @@ export const initDatabaseController = (app: Express) => {
       res.cookie(sessionCookieName, sessionToken, {
         httpOnly: true,
         sameSite: 'lax',
-        secure: process.env.NODE_ENV === 'production',
+        secure: req.secure || process.env.NODE_ENV === 'production',
         path: '/api'
       });
       res.json({ success: true, workspaceId: selectedWorkspaceId });

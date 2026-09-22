@@ -60,6 +60,19 @@ describe('webserver database controller', () => {
     expect(initialize.json).toHaveBeenCalledWith({ success: true, workspaceId: 'workspace-test' });
   });
 
+  it('marks session cookies secure for HTTPS requests', async () => {
+    const initialize = await invoke('POST', '/api/databases', {
+      secure: true,
+      body: { databaseKey: 'browser-secure', fullPath: 'invoice.db', mode: 'create', workspaceId: 'workspace-secure' }
+    });
+
+    expect(initialize.cookie).toHaveBeenCalledWith(
+      'invoice-builder-session',
+      expect.any(String),
+      expect.objectContaining({ httpOnly: true, secure: true })
+    );
+  });
+
   it('returns HTTP 500 when database operations fail', async () => {
     mocks.readdir.mockRejectedValueOnce(new Error('read failed'));
     const response = await invoke('GET', '/api/databases', {});
