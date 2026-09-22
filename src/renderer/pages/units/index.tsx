@@ -1,15 +1,16 @@
 import { type FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CRUDPage } from '../../shared/components/layout/crudPage/CRUDPage';
+import {
+  useAddUnitMutation,
+  useAddUnitsBatchMutation,
+  useDeleteUnitMutation,
+  useGetUnitsQuery,
+  useUpdateUnitMutation
+} from '../../shared/api/unitsApi';
+import { CRUDPageRTK } from '../../shared/components/layout/crudPage/CRUDPageRTK';
 import { FilterType } from '../../shared/enums/filterType';
-import { useUnitAdd } from '../../shared/hooks/units/useUnitAdd';
-import { useUnitAddBatch } from '../../shared/hooks/units/useUnitAddBatch';
-import { useUnitDelete } from '../../shared/hooks/units/useUnitDelete';
-import { useUnitsRetrieve } from '../../shared/hooks/units/useUnitsRetrieve';
-import { useUnitUpdate } from '../../shared/hooks/units/useUnitUpdate';
 import type { Rows } from '../../shared/types/excel';
-import type { Filter, FilterData } from '../../shared/types/filter';
-import type { Response } from '../../shared/types/response';
+import type { Filter } from '../../shared/types/filter';
 import type { Unit, UnitAdd, UnitUpdate } from '../../shared/types/unit';
 import { createCommonFilters, createInvoiceFilters } from '../../shared/utils/filterSortFunctions';
 import { isUnitFromData } from '../../shared/utils/typeGuardFunctions';
@@ -34,50 +35,17 @@ export const UnitsPage: FC = () => {
     ...createCommonFilters({ t, namespace: 'units', initial: FilterType.active }),
     ...createInvoiceFilters({ t, namespace: 'units' })
   ];
-  const useUnitsCRUDRetrieve = (args: { filter?: FilterData[]; onDone?: (data: Response<Unit[]>) => void }) => {
-    const { units, execute } = useUnitsRetrieve({ filter: args.filter, onDone: args.onDone });
-    return { items: units, execute };
-  };
-  const useUnitCRUDAdd = (args: { item?: UnitAdd; immediate?: boolean; onDone?: (data: Response<Unit>) => void }) => {
-    return useUnitAdd({
-      unit: args.item,
-      immediate: args.immediate,
-      onDone: args.onDone
-    });
-  };
-  const useUnitsCRUDAddBatch = (args: {
-    item?: UnitAdd[];
-    immediate?: boolean;
-    onDone?: (data: Response<UnitAdd[]>) => void;
-  }) => {
-    return useUnitAddBatch({
-      units: args.item,
-      immediate: args.immediate,
-      onDone: args.onDone
-    });
-  };
-  const useUnitCRUDUpdate = (args: {
-    item?: UnitUpdate;
-    immediate?: boolean;
-    onDone?: (data: Response<Unit>) => void;
-  }) => {
-    return useUnitUpdate({
-      unit: args.item,
-      immediate: args.immediate,
-      onDone: args.onDone
-    });
-  };
   return (
-    <CRUDPage<Unit, UnitAdd, UnitUpdate>
+    <CRUDPageRTK<Unit, UnitAdd, UnitUpdate>
       componentId="unists"
       title={t('common.unit')}
       filters={filters}
       excelData={{ excelColumns, excelFileName, excelFormat: 'xlsx', excelTemplateData }}
-      useRetrieve={useUnitsCRUDRetrieve}
-      useAdd={useUnitCRUDAdd}
-      useAddBatch={useUnitsCRUDAddBatch}
-      useUpdate={useUnitCRUDUpdate}
-      useDelete={useUnitDelete}
+      useRetrieve={useGetUnitsQuery}
+      useAdd={useAddUnitMutation}
+      useAddBatch={useAddUnitsBatchMutation}
+      useUpdate={useUpdateUnitMutation}
+      useDelete={useDeleteUnitMutation}
       searchField={'name'}
       sortOptions={[
         { label: t('common.name'), value: 'name' },

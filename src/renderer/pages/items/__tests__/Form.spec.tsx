@@ -6,6 +6,7 @@ import { Provider } from 'react-redux';
 import i18n from '../../../i18n';
 import { categoriesApi } from '../../../shared/api/categoriesApi';
 import { getApi } from '../../../shared/api/restApi';
+import { unitsApi } from '../../../shared/api/unitsApi';
 import type { Item } from '../../../shared/types/item';
 import { store } from '../../../state/configureStore';
 import { Form } from '../Form';
@@ -27,6 +28,7 @@ describe('items Form', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     store.dispatch(categoriesApi.util.resetApiState());
+    store.dispatch(unitsApi.util.resetApiState());
     mockApi.getAllUnits.mockResolvedValue({ success: true, data: [] });
     mockApi.getAllCategories.mockResolvedValue({ success: true, data: [] });
     vi.mocked(getApi).mockReturnValue(mockApi as never);
@@ -52,6 +54,23 @@ describe('items Form', () => {
     await waitFor(() => expect(document.body.style.cursor).toBe('wait'));
 
     resolveCategories({ success: true, data: [] });
+
+    await waitFor(() => expect(document.body.style.cursor).toBe('default'));
+  });
+
+  it('shows the loading cursor while units are being fetched', async () => {
+    let resolveUnits: (value: { success: true; data: never[] }) => void = () => {};
+    mockApi.getAllUnits.mockReturnValue(
+      new Promise(resolve => {
+        resolveUnits = resolve;
+      })
+    );
+
+    render(<Form />, { wrapper });
+
+    await waitFor(() => expect(document.body.style.cursor).toBe('wait'));
+
+    resolveUnits({ success: true, data: [] });
 
     await waitFor(() => expect(document.body.style.cursor).toBe('default'));
   });

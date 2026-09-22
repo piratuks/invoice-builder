@@ -19,7 +19,6 @@ import {
   selectNewVersion,
   selectSettings,
   selectToasts,
-  selectUnitsOptions,
   selectUpdateMessage,
   selectVersion,
   setAllowed,
@@ -38,7 +37,6 @@ import {
   setReports,
   setSettings,
   setStyleProfiles,
-  setUnitOptions,
   setUpdateMessage,
   setVersion
 } from '../pageSlice';
@@ -148,7 +146,6 @@ describe('pageSlice reducer', () => {
       ...initialState,
       dbReady: true,
       settings: makeSettings(),
-      unitOptions: [{ label: 'B', value: 2 }],
       clientSnapshotOptions: [{ label: 'C', value: 'c' }],
       businessSnapshotOptions: [{ label: 'D', value: 'd' }]
     };
@@ -156,7 +153,6 @@ describe('pageSlice reducer', () => {
     const result = pageReducer(populated, logout());
     expect(result.dbReady).toBe(false);
     expect(result.settings).toBeUndefined();
-    expect(result.unitOptions).toEqual([]);
     expect(result.clientSnapshotOptions).toEqual([]);
     expect(result.businessSnapshotOptions).toEqual([]);
   });
@@ -174,11 +170,8 @@ describe('pageSlice reducer', () => {
     expect(document.body.style.cursor).toBe('default');
   });
 
-  it('sets unit/client/business options', () => {
-    let state = pageReducer(initialState, setUnitOptions([{ label: 'Unit', value: 2 }]));
-    expect(state.unitOptions).toEqual([{ label: 'Unit', value: 2 }]);
-
-    state = pageReducer(state, setClientSnapshotOptions([{ label: 'Client', value: 'c1' }]));
+  it('sets client/business options', () => {
+    let state = pageReducer(initialState, setClientSnapshotOptions([{ label: 'Client', value: 'c1' }]));
     expect(state.clientSnapshotOptions).toEqual([{ label: 'Client', value: 'c1' }]);
 
     state = pageReducer(state, setBusinessSnapshotOptions([{ label: 'Biz', value: 'b1' }]));
@@ -282,7 +275,6 @@ describe('pageSlice selectors', () => {
       newVersion: '1.1.0',
       updateMessage: 'msg',
       isAllowedToLeave: false,
-      unitOptions: [{ label: 'b', value: 2 }],
       clientSnapshotOptions: [{ label: 'c', value: 'c' }],
       businessSnapshotOptions: [{ label: 'd', value: 'd' }],
       settings: makeSettings()
@@ -295,7 +287,6 @@ describe('pageSlice selectors', () => {
     expect(selectNewVersion(rootState)).toBe('1.1.0');
     expect(selectUpdateMessage(rootState)).toBe('msg');
     expect(selectAllowed(rootState)).toBe(false);
-    expect(selectUnitsOptions(rootState)).toEqual([{ label: 'b', value: 2 }]);
     expect(selectClientsSnapshotsOptions(rootState)).toEqual([{ label: 'c', value: 'c' }]);
     expect(selectBusinessesSnapshotsOptions(rootState)).toEqual([{ label: 'd', value: 'd' }]);
     expect(selectSettings(rootState)).toEqual(makeSettings());
@@ -303,12 +294,10 @@ describe('pageSlice selectors', () => {
 
   it('falls back to empty arrays when option lists are undefined', () => {
     const rootState = buildRootState({
-      unitOptions: undefined as never,
       clientSnapshotOptions: undefined as never,
       businessSnapshotOptions: undefined as never
     });
 
-    expect(selectUnitsOptions(rootState)).toEqual([]);
     expect(selectClientsSnapshotsOptions(rootState)).toEqual([]);
     expect(selectBusinessesSnapshotsOptions(rootState)).toEqual([]);
   });

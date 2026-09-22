@@ -5,6 +5,7 @@ import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router-dom';
 import i18n from '../../../i18n';
 import { getApi } from '../../../shared/api/restApi';
+import { unitsApi } from '../../../shared/api/unitsApi';
 import { store } from '../../../state/configureStore';
 import { UnitsPage } from '../index';
 
@@ -58,6 +59,7 @@ describe('UnitsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    store.dispatch(unitsApi.util.resetApiState());
     vi.mocked(getApi).mockReturnValue(mockApi as never);
   });
 

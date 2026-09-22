@@ -3,22 +3,14 @@ import { useEffect, useMemo, useRef, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n';
 import { useGetCategoriesQuery } from '../../shared/api/categoriesApi';
+import { useGetUnitsQuery } from '../../shared/api/unitsApi';
 import { AmountInput } from '../../shared/components/inputs/amountInput/AmountInput';
 import { useForm } from '../../shared/hooks/form/useForm';
 import { useFormDirtyCheck } from '../../shared/hooks/form/useFormDirtyCheck';
-import { useUnitsRetrieve } from '../../shared/hooks/units/useUnitsRetrieve';
 import type { Item, ItemFromData } from '../../shared/types/item';
-import type { Response } from '../../shared/types/response';
-import type { Unit } from '../../shared/types/unit';
 import { validators } from '../../shared/utils/validatorFunctions';
 import { useAppDispatch, useAppSelector } from '../../state/configureStore';
-import {
-  addToast,
-  disableLoadingCursor,
-  enableLoadingCursor,
-  selectSettings,
-  selectUnitsOptions
-} from '../../state/pageSlice';
+import { addToast, disableLoadingCursor, enableLoadingCursor, selectSettings } from '../../state/pageSlice';
 
 interface Props {
   item?: Item;
@@ -29,16 +21,23 @@ export const Form: FC<Props> = ({ handleChange = () => {}, item }) => {
   const dispatch = useAppDispatch();
   const initialFormRef = useRef<ItemFromData | undefined>(undefined);
 
-  useUnitsRetrieve({
-    onDone: (data: Response<Unit[]>) => {
-      if (!data.success) {
-        if (data.message) {
-          const message = i18n.exists(data.message) ? t(data.message) : data.message;
-          dispatch(addToast({ message: message, severity: 'error' }));
-        } else if (data.key) dispatch(addToast({ message: t(data.key), severity: 'error' }));
-      }
+  const {
+    data: unitsData,
+    isLoading: isUnitsLoading,
+    isFetching: isUnitsFetching,
+    isError: isUnitsError,
+    error: unitsError
+  } = useGetUnitsQuery();
+
+  useEffect(() => {
+    if (!isUnitsError) return;
+    const { message, key } = (unitsError as { message?: string; key?: string }) ?? {};
+    if (message) {
+      dispatch(addToast({ message: i18n.exists(message) ? t(message) : message, severity: 'error' }));
+    } else if (key) {
+      dispatch(addToast({ message: t(key), severity: 'error' }));
     }
-  });
+  }, [isUnitsError, unitsError, dispatch, t]);
 
   const {
     data: categoriesData,
@@ -58,17 +57,17 @@ export const Form: FC<Props> = ({ handleChange = () => {}, item }) => {
     }
   }, [isCategoriesError, categoriesError, dispatch, t]);
 
-  const isCategoriesBusy = isCategoriesLoading || isCategoriesFetching;
+  const isBusy = isCategoriesLoading || isCategoriesFetching || isUnitsLoading || isUnitsFetching;
   useEffect(() => {
-    if (!isCategoriesBusy) return;
+    if (!isBusy) return;
     dispatch(enableLoadingCursor());
     return () => {
       dispatch(disableLoadingCursor());
     };
-  }, [isCategoriesBusy, dispatch]);
+  }, [isBusy, dispatch]);
 
   const settings = useAppSelector(selectSettings);
-  const unitsOptions = useAppSelector(selectUnitsOptions);
+  const unitsOptions = useMemo(() => (unitsData ?? []).map(u => ({ label: u.name, value: u.id })), [unitsData]);
   const categoriesOptions = useMemo(
     () => (categoriesData ?? []).map(c => ({ label: c.name, value: c.id })),
     [categoriesData]
