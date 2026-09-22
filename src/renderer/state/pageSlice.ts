@@ -15,7 +15,6 @@ const initialState: PageState = {
   dbReady: false,
   toasts: [],
   settings: undefined,
-  unitOptions: [],
   clientSnapshotOptions: [],
   businessSnapshotOptions: [],
   version: undefined,
@@ -60,7 +59,6 @@ export const pageSlice = createSlice({
     logout: state => {
       state.dbReady = false;
       state.settings = undefined;
-      state.unitOptions = [];
       state.clientSnapshotOptions = [];
       state.businessSnapshotOptions = [];
       // Logout is a hard reset boundary: any stuck/mis-tracked in-flight counter shouldn't survive it.
@@ -83,9 +81,6 @@ export const pageSlice = createSlice({
     },
     setSettings: (state, action: PayloadAction<Settings>) => {
       state.settings = action.payload;
-    },
-    setUnitOptions: (state, action: PayloadAction<Array<{ label: string; value: number }>>) => {
-      state.unitOptions = action.payload;
     },
     setClientSnapshotOptions: (state, action: PayloadAction<Array<{ label: string; value: string }>>) => {
       state.clientSnapshotOptions = action.payload;
@@ -192,7 +187,6 @@ export const selectState = (state: RootState) => state.pageSlice;
 export const selectIsLoading = createSelector(selectState, state => state.isLoading);
 export const selectToasts = createSelector(selectState, state => state.toasts);
 export const selectSettings = createSelector(selectState, state => state.settings);
-export const selectUnitsOptions = createSelector(selectState, state => state.unitOptions ?? []);
 export const selectClientsSnapshotsOptions = createSelector(selectState, state => state.clientSnapshotOptions ?? []);
 export const selectBusinessesSnapshotsOptions = createSelector(
   selectState,
@@ -224,7 +218,6 @@ export const {
   setUpdateMessage,
   setCustomInvoiseSettings,
   setLanguageDate,
-  setUnitOptions,
   setBusinessSnapshotOptions,
   setClientSnapshotOptions,
   setAllowed,

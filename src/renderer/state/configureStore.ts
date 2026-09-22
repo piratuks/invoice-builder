@@ -6,6 +6,7 @@ import { businessesApi } from '../shared/api/businessesApi';
 import { categoriesApi } from '../shared/api/categoriesApi';
 import { clientsApi } from '../shared/api/clientsApi';
 import { currenciesApi } from '../shared/api/currenciesApi';
+import { unitsApi } from '../shared/api/unitsApi';
 import { pageSlice } from './pageSlice';
 
 // Entity payloads carry binary fields (logos, QR codes, signatures, watermarks) as Uint8Array,
@@ -24,7 +25,8 @@ export const store = configureStore({
     [banksApi.reducerPath]: banksApi.reducer,
     [categoriesApi.reducerPath]: categoriesApi.reducer,
     [clientsApi.reducerPath]: clientsApi.reducer,
-    [currenciesApi.reducerPath]: currenciesApi.reducer
+    [currenciesApi.reducerPath]: currenciesApi.reducer,
+    [unitsApi.reducerPath]: unitsApi.reducer
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware({
@@ -34,7 +36,8 @@ export const store = configureStore({
       banksApi.middleware,
       categoriesApi.middleware,
       clientsApi.middleware,
-      currenciesApi.middleware
+      currenciesApi.middleware,
+      unitsApi.middleware
     )
 });
 

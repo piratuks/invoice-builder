@@ -6,6 +6,7 @@ import i18n from '../../../../i18n';
 import { store } from '../../../../state/configureStore';
 import { categoriesApi, useGetCategoriesQuery } from '../../../api/categoriesApi';
 import { getApi } from '../../../api/restApi';
+import { unitsApi, useGetUnitsQuery } from '../../../api/unitsApi';
 import { useItemAdd } from '../useItemAdd';
 import { useItemAddBatch } from '../useItemAddBatch';
 import { useItemDelete } from '../useItemDelete';
@@ -34,6 +35,7 @@ describe('item hooks', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     store.dispatch(categoriesApi.util.resetApiState());
+    store.dispatch(unitsApi.util.resetApiState());
     mockApi.getAllUnits.mockResolvedValue({ success: true, data: [] });
     mockApi.getAllCategories.mockResolvedValue({ success: true, data: [] });
     vi.mocked(getApi).mockReturnValue(mockApi as never);
@@ -100,39 +102,30 @@ describe('item hooks', () => {
   });
 
   describe('useItemAddBatch', () => {
-    it('batch adds items, reloads units, and invalidates the categories cache so active subscribers refetch', async () => {
+    it('batch adds items and invalidates the categories/units caches so active subscribers refetch', async () => {
       mockApi.addBatchItem.mockResolvedValue({ success: true });
       const items = [{ name: 'Item A' } as never];
 
       const { result: categoriesResult } = renderHook(() => useGetCategoriesQuery(undefined), { wrapper });
+      const { result: unitsResult } = renderHook(() => useGetUnitsQuery(undefined), { wrapper });
       await waitFor(() => expect(categoriesResult.current.isSuccess).toBe(true));
+      await waitFor(() => expect(unitsResult.current.isSuccess).toBe(true));
       expect(mockApi.getAllCategories).toHaveBeenCalledTimes(1);
+      expect(mockApi.getAllUnits).toHaveBeenCalledTimes(1);
 
       const { result } = renderHook(() => useItemAddBatch({ items }), { wrapper });
 
       await waitFor(() => expect(result.current.loading).toBe(false));
       expect(mockApi.addBatchItem).toHaveBeenCalledWith(items);
       expect(result.current.data).toEqual({ success: true });
-      await waitFor(() => expect(mockApi.getAllUnits).toHaveBeenCalled());
       await waitFor(() => expect(mockApi.getAllCategories).toHaveBeenCalledTimes(2));
+      await waitFor(() => expect(mockApi.getAllUnits).toHaveBeenCalledTimes(2));
     });
 
     it('resolves to a failure result when no items are provided', async () => {
       const { result } = renderHook(() => useItemAddBatch({ items: undefined }), { wrapper });
       await waitFor(() => expect(result.current.loading).toBe(false));
       expect(mockApi.addBatchItem).not.toHaveBeenCalled();
-    });
-
-    it('surfaces a toast when reloading units fails after a batch add', async () => {
-      mockApi.addBatchItem.mockResolvedValue({ success: true });
-      mockApi.getAllUnits.mockResolvedValue({ success: false, key: 'error.unknownError' });
-      const items = [{ name: 'Item A' } as never];
-      renderHook(() => useItemAddBatch({ items }), { wrapper });
-
-      await waitFor(() => {
-        const toasts = store.getState().pageSlice.toasts;
-        expect(toasts.some(toast => toast.message === i18n.t('error.unknownError'))).toBe(true);
-      });
     });
   });
 });
