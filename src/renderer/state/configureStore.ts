@@ -1,6 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { setupListeners } from '@reduxjs/toolkit/query';
 import { useDispatch, useSelector, type TypedUseSelectorHook } from 'react-redux';
+import { banksApi } from '../shared/api/banksApi';
 import { businessesApi } from '../shared/api/businessesApi';
 import { pageSlice } from './pageSlice';
 
@@ -16,12 +17,13 @@ const isSerializableValue = (value: unknown): boolean => {
 export const store = configureStore({
   reducer: {
     [pageSlice.name]: pageSlice.reducer,
-    [businessesApi.reducerPath]: businessesApi.reducer
+    [businessesApi.reducerPath]: businessesApi.reducer,
+    [banksApi.reducerPath]: banksApi.reducer
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware({
       serializableCheck: { isSerializable: isSerializableValue }
-    }).concat(businessesApi.middleware)
+    }).concat(businessesApi.middleware, banksApi.middleware)
 });
 
 export type RootState = ReturnType<typeof store.getState>;
