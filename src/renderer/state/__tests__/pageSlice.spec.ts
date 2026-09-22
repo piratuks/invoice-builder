@@ -75,11 +75,40 @@ describe('pageSlice reducer', () => {
     expect(pageReducer(loading, disableLoading()).isLoading).toBe(false);
   });
 
+  it('keeps the loading flag set while any concurrent loading source is still active', () => {
+    let state = pageReducer(initialState, enableLoading());
+    state = pageReducer(state, enableLoading());
+    expect(state.isLoading).toBe(true);
+
+    state = pageReducer(state, disableLoading());
+    expect(state.isLoading).toBe(true);
+
+    expect(pageReducer(state, disableLoading())).toMatchObject({ isLoading: false, loadingCount: 0 });
+  });
+
   it('sets the document cursor for loading indicators', () => {
     pageReducer(initialState, enableLoadingCursor());
     expect(document.body.style.cursor).toBe('wait');
 
     pageReducer(initialState, disableLoadingCursor());
+    expect(document.body.style.cursor).toBe('default');
+  });
+
+  it('keeps the cursor waiting while any concurrent loading source is still active', () => {
+    let state = pageReducer(initialState, enableLoadingCursor());
+    state = pageReducer(state, enableLoadingCursor());
+    expect(document.body.style.cursor).toBe('wait');
+
+    state = pageReducer(state, disableLoadingCursor());
+    expect(document.body.style.cursor).toBe('wait');
+
+    expect(pageReducer(state, disableLoadingCursor())).toMatchObject({ loadingCursorCount: 0 });
+    expect(document.body.style.cursor).toBe('default');
+  });
+
+  it('never lets the cursor counter go negative on an unbalanced disable', () => {
+    const state = pageReducer(initialState, disableLoadingCursor());
+    expect(state.loadingCursorCount).toBe(0);
     expect(document.body.style.cursor).toBe('default');
   });
 
@@ -134,6 +163,19 @@ describe('pageSlice reducer', () => {
     expect(result.unitOptions).toEqual([]);
     expect(result.clientSnapshotOptions).toEqual([]);
     expect(result.businessSnapshotOptions).toEqual([]);
+  });
+
+  it('clears any stuck loading counters and cursor on logout', () => {
+    let state = pageReducer(initialState, enableLoading());
+    state = pageReducer(state, enableLoadingCursor());
+    expect(state.isLoading).toBe(true);
+    expect(document.body.style.cursor).toBe('wait');
+
+    const result = pageReducer(state, logout());
+    expect(result.isLoading).toBe(false);
+    expect(result.loadingCount).toBe(0);
+    expect(result.loadingCursorCount).toBe(0);
+    expect(document.body.style.cursor).toBe('default');
   });
 
   it('sets category/unit/client/business options', () => {
