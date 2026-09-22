@@ -1,4 +1,4 @@
-import { Pool, type PoolClient } from 'pg';
+import { Pool, type PoolClient, type PoolConfig } from 'pg';
 import sqlite3 from 'sqlite3';
 import { DatabaseType } from '../enums/databaseType';
 import type { DatabaseAdapter } from '../types/DatabaseAdapter';
@@ -59,9 +59,31 @@ export const createSqliteAdapter = (db: sqlite3.Database): DatabaseAdapter => {
   };
 };
 
-export const createPostgresAdapter = (connectionString: string): DatabaseAdapter => {
-  const pool = new Pool({ connectionString });
+export type PostgresPoolOptions = Pick<
+  PoolConfig,
+  'max' | 'idleTimeoutMillis' | 'connectionTimeoutMillis' | 'maxLifetimeSeconds' | 'allowExitOnIdle'
+>;
+
+const getDefaultPostgresPoolOptions = (): PostgresPoolOptions => ({
+  max: Number(process.env.PG_POOL_MAX) || 10,
+  idleTimeoutMillis: Number(process.env.PG_POOL_IDLE_TIMEOUT_MS) || 30_000,
+  connectionTimeoutMillis: Number(process.env.PG_POOL_CONNECTION_TIMEOUT_MS) || 5_000,
+  maxLifetimeSeconds: Number(process.env.PG_POOL_MAX_LIFETIME_SECONDS) || 0,
+  allowExitOnIdle: process.env.PG_POOL_ALLOW_EXIT_ON_IDLE === 'true'
+});
+
+export const createPostgresAdapter = (
+  connectionString: string,
+  options: Partial<PostgresPoolOptions> = {}
+): DatabaseAdapter => {
+  const pool = new Pool({ connectionString, ...getDefaultPostgresPoolOptions(), ...options });
+  if (typeof pool.on === 'function') {
+    pool.on('error', error => {
+      console.error('PostgreSQL pool error:', error);
+    });
+  }
   let clientInTransaction: PoolClient | null = null;
+  let closePromise: Promise<void> | null = null;
 
   const acquireClient = async () => {
     if (clientInTransaction) return clientInTransaction;
@@ -150,8 +172,13 @@ export const createPostgresAdapter = (connectionString: string): DatabaseAdapter
       return { rows: convertedDateRow };
     },
     close: async () => {
-      await releaseClient();
-      await pool.end();
+      if (!closePromise) {
+        closePromise = (async () => {
+          await releaseClient();
+          await pool.end();
+        })();
+      }
+      await closePromise;
     }
   };
 };

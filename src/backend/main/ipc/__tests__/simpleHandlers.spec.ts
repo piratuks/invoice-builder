@@ -11,6 +11,7 @@ import { initUnitsHandlers } from '../units';
 const registered = vi.hoisted(() => ({ channels: [] as string[] }));
 
 vi.mock('electron', () => ({
+  app: { isPackaged: false, getAppPath: vi.fn() },
   ipcMain: {
     handle: (channel: string) => registered.channels.push(channel)
   }
@@ -26,23 +27,21 @@ vi.mock('../../../shared/services/settings', () => ({}));
 vi.mock('../../../shared/services/styleProfiles', () => ({}));
 vi.mock('../../../shared/services/units', () => ({}));
 
-const db = {} as never;
-
 describe('simple Electron IPC registrations', () => {
   beforeEach(() => {
     registered.channels.length = 0;
   });
 
   it('registers CRUD handlers for simple entities', () => {
-    initBusinessesHandlers(db);
-    initCategoriesHandlers(db);
-    initClientsHandlers(db);
-    initCurrenciesHandlers(db);
-    initItemsHandlers(db);
-    initPresetHandlers(db);
-    initSettingsHandlers(db);
-    initStyleProfilesHandlers(db);
-    initUnitsHandlers(db);
+    initBusinessesHandlers();
+    initCategoriesHandlers();
+    initClientsHandlers();
+    initCurrenciesHandlers();
+    initItemsHandlers();
+    initPresetHandlers();
+    initSettingsHandlers();
+    initStyleProfilesHandlers();
+    initUnitsHandlers();
 
     expect(registered.channels.length).toBeGreaterThan(30);
     expect(registered.channels).toContain('get-all-businesses');

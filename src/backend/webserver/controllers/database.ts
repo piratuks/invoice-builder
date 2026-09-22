@@ -6,7 +6,7 @@ import { DatabaseType } from '../../shared/enums/databaseType';
 import { DBInitType } from '../../shared/enums/dbInitType';
 import { APP_CONFIG } from '../config';
 import { setupDB } from '../database';
-import { bindSessionDatabase, getSessionTokenFromRequest, issueSession, revokeSession } from '../session';
+import { getSessionTokenFromRequest, issueSession, revokeSession } from '../session';
 import { listDbLimiter } from '../utils/functions';
 
 export const dbDir = path.resolve(process.cwd(), process.env.DB_DIRECTORY || APP_CONFIG.DB_DIRECTORY);
@@ -54,7 +54,7 @@ export const initDatabaseController = (app: Express) => {
       const existingToken = getSessionTokenFromRequest(req);
       const session =
         req.sessionId && existingToken ? { token: req.sessionId, workspaceId: req.workspaceId } : undefined;
-      sessionToken = session?.token ?? issueSession(workspaceId || undefined).token;
+      sessionToken = session?.token ?? (await issueSession(workspaceId || undefined)).token;
       const selectedWorkspaceId = session?.workspaceId ?? (workspaceId || undefined);
       const fullPath = path.resolve(dbDir, name);
       const createIfMissing = mode === DBInitType.create || typeof mode === 'undefined';
@@ -72,10 +72,9 @@ export const initDatabaseController = (app: Express) => {
         sessionId: sessionToken,
         workspaceId: selectedWorkspaceId
       });
-      bindSessionDatabase(sessionToken, databaseKey);
       res.json({ success: true, sessionToken, workspaceId: selectedWorkspaceId });
     } catch (err) {
-      if (sessionToken && sessionToken !== req.sessionId) revokeSession(sessionToken);
+      if (sessionToken && sessionToken !== req.sessionId) await revokeSession(sessionToken);
       res.status(500).json({ success: false, message: (err as Error).message });
     }
   });

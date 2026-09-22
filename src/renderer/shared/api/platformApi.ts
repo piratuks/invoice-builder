@@ -119,9 +119,52 @@ const getDatabaseKey = () => {
   return nextKey;
 };
 
+const getDatabasePath = () => {
+  const storage = typeof window !== 'undefined' ? window.sessionStorage : undefined;
+  return storage?.getItem('invoice-builder-database-path') ?? undefined;
+};
+
+const getDatabaseType = () => {
+  const storage = typeof window !== 'undefined' ? window.sessionStorage : undefined;
+  return storage?.getItem('invoice-builder-database-type') ?? undefined;
+};
+
+const getPostgresConfig = (): PostgresConfig | undefined => {
+  const storage = typeof window !== 'undefined' ? window.sessionStorage : undefined;
+  const value = storage?.getItem('invoice-builder-postgres-config');
+  if (!value) return undefined;
+  try {
+    return JSON.parse(value) as PostgresConfig;
+  } catch {
+    storage?.removeItem('invoice-builder-postgres-config');
+    return undefined;
+  }
+};
+
+const encodePostgresConfig = (config?: PostgresConfig) => {
+  if (!config || typeof window === 'undefined') return undefined;
+  const bytes = new TextEncoder().encode(JSON.stringify(config));
+  let binary = '';
+  bytes.forEach(byte => {
+    binary += String.fromCharCode(byte);
+  });
+  return btoa(binary).replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
+};
+
+const getPersistedPostgresConfig = (config: PostgresConfig) => {
+  const safeConfig = { ...config };
+  delete safeConfig.password;
+  return safeConfig;
+};
+
 const getDatabaseHeaders = () => ({
   'x-database-key': getDatabaseKey(),
   'x-workspace-id': getWorkspaceId(),
+  ...(getDatabaseType() ? { 'x-database-type': getDatabaseType() } : {}),
+  ...(getDatabasePath() ? { 'x-database-path': getDatabasePath() } : {}),
+  ...(getDatabaseType() === 'postgre' && getPostgresConfig()
+    ? { 'x-postgres-config': encodePostgresConfig(getPostgresConfig())! }
+    : {}),
   ...(getSessionToken() ? { 'x-session-token': getSessionToken() } : {})
 });
 
@@ -298,6 +341,14 @@ export const webApi = () => {
       });
       if (response.success && response.sessionToken) {
         window.sessionStorage.setItem('invoice-builder-session-token', response.sessionToken);
+        window.sessionStorage.setItem('invoice-builder-database-type', data.dbType);
+        if (data.fullPath) window.sessionStorage.setItem('invoice-builder-database-path', data.fullPath);
+        if (data.postgresConfig) {
+          window.sessionStorage.setItem(
+            'invoice-builder-postgres-config',
+            JSON.stringify(getPersistedPostgresConfig(data.postgresConfig))
+          );
+        }
       }
       return response;
     },

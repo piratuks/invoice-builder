@@ -39,6 +39,7 @@ dist-be
 release
 
 data/*.db
+data/*.sqlite
 
 dist-fe
 dist-be

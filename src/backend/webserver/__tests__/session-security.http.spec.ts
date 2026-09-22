@@ -9,7 +9,6 @@ const mocks = vi.hoisted(() => ({
   initInitialData: vi.fn(),
   runMigrations: vi.fn()
 }));
-
 vi.mock('../../shared/db/setup', () => ({
   openSqlLite: mocks.openSqlLite,
   openPostgreSql: vi.fn(),
@@ -17,8 +16,13 @@ vi.mock('../../shared/db/setup', () => ({
   initInitialData: mocks.initInitialData
 }));
 vi.mock('../migration', () => ({ runMigrations: mocks.runMigrations }));
-
-const makeDb = (name: string) => ({ name, close: vi.fn().mockResolvedValue(undefined) }) as unknown as DatabaseAdapter;
+const makeDb = (name: string) =>
+  ({
+    name,
+    run: vi.fn().mockResolvedValue(0),
+    get: vi.fn().mockResolvedValue(null),
+    close: vi.fn().mockResolvedValue(undefined)
+  }) as unknown as DatabaseAdapter;
 
 const request = async (app: express.Express, headers: Record<string, string>) => {
   const server = app.listen(0);
@@ -37,7 +41,7 @@ describe('webserver HTTP session security', () => {
     mocks.runMigrations.mockResolvedValue({ success: true });
     const { clearSessions } = await import('../session');
     const { closeAllDatabases } = await import('../database');
-    clearSessions();
+    await clearSessions();
     await closeAllDatabases();
   });
 
@@ -63,7 +67,7 @@ describe('webserver HTTP session security', () => {
 
   it('rejects unauthorized workspace access', async () => {
     const { issueSession } = await import('../session');
-    const session = issueSession('workspace-a');
+    const session = await issueSession('workspace-a');
     const response = await request(await createProtectedApp(), {
       'x-session-token': session.token,
       'x-workspace-id': 'workspace-b'
@@ -79,8 +83,8 @@ describe('webserver HTTP session security', () => {
     mocks.openSqlLite.mockResolvedValueOnce({ db: alphaDb }).mockResolvedValueOnce({ db: betaDb });
     const { issueSession } = await import('../session');
     const { setupDB } = await import('../database');
-    const alpha = issueSession('workspace-alpha');
-    const beta = issueSession('workspace-beta');
+    const alpha = await issueSession('workspace-alpha');
+    const beta = await issueSession('workspace-beta');
     await setupDB({
       dbType: DatabaseType.sqlite,
       databaseKey: 'database-alpha',
@@ -104,11 +108,14 @@ describe('webserver HTTP session security', () => {
   });
 
   it('rejects expired sessions', async () => {
-    const { issueSession, getSessionStore } = await import('../session');
-    const session = issueSession('workspace-expired');
-    getSessionStore().get(session.token)!.expiresAt = Date.now() - 1;
+    const { issueSession } = await import('../session');
+    const session = await issueSession('workspace-expired');
+    vi.useFakeTimers();
+    vi.setSystemTime(Date.parse(session.expiresAt) + 1);
 
     const response = await request(await createProtectedApp(), { 'x-session-token': session.token });
+
+    vi.useRealTimers();
 
     expect(response.status).toBe(401);
     await expect(response.json()).resolves.toMatchObject({ key: 'error.sessionExpired' });
@@ -119,7 +126,7 @@ describe('webserver HTTP session security', () => {
     mocks.openSqlLite.mockResolvedValue({ db: database });
     const { issueSession } = await import('../session');
     const { setupDB } = await import('../database');
-    const session = issueSession('workspace-refresh');
+    const session = await issueSession('workspace-refresh');
     await setupDB({
       dbType: DatabaseType.sqlite,
       databaseKey: 'database-refresh',

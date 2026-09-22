@@ -28,7 +28,7 @@ const app = {
 const invoke = async (method: string, path: string, request: Record<string, unknown>) => {
   const json = vi.fn();
   const status = vi.fn().mockReturnValue({ json });
-  await mocks.handlers.get(`${method}:${path}`)?.(request, { json, status });
+  await mocks.handlers.get(`${method}:${path}`)?.({ headers: {}, ...request }, { json, status });
   return { json, status };
 };
 

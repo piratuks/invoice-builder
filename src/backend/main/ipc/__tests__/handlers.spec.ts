@@ -8,7 +8,13 @@ const ipc = vi.hoisted(() => ({
   })
 }));
 
-vi.mock('electron', () => ({ ipcMain: { handle: ipc.handle } }));
+const database = vi.hoisted(() => ({ requireDatabase: vi.fn() }));
+
+vi.mock('electron', () => ({
+  app: { isPackaged: false, getAppPath: vi.fn() },
+  ipcMain: { handle: ipc.handle }
+}));
+vi.mock('../../database', () => database);
 
 const serviceMocks = vi.hoisted(() => ({
   addBank: vi.fn().mockResolvedValue({ success: true }),
@@ -24,23 +30,25 @@ vi.mock('../../../shared/services/banks', () => serviceMocks);
 vi.mock('../../../shared/services/settings', () => serviceMocks);
 
 describe('Electron IPC handlers', () => {
-  const db = { query: vi.fn() } as never;
+  const db = { query: vi.fn() };
 
   beforeEach(() => {
     ipc.handlers.clear();
     ipc.handle.mockClear();
+    database.requireDatabase.mockReturnValue(db);
     Object.values(serviceMocks).forEach(mock => mock.mockClear());
   });
 
   it('registers and forwards bank channels', async () => {
-    initBanksHandlers(db);
+    initBanksHandlers();
     const bank = { id: 4, name: 'Main bank' };
+    const event = { sender: { id: 1 } };
 
-    await ipc.handlers.get('add-bank')?.({}, bank);
-    await ipc.handlers.get('update-bank')?.({}, bank);
-    await ipc.handlers.get('delete-bank')?.({}, 4);
-    await ipc.handlers.get('batch-add-bank')?.({}, [bank]);
-    await ipc.handlers.get('get-all-banks')?.({}, { active: true });
+    await ipc.handlers.get('add-bank')?.(event, bank);
+    await ipc.handlers.get('update-bank')?.(event, bank);
+    await ipc.handlers.get('delete-bank')?.(event, 4);
+    await ipc.handlers.get('batch-add-bank')?.(event, [bank]);
+    await ipc.handlers.get('get-all-banks')?.(event, { active: true });
 
     expect(serviceMocks.addBank).toHaveBeenCalledWith(db, bank);
     expect(serviceMocks.updateBank).toHaveBeenCalledWith(db, bank);
@@ -50,11 +58,12 @@ describe('Electron IPC handlers', () => {
   });
 
   it('registers and forwards settings channels', async () => {
-    initSettingsHandlers(db);
+    initSettingsHandlers();
     const settings = { id: 1, language: 'en' };
+    const event = { sender: { id: 1 } };
 
-    await ipc.handlers.get('get-all-settings')?.();
-    await ipc.handlers.get('update-settings')?.({}, settings);
+    await ipc.handlers.get('get-all-settings')?.(event);
+    await ipc.handlers.get('update-settings')?.(event, settings);
 
     expect(serviceMocks.getAllSettings).toHaveBeenCalledWith(db);
     expect(serviceMocks.updateSettings).toHaveBeenCalledWith(db, settings);

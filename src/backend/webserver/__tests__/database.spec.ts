@@ -1,7 +1,7 @@
 import path from 'path';
 import { DatabaseType } from '../../shared/enums/databaseType';
 import type { DatabaseAdapter } from '../../shared/types/DatabaseAdapter';
-import { issueSession } from '../session';
+import { clearSessions, issueSession } from '../session';
 
 const mocks = vi.hoisted(() => ({
   mkdirSync: vi.fn(),
@@ -11,7 +11,6 @@ const mocks = vi.hoisted(() => ({
   initInitialData: vi.fn(),
   runMigrations: vi.fn()
 }));
-
 vi.mock('fs', () => ({ default: { mkdirSync: mocks.mkdirSync } }));
 vi.mock('../../shared/db/setup', () => ({
   openPostgreSql: mocks.openPostgreSql,
@@ -20,13 +19,18 @@ vi.mock('../../shared/db/setup', () => ({
   initInitialData: mocks.initInitialData
 }));
 vi.mock('../migration', () => ({ runMigrations: mocks.runMigrations }));
-
-const makeDb = () => ({ close: vi.fn().mockResolvedValue(undefined) }) as unknown as DatabaseAdapter;
+const makeDb = () =>
+  ({
+    run: vi.fn().mockResolvedValue(0),
+    get: vi.fn().mockResolvedValue(null),
+    close: vi.fn().mockResolvedValue(undefined)
+  }) as unknown as DatabaseAdapter;
 
 describe('webserver database setup', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.runMigrations.mockResolvedValue({ success: true });
+    return clearSessions();
   });
 
   it('opens PostgreSQL and initializes a newly created database', async () => {
@@ -48,6 +52,26 @@ describe('webserver database setup', () => {
     expect(mocks.initSchema).toHaveBeenCalledWith(db);
     expect(mocks.initInitialData).toHaveBeenCalledWith(db);
     expect(mocks.runMigrations).toHaveBeenCalledWith(db);
+  });
+
+  it('restores PostgreSQL for an existing session after a server restart', async () => {
+    const db = makeDb();
+    const config = {
+      host: 'localhost',
+      port: 5432,
+      database: 'invoice',
+      user: 'user',
+      password: 'pw',
+      ssl: false
+    };
+    mocks.openPostgreSql.mockResolvedValue({ db });
+    const { restorePostgresDatabase, getRequestDatabase } = await import('../database');
+
+    await expect(restorePostgresDatabase('postgres-recovery', config)).resolves.toBe(db);
+
+    expect(mocks.openPostgreSql).toHaveBeenCalledWith(config);
+    expect(mocks.runMigrations).toHaveBeenCalledWith(db);
+    expect(getRequestDatabase({ headers: { 'x-database-key': 'postgres-recovery' } } as never)).toBe(db);
   });
 
   it('closes the prior database and opens an existing SQLite file without initialization', async () => {
@@ -99,7 +123,7 @@ describe('webserver database setup', () => {
       'migration detail'
     );
     await expect(setupDB({ dbType: DatabaseType.sqlite, databaseKey: 'recovered-db' })).resolves.toBeUndefined();
-    expect(failedDb.close).not.toHaveBeenCalled();
+    expect(failedDb.close).toHaveBeenCalledTimes(1);
   });
 
   it('uses the default migration error when no message is supplied', async () => {
@@ -148,8 +172,8 @@ describe('webserver database setup', () => {
   it('keeps an established session bound to its original database', async () => {
     const alphaDb = makeDb();
     const betaDb = makeDb();
-    const alphaSession = issueSession('workspace-alpha');
-    const betaSession = issueSession('workspace-beta');
+    const alphaSession = await issueSession('workspace-alpha');
+    const betaSession = await issueSession('workspace-beta');
     mocks.openSqlLite.mockResolvedValueOnce({ db: alphaDb }).mockResolvedValueOnce({ db: betaDb });
     const { getRequestDatabase, setupDB } = await import('../database');
 
@@ -186,7 +210,7 @@ describe('webserver database setup', () => {
 
   it('rejects a database key that conflicts with the session or workspace owner', async () => {
     const database = makeDb();
-    const session = issueSession('workspace-owned');
+    const session = await issueSession('workspace-owned');
     mocks.openSqlLite.mockResolvedValue({ db: database });
     const { getRequestDatabase, setupDB } = await import('../database');
 
@@ -212,5 +236,35 @@ describe('webserver database setup', () => {
         headers: { 'x-database-key': 'database-other' }
       } as never)
     ).toBeNull();
+  });
+
+  it('rejects reuse of a database key by another session before replacing its database', async () => {
+    const firstDb = makeDb();
+    const secondDb = makeDb();
+    const firstSession = await issueSession('workspace-first');
+    const secondSession = await issueSession('workspace-second');
+    mocks.openSqlLite.mockResolvedValueOnce({ db: firstDb }).mockResolvedValueOnce({ db: secondDb });
+    const { getRequestDatabase, setupDB } = await import('../database');
+
+    await setupDB({
+      dbType: DatabaseType.sqlite,
+      sqliteConfig: { fullPath: 'tmp/first-owner.db' },
+      databaseKey: 'shared-key',
+      sessionId: firstSession.token,
+      workspaceId: firstSession.workspaceId
+    });
+
+    await expect(
+      setupDB({
+        dbType: DatabaseType.sqlite,
+        sqliteConfig: { fullPath: 'tmp/second-owner.db' },
+        databaseKey: 'shared-key',
+        sessionId: secondSession.token,
+        workspaceId: secondSession.workspaceId
+      })
+    ).rejects.toThrow('error.databaseAccessDenied');
+
+    expect(firstDb.close).not.toHaveBeenCalled();
+    expect(getRequestDatabase({ headers: { 'x-database-key': 'shared-key' } } as never)).toBe(firstDb);
   });
 });

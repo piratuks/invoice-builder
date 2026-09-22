@@ -67,7 +67,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "lint:fix": "eslint --fix .",
-    "test": "vitest",
+    "test": "vitest --maxWorkers=1 --no-file-parallelism",
     "test:e2e": "playwright test",
     "test:coverage": "vitest run --coverage",
     "sort:i18n": "node scripts/sort-i18n.js",
