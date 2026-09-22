@@ -8,14 +8,17 @@ import {
   RadioGroup,
   TextField
 } from '@mui/material';
-import { useEffect, useRef, type FC } from 'react';
+import { useEffect, useMemo, useRef, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
+import i18n from '../../../../../i18n';
+import { useAppDispatch } from '../../../../../state/configureStore';
 import { FONT_ITEMS_ARRAY } from '../../../../../state/constant';
+import { addToast, disableLoadingCursor, enableLoadingCursor } from '../../../../../state/pageSlice';
+import { useGetLayoutsQuery } from '../../../../api/layoutsApi';
 import { FontFamily } from '../../../../enums/fontFamily';
 import { PageFormat } from '../../../../enums/pageFormat';
 import { SizeType } from '../../../../enums/sizeType';
 import { useForm } from '../../../../hooks/form/useForm';
-import { useLayoutsRetrieve } from '../../../../hooks/layouts/useLayoutsRetrieve';
 import type { CustomizationFormPageSetup } from '../../../../types/invoice';
 import type { Layout } from '../../../../types/layouts';
 import { TabPanel } from '../../tabPanel/TabPanel';
@@ -28,7 +31,35 @@ interface Props {
 export const PageSetupTab: FC<Props> = ({ data, value, onChange }) => {
   const optionsFont = FONT_ITEMS_ARRAY;
   const { t } = useTranslation();
-  const { layouts } = useLayoutsRetrieve({});
+  const dispatch = useAppDispatch();
+  const {
+    data: layoutsData,
+    isLoading: isLayoutsLoading,
+    isFetching: isLayoutsFetching,
+    isError: isLayoutsError,
+    error: layoutsError
+  } = useGetLayoutsQuery();
+
+  useEffect(() => {
+    if (!isLayoutsError) return;
+    const { message, key } = (layoutsError as { message?: string; key?: string }) ?? {};
+    if (message) {
+      dispatch(addToast({ message: i18n.exists(message) ? t(message) : message, severity: 'error' }));
+    } else if (key) {
+      dispatch(addToast({ message: t(key), severity: 'error' }));
+    }
+  }, [isLayoutsError, layoutsError, dispatch, t]);
+
+  const isLayoutsBusy = isLayoutsLoading || isLayoutsFetching;
+  useEffect(() => {
+    if (!isLayoutsBusy) return;
+    dispatch(enableLoadingCursor());
+    return () => {
+      dispatch(disableLoadingCursor());
+    };
+  }, [isLayoutsBusy, dispatch]);
+
+  const layouts = useMemo(() => layoutsData ?? [], [layoutsData]);
   const { form, setForm, update } = useForm<CustomizationFormPageSetup>(data ?? {});
   const lastEmittedRef = useRef<CustomizationFormPageSetup | undefined>(data);
 
