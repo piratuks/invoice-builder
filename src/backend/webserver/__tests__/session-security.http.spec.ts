@@ -47,9 +47,9 @@ describe('webserver HTTP session security', () => {
 
   const createProtectedApp = async () => {
     const { sessionDatabaseMiddleware, databaseContextMiddleware } = await import('../main');
-    const { requireDB, sessionAuthorizationLimiter } = await import('../utils/functions');
+    const { createSessionAuthorizationLimiter, requireDB } = await import('../utils/functions');
     const app = express();
-    app.use(sessionAuthorizationLimiter);
+    app.use(createSessionAuthorizationLimiter());
     app.use(sessionDatabaseMiddleware);
     app.use(databaseContextMiddleware);
     app.get('/protected', requireDB, (req, res) => {
