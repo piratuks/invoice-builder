@@ -1,11 +1,10 @@
 import { SwipeableDrawer, useMediaQuery, useTheme } from '@mui/material';
 import { memo, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CRUDPage } from '../../../../shared/components/layout/crudPage/CRUDPage';
+import { useGetStyleProfilesQuery } from '../../../../shared/api/styleProfilesApi';
+import { CRUDPageRTK } from '../../../../shared/components/layout/crudPage/CRUDPageRTK';
 import { FilterType } from '../../../../shared/enums/filterType';
-import { useStyleProfilesRetrieve } from '../../../../shared/hooks/styleProfiles/useStyleProfilesRetrieve';
-import type { Filter, FilterData } from '../../../../shared/types/filter';
-import type { Response } from '../../../../shared/types/response';
+import type { Filter } from '../../../../shared/types/filter';
 import type { StyleProfile, StyleProfileAdd, StyleProfileUpdate } from '../../../../shared/types/styleProfiles';
 import { createCommonFilters, createInvoiceFilters } from '../../../../shared/utils/filterSortFunctions';
 import { List as StyleProfileList } from '../../../styleProfiles/List';
@@ -25,13 +24,6 @@ const StyleProfilesDropdownComponent: FC<Props> = ({ isOpen, onClose, onOpen, on
   ];
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
-  const useStyleProfilesCRUDRetrieve = (args: {
-    filter?: FilterData[];
-    onDone?: (data: Response<StyleProfile[]>) => void;
-  }) => {
-    const { styleProfiles, execute } = useStyleProfilesRetrieve({ filter: args.filter, onDone: args.onDone });
-    return { items: styleProfiles, execute };
-  };
   return (
     <>
       <SwipeableDrawer
@@ -54,12 +46,12 @@ const StyleProfilesDropdownComponent: FC<Props> = ({ isOpen, onClose, onOpen, on
           }
         }}
       >
-        <CRUDPage<StyleProfile, StyleProfileAdd, StyleProfileUpdate>
+        <CRUDPageRTK<StyleProfile, StyleProfileAdd, StyleProfileUpdate>
           componentId="invoices:styleprofiles"
           filters={filters}
           showRightSide={false}
           showAddButton={false}
-          useRetrieve={useStyleProfilesCRUDRetrieve}
+          useRetrieve={useGetStyleProfilesQuery}
           searchField={'name'}
           sortOptions={[
             { label: t('common.name'), value: 'name' },

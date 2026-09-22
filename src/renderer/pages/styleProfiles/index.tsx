@@ -1,14 +1,15 @@
 import { useTranslation } from 'react-i18next';
-import { CRUDPage } from '../../shared/components/layout/crudPage/CRUDPage';
+import {
+  useAddStyleProfileMutation,
+  useAddStyleProfilesBatchMutation,
+  useDeleteStyleProfileMutation,
+  useGetStyleProfilesQuery,
+  useUpdateStyleProfileMutation
+} from '../../shared/api/styleProfilesApi';
+import { CRUDPageRTK } from '../../shared/components/layout/crudPage/CRUDPageRTK';
 import { FilterType } from '../../shared/enums/filterType';
-import { useStyleProfileAdd } from '../../shared/hooks/styleProfiles/useStyleProfileAdd';
-import { useStyleProfileAddBatch } from '../../shared/hooks/styleProfiles/useStyleProfileAddBatch';
-import { useStyleProfileDelete } from '../../shared/hooks/styleProfiles/useStyleProfileDelete';
-import { useStyleProfilesRetrieve } from '../../shared/hooks/styleProfiles/useStyleProfilesRetrieve';
-import { useStyleProfileUpdate } from '../../shared/hooks/styleProfiles/useStyleProfileUpdate';
 import type { Rows } from '../../shared/types/excel';
-import type { Filter, FilterData } from '../../shared/types/filter';
-import type { Response } from '../../shared/types/response';
+import type { Filter } from '../../shared/types/filter';
 import type { StyleProfile, StyleProfileAdd, StyleProfileUpdate } from '../../shared/types/styleProfiles';
 import { createCommonFilters, createInvoiceFilters } from '../../shared/utils/filterSortFunctions';
 import { isStyleProfileFromData } from '../../shared/utils/typeGuardFunctions';
@@ -66,58 +67,18 @@ export const StyleProfilesPage = () => {
     ...createCommonFilters({ t, namespace: 'styleProfiles', initial: FilterType.active }),
     ...createInvoiceFilters({ t, namespace: 'styleProfiles' })
   ];
-  const useStyleProfilesCRUDRetrieve = (args: {
-    filter?: FilterData[];
-    onDone?: (data: Response<StyleProfile[]>) => void;
-  }) => {
-    const { styleProfiles, execute } = useStyleProfilesRetrieve({ filter: args.filter, onDone: args.onDone });
-    return { items: styleProfiles, execute };
-  };
-  const useStyleProfileCRUDAdd = (args: {
-    item?: StyleProfileAdd;
-    immediate?: boolean;
-    onDone?: (data: Response<StyleProfile>) => void;
-  }) => {
-    return useStyleProfileAdd({
-      styleProfile: args.item,
-      immediate: args.immediate,
-      onDone: args.onDone
-    });
-  };
-  const useStyleProfilesCRUDAddBatch = (args: {
-    item?: StyleProfileAdd[];
-    immediate?: boolean;
-    onDone?: (data: Response<StyleProfileAdd[]>) => void;
-  }) => {
-    return useStyleProfileAddBatch({
-      styleProfiles: args.item,
-      immediate: args.immediate,
-      onDone: args.onDone
-    });
-  };
-  const useStyleProfileCRUDUpdate = (args: {
-    item?: StyleProfileUpdate;
-    immediate?: boolean;
-    onDone?: (data: Response<StyleProfile>) => void;
-  }) => {
-    return useStyleProfileUpdate({
-      styleProfile: args.item,
-      immediate: args.immediate,
-      onDone: args.onDone
-    });
-  };
 
   return (
-    <CRUDPage<StyleProfile, StyleProfileAdd, StyleProfileUpdate>
+    <CRUDPageRTK<StyleProfile, StyleProfileAdd, StyleProfileUpdate>
       componentId="styleprofiles"
       title={t('styleProfiles.title')}
       filters={filters}
       excelData={{ excelColumns, excelFileName, excelFormat: 'xlsx', excelTemplateData }}
-      useRetrieve={useStyleProfilesCRUDRetrieve}
-      useAdd={useStyleProfileCRUDAdd}
-      useAddBatch={useStyleProfilesCRUDAddBatch}
-      useUpdate={useStyleProfileCRUDUpdate}
-      useDelete={useStyleProfileDelete}
+      useRetrieve={useGetStyleProfilesQuery}
+      useAdd={useAddStyleProfileMutation}
+      useAddBatch={useAddStyleProfilesBatchMutation}
+      useUpdate={useUpdateStyleProfileMutation}
+      useDelete={useDeleteStyleProfileMutation}
       searchField={'name'}
       sortOptions={[
         { label: t('common.name'), value: 'name' },
