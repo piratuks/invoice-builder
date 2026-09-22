@@ -2,6 +2,7 @@ import { Grid, useMediaQuery, useTheme } from '@mui/material';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n';
+import { settingsApi, useUpdateSettingsMutation } from '../../shared/api/settingsApi';
 import { Content } from '../../shared/components/layout/content/Content';
 import { NoItem } from '../../shared/components/lists/noItem/NoItem';
 import { Confirmation } from '../../shared/components/modals/confirmation';
@@ -11,14 +12,13 @@ import type { Language } from '../../shared/enums/language';
 import { MenuItemSettings } from '../../shared/enums/menuItemSettings';
 import { useExportJson } from '../../shared/hooks/backup/useExportJson';
 import { useImportJson } from '../../shared/hooks/backup/useImportJson';
-import { useSettingsRetrieve } from '../../shared/hooks/settings/useSettingsRetrieve';
-import { useSettingsUpdate } from '../../shared/hooks/settings/useSettingsUpdate';
 import type { ExportMeta } from '../../shared/types/exportMeta';
 import type { Response } from '../../shared/types/response';
-import type { Settings } from '../../shared/types/settings';
 import { useAppDispatch, useAppSelector } from '../../state/configureStore';
 import {
   addToast,
+  disableLoadingCursor,
+  enableLoadingCursor,
   selectSettings,
   setCustomInvoiseSettings,
   setEInvoiceUBL,
@@ -46,30 +46,15 @@ export const SettingsPage = () => {
   const stableSettings = useMemo(() => storeSettings ?? {}, [storeSettings]);
   const [showImportConfirm, setShowImportConfirm] = useState(false);
 
-  const { execute: getSettings } = useSettingsRetrieve({
-    immediate: false,
-    onDone: (data: Response<Settings>) => {
-      if (!data.success) {
-        if (data.message) {
-          const message = i18n.exists(data.message) ? t(data.message) : data.message;
-          dispatch(addToast({ message: message, severity: 'error' }));
-        } else if (data.key) dispatch(addToast({ message: t(data.key), severity: 'error' }));
-      }
-    }
-  });
+  const [updateSettingsTrigger, { isLoading: isUpdatingSettings }] = useUpdateSettingsMutation();
 
-  const { execute } = useSettingsUpdate({
-    newSettings: stableSettings ?? {},
-    immediate: false,
-    onDone: (data: Response<unknown>) => {
-      if (!data.success) {
-        if (data.message) {
-          const message = i18n.exists(data.message) ? t(data.message) : data.message;
-          dispatch(addToast({ message: message, severity: 'error' }));
-        } else if (data.key) dispatch(addToast({ message: t(data.key), severity: 'error' }));
-      }
-    }
-  });
+  useEffect(() => {
+    if (!isUpdatingSettings) return;
+    dispatch(enableLoadingCursor());
+    return () => {
+      dispatch(disableLoadingCursor());
+    };
+  }, [isUpdatingSettings, dispatch]);
 
   const { execute: exportJSONBackup } = useExportJson({
     immediate: false,
@@ -101,7 +86,7 @@ export const SettingsPage = () => {
         } else if (data.key) dispatch(addToast({ message: t(data.key), severity: 'error' }));
       } else {
         dispatch(addToast({ message: t('common.imported'), severity: 'success' }));
-        getSettings();
+        dispatch(settingsApi.util.invalidateTags([{ type: 'Settings', id: 'SINGLETON' }]));
       }
     }
   });
@@ -222,8 +207,16 @@ export const SettingsPage = () => {
       return;
     }
 
-    execute();
-  }, [stableSettings, execute]);
+    updateSettingsTrigger(stableSettings)
+      .unwrap()
+      .catch((err: { message?: string; key?: string }) => {
+        if (err.message) {
+          dispatch(addToast({ message: i18n.exists(err.message) ? t(err.message) : err.message, severity: 'error' }));
+        } else if (err.key) {
+          dispatch(addToast({ message: t(err.key), severity: 'error' }));
+        }
+      });
+  }, [stableSettings, updateSettingsTrigger, dispatch, t]);
 
   const onSelected = useCallback((item: MenuItemSettings | undefined) => {
     setCurrentMenuItem(item);

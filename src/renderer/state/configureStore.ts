@@ -8,6 +8,7 @@ import { clientsApi } from '../shared/api/clientsApi';
 import { currenciesApi } from '../shared/api/currenciesApi';
 import { layoutsApi } from '../shared/api/layoutsApi';
 import { presetsApi } from '../shared/api/presetsApi';
+import { settingsApi } from '../shared/api/settingsApi';
 import { styleProfilesApi } from '../shared/api/styleProfilesApi';
 import { unitsApi } from '../shared/api/unitsApi';
 import { pageSlice } from './pageSlice';
@@ -21,6 +22,23 @@ const isSerializableValue = (value: unknown): boolean => {
   return proto === null || proto === Object.prototype;
 };
 
+// RTK Query caches (layout schemas, invoice snapshots, binary blobs) are large enough that
+// recursively walking them on every action makes serializableCheck itself the bottleneck.
+// This data only ever comes from our own baseQueries, so it's safe to skip the deep walk here.
+const apiReducerPaths = [
+  businessesApi.reducerPath,
+  banksApi.reducerPath,
+  categoriesApi.reducerPath,
+  clientsApi.reducerPath,
+  currenciesApi.reducerPath,
+  unitsApi.reducerPath,
+  styleProfilesApi.reducerPath,
+  presetsApi.reducerPath,
+  layoutsApi.reducerPath,
+  settingsApi.reducerPath
+];
+const ignoredApiStatePaths = apiReducerPaths.map(path => new RegExp(`^${path}\\.`));
+
 export const store = configureStore({
   reducer: {
     [pageSlice.name]: pageSlice.reducer,
@@ -32,11 +50,16 @@ export const store = configureStore({
     [unitsApi.reducerPath]: unitsApi.reducer,
     [styleProfilesApi.reducerPath]: styleProfilesApi.reducer,
     [presetsApi.reducerPath]: presetsApi.reducer,
-    [layoutsApi.reducerPath]: layoutsApi.reducer
+    [layoutsApi.reducerPath]: layoutsApi.reducer,
+    [settingsApi.reducerPath]: settingsApi.reducer
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware({
-      serializableCheck: { isSerializable: isSerializableValue }
+      serializableCheck: {
+        isSerializable: isSerializableValue,
+        ignoredPaths: ignoredApiStatePaths,
+        ignoredActionPaths: ['payload', 'meta.baseQueryMeta']
+      }
     }).concat(
       businessesApi.middleware,
       banksApi.middleware,
@@ -46,7 +69,8 @@ export const store = configureStore({
       unitsApi.middleware,
       styleProfilesApi.middleware,
       presetsApi.middleware,
-      layoutsApi.middleware
+      layoutsApi.middleware,
+      settingsApi.middleware
     )
 });
 
