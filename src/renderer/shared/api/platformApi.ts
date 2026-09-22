@@ -295,20 +295,28 @@ export const webApi = () => {
       Promise.resolve({ success: true, data: { canceled: true, filePath: '' } } as Response<DBSelector>),
     openDatabase: () =>
       Promise.resolve({ success: true, data: { canceled: true, filePath: '' } } as Response<DBSelector>),
-    initializeDatabase: async (data: {
+    initializeDatabase: async ({
+      dbType,
+      fullPath,
+      mode,
+      postgresConfig
+    }: {
       postgresConfig?: PostgresConfig;
       dbType: DatabaseType;
       fullPath?: string;
       mode?: DBInitType;
     }) => {
       const response = await apiPost<{ success: boolean; message?: string }>('/api/databases', {
-        ...data,
+        dbType,
+        fullPath,
+        mode,
+        postgresConfig,
         databaseKey: getDatabaseKey(),
         workspaceId: getWorkspaceId()
       });
       if (response.success) {
-        window.sessionStorage.setItem('invoice-builder-database-type', data.dbType);
-        if (data.fullPath) window.sessionStorage.setItem('invoice-builder-database-path', data.fullPath);
+        window.sessionStorage.setItem('invoice-builder-database-type', dbType);
+        if (fullPath) window.sessionStorage.setItem('invoice-builder-database-path', fullPath);
       }
       return response;
     },

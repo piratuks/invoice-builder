@@ -25,6 +25,13 @@ const isDatabaseBootstrapRequest = (req: Request) =>
   (req.path === '/api/databases/test' && req.method === 'POST');
 
 const app = express();
+app.set('trust proxy', 1);
+app.use(
+  cors({
+    origin: feServer,
+    credentials: true
+  })
+);
 app.use(express.json({ limit: '50mb' }));
 export const sessionDatabaseMiddleware = async (req: Request, _res: Response, next: NextFunction) => {
   try {
@@ -82,13 +89,6 @@ export const databaseContextMiddleware = (req: Request, _res: Response, next: Ne
 app.use(createSessionAuthorizationLimiter());
 app.use(sessionDatabaseMiddleware);
 app.use(databaseContextMiddleware);
-app.use(
-  cors({
-    origin: feServer,
-    credentials: true
-  })
-);
-app.set('trust proxy', 1);
 
 export const createApp = () => {
   initDatabaseController(app);

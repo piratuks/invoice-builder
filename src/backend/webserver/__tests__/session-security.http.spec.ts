@@ -1,4 +1,5 @@
 import express from 'express';
+import rateLimit from 'express-rate-limit';
 import type { AddressInfo } from 'net';
 import { DatabaseType } from '../../shared/enums/databaseType';
 import type { DatabaseAdapter } from '../../shared/types/DatabaseAdapter';
@@ -47,9 +48,18 @@ describe('webserver HTTP session security', () => {
 
   const createProtectedApp = async () => {
     const { sessionDatabaseMiddleware, databaseContextMiddleware } = await import('../main');
-    const { createSessionAuthorizationLimiter, requireDB } = await import('../utils/functions');
+    const { requireDB } = await import('../utils/functions');
     const app = express();
-    app.use(createSessionAuthorizationLimiter());
+    app.use(
+      rateLimit({
+        windowMs: 60 * 1000,
+        max: 10,
+        skipSuccessfulRequests: true,
+        standardHeaders: true,
+        legacyHeaders: false,
+        message: { success: false, message: undefined, key: 'error.rateLimiter' }
+      })
+    );
     app.use(sessionDatabaseMiddleware);
     app.use(databaseContextMiddleware);
     app.get('/protected', requireDB, (req, res) => {
