@@ -1,17 +1,18 @@
 import { type FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CRUDPage } from '../../shared/components/layout/crudPage/CRUDPage';
+import {
+  useAddPresetMutation,
+  useAddPresetsBatchMutation,
+  useDeletePresetMutation,
+  useGetPresetsQuery,
+  useUpdatePresetMutation
+} from '../../shared/api/presetsApi';
+import { CRUDPageRTK } from '../../shared/components/layout/crudPage/CRUDPageRTK';
 import { FilterType } from '../../shared/enums/filterType';
 import { Language } from '../../shared/enums/language';
-import { usePresetAdd } from '../../shared/hooks/presets/usePresetAdd';
-import { usePresetAddBatch } from '../../shared/hooks/presets/usePresetAddBatch';
-import { usePresetDelete } from '../../shared/hooks/presets/usePresetDelete';
-import { usePresetsRetrieve } from '../../shared/hooks/presets/usePresetsRetrieve';
-import { usePresetUpdate } from '../../shared/hooks/presets/usePresetUpdate';
 import type { Rows } from '../../shared/types/excel';
-import type { Filter, FilterData } from '../../shared/types/filter';
+import type { Filter } from '../../shared/types/filter';
 import type { Preset, PresetAdd, PresetUpdate } from '../../shared/types/preset';
-import type { Response } from '../../shared/types/response';
 import { createCommonFilters } from '../../shared/utils/filterSortFunctions';
 import { isPresetFromData } from '../../shared/utils/typeGuardFunctions';
 import { Form } from './Form';
@@ -56,54 +57,17 @@ export const PresetsPage: FC = () => {
   ];
   const filters: Filter[] = [...createCommonFilters({ t, namespace: 'presets', initial: FilterType.active })];
 
-  const usePresetsCRUDRetrieve = (args: { filter?: FilterData[]; onDone?: (data: Response<Preset[]>) => void }) => {
-    const { presets, execute } = usePresetsRetrieve({ filter: args.filter, onDone: args.onDone });
-    return { items: presets, execute };
-  };
-  const usePresetCRUDAdd = (args: {
-    item?: PresetAdd;
-    immediate?: boolean;
-    onDone?: (data: Response<Preset>) => void;
-  }) => {
-    return usePresetAdd({
-      preset: args.item,
-      immediate: args.immediate,
-      onDone: args.onDone
-    });
-  };
-  const usePresetsCRUDAddBatch = (args: {
-    item?: PresetAdd[];
-    immediate?: boolean;
-    onDone?: (data: Response<PresetAdd[]>) => void;
-  }) => {
-    return usePresetAddBatch({
-      presets: args.item,
-      immediate: args.immediate,
-      onDone: args.onDone
-    });
-  };
-  const usePresetCRUDUpdate = (args: {
-    item?: PresetUpdate;
-    immediate?: boolean;
-    onDone?: (data: Response<Preset>) => void;
-  }) => {
-    return usePresetUpdate({
-      preset: args.item,
-      immediate: args.immediate,
-      onDone: args.onDone
-    });
-  };
   return (
-    <CRUDPage<Preset, PresetAdd, PresetUpdate>
+    <CRUDPageRTK<Preset, PresetAdd, PresetUpdate>
       componentId="presets"
       title={t('common.presets')}
       filters={filters}
       excelData={{ excelColumns, excelFileName, excelFormat: 'xlsx', excelTemplateData }}
-      useRetrieve={usePresetsCRUDRetrieve}
-      useAdd={usePresetCRUDAdd}
-      useAddBatch={usePresetsCRUDAddBatch}
-      useUpdate={usePresetCRUDUpdate}
-      useDelete={usePresetDelete}
+      useRetrieve={useGetPresetsQuery}
+      useAdd={useAddPresetMutation}
+      useAddBatch={useAddPresetsBatchMutation}
+      useUpdate={useUpdatePresetMutation}
+      useDelete={useDeletePresetMutation}
       searchField={'name'}
       inlineOnAdd={true}
       sortOptions={[

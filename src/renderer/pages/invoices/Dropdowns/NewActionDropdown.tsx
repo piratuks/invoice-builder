@@ -11,18 +11,17 @@ import {
   useMediaQuery,
   useTheme
 } from '@mui/material';
-import { memo, useCallback, useMemo, type FC } from 'react';
+import { memo, useCallback, useEffect, useMemo, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../../i18n';
+import { useGetPresetsQuery } from '../../../shared/api/presetsApi';
 import { SearchInput } from '../../../shared/components/inputs/searchInput/SearchInput';
 import { PageHeader } from '../../../shared/components/layout/pageHeader/PageHeader';
 import { usePersistentSearch } from '../../../shared/hooks/persistent/usePersistentSearch';
-import { usePresetsRetrieve } from '../../../shared/hooks/presets/usePresetsRetrieve';
 import type { Preset } from '../../../shared/types/preset';
-import type { Response } from '../../../shared/types/response';
 import { filterAndSortArray } from '../../../shared/utils/filterSortFunctions';
 import { useAppDispatch } from '../../../state/configureStore';
-import { addToast } from '../../../state/pageSlice';
+import { addToast, disableLoadingCursor, enableLoadingCursor } from '../../../state/pageSlice';
 
 interface Props {
   isOpen: boolean;
@@ -45,16 +44,34 @@ const NewActionDropdownComponent: FC<Props> = ({ isOpen, onClose, onOpen, onNew,
   );
 
   const dispatch = useAppDispatch();
-  const { presets } = usePresetsRetrieve({
-    onDone: (data: Response<Preset[]>) => {
-      if (!data.success) {
-        if (data.message) {
-          const message = i18n.exists(data.message) ? t(data.message) : data.message;
-          dispatch(addToast({ message: message, severity: 'error' }));
-        } else if (data.key) dispatch(addToast({ message: t(data.key), severity: 'error' }));
-      }
+  const {
+    data: presetsData,
+    isLoading: isPresetsLoading,
+    isFetching: isPresetsFetching,
+    isError: isPresetsError,
+    error: presetsError
+  } = useGetPresetsQuery();
+
+  useEffect(() => {
+    if (!isPresetsError) return;
+    const { message, key } = (presetsError as { message?: string; key?: string }) ?? {};
+    if (message) {
+      dispatch(addToast({ message: i18n.exists(message) ? t(message) : message, severity: 'error' }));
+    } else if (key) {
+      dispatch(addToast({ message: t(key), severity: 'error' }));
     }
-  });
+  }, [isPresetsError, presetsError, dispatch, t]);
+
+  const isPresetsBusy = isPresetsLoading || isPresetsFetching;
+  useEffect(() => {
+    if (!isPresetsBusy) return;
+    dispatch(enableLoadingCursor());
+    return () => {
+      dispatch(disableLoadingCursor());
+    };
+  }, [isPresetsBusy, dispatch]);
+
+  const presets = useMemo(() => presetsData ?? [], [presetsData]);
 
   const filteredPresets = useMemo(() => {
     return filterAndSortArray({
