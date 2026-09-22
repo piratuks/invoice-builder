@@ -6,7 +6,7 @@ import { DatabaseType } from '../../shared/enums/databaseType';
 import { DBInitType } from '../../shared/enums/dbInitType';
 import { APP_CONFIG } from '../config';
 import { setupDB } from '../database';
-import { getSessionTokenFromRequest, issueSession, revokeSession } from '../session';
+import { getSessionTokenFromRequest, issueSession, revokeSession, sessionCookieName } from '../session';
 import { listDbLimiter } from '../utils/functions';
 
 export const dbDir = path.resolve(process.cwd(), process.env.DB_DIRECTORY || APP_CONFIG.DB_DIRECTORY);
@@ -72,7 +72,13 @@ export const initDatabaseController = (app: Express) => {
         sessionId: sessionToken,
         workspaceId: selectedWorkspaceId
       });
-      res.json({ success: true, sessionToken, workspaceId: selectedWorkspaceId });
+      res.cookie(sessionCookieName, sessionToken, {
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production',
+        path: '/api'
+      });
+      res.json({ success: true, workspaceId: selectedWorkspaceId });
     } catch (err) {
       if (sessionToken && sessionToken !== req.sessionId) await revokeSession(sessionToken);
       res.status(500).json({ success: false, message: (err as Error).message });

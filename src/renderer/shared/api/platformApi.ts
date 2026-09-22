@@ -102,11 +102,6 @@ const getWorkspaceId = () => {
   return nextWorkspace;
 };
 
-const getSessionToken = () => {
-  const storage = typeof window !== 'undefined' ? window.sessionStorage : undefined;
-  return storage?.getItem('invoice-builder-session-token') ?? undefined;
-};
-
 const getDatabaseKey = () => {
   const storage = typeof window !== 'undefined' ? window.sessionStorage : undefined;
   const storageKey = 'invoice-builder-database-key';
@@ -129,43 +124,11 @@ const getDatabaseType = () => {
   return storage?.getItem('invoice-builder-database-type') ?? undefined;
 };
 
-const getPostgresConfig = (): PostgresConfig | undefined => {
-  const storage = typeof window !== 'undefined' ? window.sessionStorage : undefined;
-  const value = storage?.getItem('invoice-builder-postgres-config');
-  if (!value) return undefined;
-  try {
-    return JSON.parse(value) as PostgresConfig;
-  } catch {
-    storage?.removeItem('invoice-builder-postgres-config');
-    return undefined;
-  }
-};
-
-const encodePostgresConfig = (config?: PostgresConfig) => {
-  if (!config || typeof window === 'undefined') return undefined;
-  const bytes = new TextEncoder().encode(JSON.stringify(config));
-  let binary = '';
-  bytes.forEach(byte => {
-    binary += String.fromCharCode(byte);
-  });
-  return btoa(binary).replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
-};
-
-const getPersistedPostgresConfig = (config: PostgresConfig) => {
-  const safeConfig = { ...config };
-  delete safeConfig.password;
-  return safeConfig;
-};
-
 const getDatabaseHeaders = () => ({
   'x-database-key': getDatabaseKey(),
   'x-workspace-id': getWorkspaceId(),
   ...(getDatabaseType() ? { 'x-database-type': getDatabaseType() } : {}),
-  ...(getDatabasePath() ? { 'x-database-path': getDatabasePath() } : {}),
-  ...(getDatabaseType() === 'postgre' && getPostgresConfig()
-    ? { 'x-postgres-config': encodePostgresConfig(getPostgresConfig())! }
-    : {}),
-  ...(getSessionToken() ? { 'x-session-token': getSessionToken() } : {})
+  ...(getDatabasePath() ? { 'x-database-path': getDatabasePath() } : {})
 });
 
 const mapInvoiceFromWeb = (i: InvoiceWeb) => ({
@@ -232,7 +195,8 @@ const apiGet = async <T>(path: string, params?: Record<string, string>): Promise
     Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
   }
   const res = await fetch(url.toString(), {
-    headers: getDatabaseHeaders()
+    headers: getDatabaseHeaders(),
+    credentials: 'include'
   });
   return res.json() as Promise<T>;
 };
@@ -244,7 +208,8 @@ const apiGetBlob = async (path: string, params?: Record<string, string>): Promis
   }
 
   const res = await fetch(url.toString(), {
-    headers: getDatabaseHeaders()
+    headers: getDatabaseHeaders(),
+    credentials: 'include'
   });
   if (res.ok) {
     const buffer = await res.arrayBuffer();
@@ -259,7 +224,8 @@ const apiPost = async <T>(path: string, body?: unknown): Promise<T> => {
 
   const options: RequestInit = {
     method: 'POST',
-    headers: getDatabaseHeaders()
+    headers: getDatabaseHeaders(),
+    credentials: 'include'
   };
 
   if (body instanceof FormData) {
@@ -280,6 +246,7 @@ const apiPut = async <T>(path: string, body?: unknown): Promise<T> => {
   const url = baseUrl() + path;
   const res = await fetch(url, {
     method: 'PUT',
+    credentials: 'include',
     headers: {
       ...getDatabaseHeaders(),
       'Content-Type': 'application/json'
@@ -291,7 +258,7 @@ const apiPut = async <T>(path: string, body?: unknown): Promise<T> => {
 
 const apiDelete = async <T>(path: string): Promise<T> => {
   const url = baseUrl() + path;
-  const res = await fetch(url, { method: 'DELETE', headers: getDatabaseHeaders() });
+  const res = await fetch(url, { method: 'DELETE', headers: getDatabaseHeaders(), credentials: 'include' });
   return res.json() as Promise<T>;
 };
 
@@ -334,21 +301,14 @@ export const webApi = () => {
       fullPath?: string;
       mode?: DBInitType;
     }) => {
-      const response = await apiPost<{ success: boolean; message?: string; sessionToken?: string }>('/api/databases', {
+      const response = await apiPost<{ success: boolean; message?: string }>('/api/databases', {
         ...data,
         databaseKey: getDatabaseKey(),
         workspaceId: getWorkspaceId()
       });
-      if (response.success && response.sessionToken) {
-        window.sessionStorage.setItem('invoice-builder-session-token', response.sessionToken);
+      if (response.success) {
         window.sessionStorage.setItem('invoice-builder-database-type', data.dbType);
         if (data.fullPath) window.sessionStorage.setItem('invoice-builder-database-path', data.fullPath);
-        if (data.postgresConfig) {
-          window.sessionStorage.setItem(
-            'invoice-builder-postgres-config',
-            JSON.stringify(getPersistedPostgresConfig(data.postgresConfig))
-          );
-        }
       }
       return response;
     },

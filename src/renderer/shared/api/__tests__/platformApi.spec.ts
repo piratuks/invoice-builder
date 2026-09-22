@@ -61,10 +61,20 @@ describe('webApi', () => {
     const api = webApi();
     await expect(api.selectDatabase()).resolves.toMatchObject({ success: true });
     await expect(api.openDatabase()).resolves.toMatchObject({ success: true });
+    fetchMock.mockResolvedValueOnce(jsonResponse({ success: true, sessionToken: 'sensitive-token' }));
     await api.initializeDatabase({ dbType: DatabaseType.sqlite, fullPath: '/tmp/db', mode: DBInitType.create });
+    await api.initializeDatabase({
+      dbType: DatabaseType.postgre,
+      postgresConfig: { database: 'db', host: 'localhost', password: 'p', port: 5432, ssl: false, user: 'u' }
+    });
     await api.getDatabaseList();
     await api.testConnection({ host: 'localhost', port: 5432, user: 'u', password: 'p', database: 'db', ssl: false });
-    expect(fetchMock).toHaveBeenCalled();
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining('/api/databases'),
+      expect.objectContaining({ credentials: 'include' })
+    );
+    expect(window.sessionStorage.getItem('invoice-builder-session-token')).toBeNull();
+    expect(window.sessionStorage.getItem('invoice-builder-postgres-config')).toBeNull();
   });
 
   it('gets and updates settings', async () => {

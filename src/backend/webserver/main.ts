@@ -1,6 +1,5 @@
 import cors from 'cors';
 import express, { type NextFunction, type Request, type Response } from 'express';
-import type { PostgresConfig } from '../shared/types/postgresConfig';
 import { startCleanupScheduler, stopCleanupScheduler } from './cleanup';
 import { APP_CONFIG } from './config';
 import { initControllers } from './controllers';
@@ -10,7 +9,6 @@ import {
   getDatabaseKeyFromRequest,
   getRequestDatabase,
   registerSessionDatabase,
-  restorePostgresDatabase,
   restoreSqliteDatabase
 } from './database';
 import { authenticateSession, getSessionTokenFromRequest } from './session';
@@ -39,18 +37,8 @@ export const sessionDatabaseMiddleware = async (req: Request, _res: Response, ne
         typeof req.headers['x-database-path'] === 'string' ? req.headers['x-database-path'] : undefined;
       const databaseType =
         typeof req.headers['x-database-type'] === 'string' ? req.headers['x-database-type'] : undefined;
-      const encodedPostgresConfig =
-        typeof req.headers['x-postgres-config'] === 'string' ? req.headers['x-postgres-config'] : undefined;
       if (databaseKey && databaseType === 'sqlite' && databasePath) {
         const restoredDb = await restoreSqliteDatabase(databaseKey, databasePath);
-        session = await authenticateSession(token, restoredDb);
-      } else if (databaseKey && databaseType === 'postgre' && encodedPostgresConfig) {
-        const config = JSON.parse(Buffer.from(encodedPostgresConfig, 'base64url').toString('utf8')) as PostgresConfig;
-        if (!config.password) {
-          _res.status(401).json({ success: false, key: 'error.postgresCredentialsRequired' });
-          return;
-        }
-        const restoredDb = await restorePostgresDatabase(databaseKey, config);
         session = await authenticateSession(token, restoredDb);
       }
     }

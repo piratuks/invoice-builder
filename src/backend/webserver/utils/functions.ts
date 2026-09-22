@@ -70,13 +70,13 @@ export const listDbLimiter = rateLimit({
 
 export const createSessionAuthorizationLimiter = () =>
   rateLimit({
-  windowMs: 60 * 1000,
-  max: 10,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: {
-    success: false,
-    message: undefined,
-    key: 'error.rateLimiter'
-  }
+    windowMs: 60 * 1000,
+    max: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: {
+      success: false,
+      message: undefined,
+      key: 'error.rateLimiter'
+    }
   });

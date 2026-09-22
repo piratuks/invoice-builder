@@ -20,6 +20,7 @@ type StoredSession = WebSession & {
 const sessions = new Map<string, { session: WebSession; databaseKey?: string; db?: DatabaseAdapter }>();
 
 const sessionTtlMs = Number(process.env.WEBSERVER_SESSION_TTL_MS) || 30 * 60 * 1000;
+export const sessionCookieName = 'invoice-builder-session';
 export const issueSession = async (workspaceId?: string): Promise<WebSession> => {
   const now = new Date().toISOString();
   const session: WebSession = {
@@ -116,7 +117,11 @@ export const bindSessionDatabase = async (token: string, databaseKey: string, db
 
 export const getSessionTokenFromRequest = (req: Request) => {
   const raw = req.headers['x-session-token'];
-  return Array.isArray(raw) ? raw[0] : raw;
+  if (raw) return Array.isArray(raw) ? raw[0] : raw;
+
+  const cookies = req.headers.cookie?.split(';') ?? [];
+  const sessionCookie = cookies.find(cookie => cookie.trim().startsWith(`${sessionCookieName}=`));
+  return sessionCookie ? decodeURIComponent(sessionCookie.trim().slice(sessionCookieName.length + 1)) : undefined;
 };
 
 export const expireSessions = async () => {

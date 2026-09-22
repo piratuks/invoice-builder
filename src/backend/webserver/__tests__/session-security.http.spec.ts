@@ -150,11 +150,11 @@ describe('webserver HTTP session security', () => {
     const app = await createProtectedApp();
 
     const first = await request(app, {
-      'x-session-token': session.token,
+      cookie: `invoice-builder-session=${session.token}`,
       'x-database-key': 'database-refresh'
     });
     const second = await request(app, {
-      'x-session-token': session.token,
+      cookie: `invoice-builder-session=${session.token}`,
       'x-database-key': 'database-refresh'
     });
 

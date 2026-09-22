@@ -5,13 +5,14 @@
 New features & improvements
 
 - Added automated test coverage reaching at least 80% overall.
-- Added isolated multi-session database contexts for web/Docker mode, including server-issued session tokens, per-database session/workspace metadata, SQLite/PostgreSQL restart recovery, automatic session cleanup, and PostgreSQL pool lifecycle management.
+- Added isolated multi-session database contexts for web/Docker mode, including server-issued `HttpOnly` cookie sessions, per-database session/workspace metadata, SQLite restart recovery, automatic session cleanup, and PostgreSQL pool lifecycle management.
 
 Bug fixes
 
 - Fixed the PDF preview flickering/remounting on every invoice or customization change by dropping the per-render `key` on `PDFViewer` and keeping the current preview visible until newly loaded assets are ready.
 - Fixed a `Buffer is not defined` error from `@react-pdf/layout` in the renderer by adding a minimal `Buffer.isBuffer` polyfill, relaxed the CSP `script-src` to `wasm-unsafe-eval` to support it, and fixed a browser console warning ("Blocked aria-hidden on an element because its descendant retained focus") shown when opening the image crop dialog or the filter drawer by blurring the triggering button/input before the modal opens.
 - Fixed an intermittent "database not initialized" / "failed to initialize" error when opening a database in web/Docker mode, caused by overlapping database initialization requests racing on the shared connection; initialization is now serialized on the backend and duplicate open requests are ignored on the frontend while one is in progress.
+- Fixed web session security by rate-limiting authorization attempts and preventing session tokens or PostgreSQL connection data from being stored in browser-accessible storage.
 
 ## 2026-09-16, version 2.9.0
 

@@ -27,9 +27,10 @@ const app = {
 
 const invoke = async (method: string, path: string, request: Record<string, unknown>) => {
   const json = vi.fn();
+  const cookie = vi.fn();
   const status = vi.fn().mockReturnValue({ json });
-  await mocks.handlers.get(`${method}:${path}`)?.({ headers: {}, ...request }, { json, status });
-  return { json, status };
+  await mocks.handlers.get(`${method}:${path}`)?.({ headers: {}, ...request }, { cookie, json, status });
+  return { cookie, json, status };
 };
 
 describe('webserver database controller', () => {
@@ -44,11 +45,19 @@ describe('webserver database controller', () => {
   it('lists databases and tests postgres/sqlite setup', async () => {
     const list = await invoke('GET', '/api/databases', {});
     await invoke('POST', '/api/databases/test', { body: { host: 'localhost' } });
-    await invoke('POST', '/api/databases', { body: { fullPath: 'invoice.db', mode: 'create' } });
+    const initialize = await invoke('POST', '/api/databases', {
+      body: { databaseKey: 'browser-test', fullPath: 'invoice.db', mode: 'create', workspaceId: 'workspace-test' }
+    });
 
     expect(list.json).toHaveBeenCalledWith({ success: true, data: ['one.db', 'three.sqlite'] });
     expect(mocks.testPostgresConnection).toHaveBeenCalledWith({ host: 'host.docker.internal' });
     expect(mocks.setupDB).toHaveBeenCalled();
+    expect(initialize.cookie).toHaveBeenCalledWith(
+      'invoice-builder-session',
+      expect.any(String),
+      expect.objectContaining({ httpOnly: true, path: '/api', sameSite: 'lax' })
+    );
+    expect(initialize.json).toHaveBeenCalledWith({ success: true, workspaceId: 'workspace-test' });
   });
 
   it('returns HTTP 500 when database operations fail', async () => {
