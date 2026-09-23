@@ -1,25 +1,32 @@
 import { useCallback, useMemo, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CRUDPage } from '../../shared/components/layout/crudPage/CRUDPage';
+import {
+  useAddInvoiceMutation,
+  useDeleteInvoiceMutation,
+  useDuplicateInvoiceMutation,
+  useGetInvoicesQuery,
+  useUpdateInvoiceMutation
+} from '../../shared/api/invoicesApi';
+import { CRUDPageRTK } from '../../shared/components/layout/crudPage/CRUDPageRTK';
 import { FilterType } from '../../shared/enums/filterType';
 import { InvoiceFormMode } from '../../shared/enums/invoiceFormMode';
 import { InvoiceStatus } from '../../shared/enums/invoiceStatus';
 import { InvoiceType } from '../../shared/enums/invoiceType';
-import { useInvoiceAdd } from '../../shared/hooks/invoices/useInvoiceAdd';
-import { useInvoiceDelete } from '../../shared/hooks/invoices/useInvoiceDelete';
-import { useInvoiceDuplicate } from '../../shared/hooks/invoices/useInvoiceDuplicate';
-import { useInvoicesRetrieve } from '../../shared/hooks/invoices/useInvoicesRetrieve';
-import { useInvoiceUpdate } from '../../shared/hooks/invoices/useInvoiceUpdate';
 import type { Row } from '../../shared/types/excel';
 import type { Filter, FilterData } from '../../shared/types/filter';
 import type { Invoice, InvoiceAdd, InvoiceItem, InvoiceUpdate } from '../../shared/types/invoice';
 import type { Preset } from '../../shared/types/preset';
-import type { Response } from '../../shared/types/response';
 import { exportExcel } from '../../shared/utils/fileFunctions';
 import { createCommonFilters } from '../../shared/utils/filterSortFunctions';
 import { isInvoiceFromData } from '../../shared/utils/typeGuardFunctions';
-import { useAppSelector } from '../../state/configureStore';
-import { selectBusinessesSnapshotsOptions, selectClientsSnapshotsOptions, selectSettings } from '../../state/pageSlice';
+import { useAppDispatch, useAppSelector } from '../../state/configureStore';
+import {
+  selectBusinessesSnapshotsOptions,
+  selectClientsSnapshotsOptions,
+  selectSettings,
+  setBusinessSnapshotOptions,
+  setClientSnapshotOptions
+} from '../../state/pageSlice';
 import { NewActionDropdown } from './Dropdowns/NewActionDropdown';
 
 import { Form } from './Form';
@@ -29,11 +36,24 @@ import { List } from './List';
 interface Props {
   type: InvoiceType;
 }
+
 export const InvoicesPage: FC<Props> = ({ type }) => {
   const { t } = useTranslation();
   const clientsOptions = useAppSelector(selectClientsSnapshotsOptions);
   const businessesOptions = useAppSelector(selectBusinessesSnapshotsOptions);
   const settings = useAppSelector(selectSettings);
+  const dispatch = useAppDispatch();
+  const onInvoicesChange = useCallback(
+    (invoices: Invoice[]) => {
+      const businessNames = [
+        ...new Set(invoices.map(invoice => invoice.invoiceBusinessSnapshot?.businessName ?? 'N/A'))
+      ];
+      const clientNames = [...new Set(invoices.map(invoice => invoice.invoiceClientSnapshot?.clientName ?? 'N/A'))];
+      dispatch(setBusinessSnapshotOptions(businessNames.map(label => ({ label, value: label }))));
+      dispatch(setClientSnapshotOptions(clientNames.map(label => ({ label, value: label }))));
+    },
+    [dispatch]
+  );
   const filters: Filter[] = [
     ...createCommonFilters({
       t,
@@ -73,45 +93,12 @@ export const InvoicesPage: FC<Props> = ({ type }) => {
             ]
     }
   ];
-  const useInvoicesCRUDRetrieve = (args: { filter?: FilterData[]; onDone?: (data: Response<Invoice[]>) => void }) => {
-    const { invoices, execute } = useInvoicesRetrieve({ type, filter: args.filter, onDone: args.onDone });
-    return { items: invoices, execute };
-  };
-  const useInvoiceCRUDAdd = (args: {
-    item?: InvoiceAdd;
-    immediate?: boolean;
-    onDone?: (data: Response<Invoice>) => void;
-  }) => {
-    return useInvoiceAdd({
-      invoice: args.item,
-      immediate: args.immediate,
-      onDone: args.onDone
-    });
-  };
-  const useInvoiceCRUDUpdate = (args: {
-    item?: InvoiceUpdate;
-    immediate?: boolean;
-    onDone?: (data: Response<Invoice>) => void;
-  }) => {
-    return useInvoiceUpdate({
-      invoice: args.item,
-      immediate: args.immediate,
-      onDone: args.onDone
-    });
-  };
-
   const [currType, setCurrType] = useState<InvoiceType>(type);
-  const useInvoiceCRUDDuplicate = (args: {
-    id: number;
-    immediate?: boolean;
-    onDone?: (data: Response<unknown>) => void;
-  }) => {
-    return useInvoiceDuplicate({
-      id: args.id,
-      invoiceType: currType,
-      immediate: args.immediate,
-      onDone: args.onDone
-    });
+  const useInvoicesCRUDRetrieve = (filter?: FilterData[] | void) =>
+    useGetInvoicesQuery({ invoiceType: type, filter: filter ?? undefined });
+  const useInvoiceCRUDDuplicate = () => {
+    const [duplicate, state] = useDuplicateInvoiceMutation();
+    return [(id: number) => duplicate({ id, invoiceType: currType }), state] as const;
   };
   const exportInvoices = useCallback(
     async (invoices: Invoice[]) => {
@@ -227,7 +214,7 @@ export const InvoicesPage: FC<Props> = ({ type }) => {
 
   return (
     <>
-      <CRUDPage<Invoice, InvoiceAdd, InvoiceUpdate>
+      <CRUDPageRTK<Invoice, InvoiceAdd, InvoiceUpdate>
         componentId="invoices"
         renderCustomButtons={() => {
           return <EditPreviewToggle mode={mode} setMode={setMode} />;
@@ -237,10 +224,10 @@ export const InvoicesPage: FC<Props> = ({ type }) => {
         showOnlyExport={true}
         inlineOnAdd={true}
         useRetrieve={useInvoicesCRUDRetrieve}
-        useAdd={useInvoiceCRUDAdd}
-        useUpdate={useInvoiceCRUDUpdate}
+        useAdd={useAddInvoiceMutation}
+        useUpdate={useUpdateInvoiceMutation}
         useDuplicate={useInvoiceCRUDDuplicate}
-        useDelete={useInvoiceDelete}
+        useDelete={useDeleteInvoiceMutation}
         searchField={'invoiceNumber'}
         sortOptions={[
           { label: t('common.status'), value: 'status' },
@@ -255,6 +242,7 @@ export const InvoicesPage: FC<Props> = ({ type }) => {
         noItemText={type === InvoiceType.quotation ? t('invoices.noItemQuote') : t('invoices.noItemInvoice')}
         leftTitle={type === InvoiceType.quotation ? t('menuItems.quotes') : t('menuItems.invoices')}
         exportExcelHandler={exportInvoices}
+        onItemsChange={onInvoicesChange}
         onAddClick={defaultOnAdd => {
           if (!isPresetsEnabled) {
             defaultOnAdd();

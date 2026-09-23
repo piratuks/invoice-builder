@@ -6,6 +6,7 @@ import { businessesApi } from './businessesApi';
 import { categoriesApi } from './categoriesApi';
 import { clientsApi } from './clientsApi';
 import { currenciesApi } from './currenciesApi';
+import { invoicesApi } from './invoicesApi';
 import { itemsApi } from './itemsApi';
 import { layoutsApi } from './layoutsApi';
 import { presetsApi } from './presetsApi';
@@ -55,6 +56,7 @@ export const backupApi = createApi({
           dispatch(clientsApi.util.invalidateTags([{ type: 'Client', id: 'LIST' }]));
           dispatch(currenciesApi.util.invalidateTags([{ type: 'Currency', id: 'LIST' }]));
           dispatch(itemsApi.util.invalidateTags([{ type: 'Item', id: 'LIST' }]));
+          dispatch(invoicesApi.util.invalidateTags([{ type: 'Invoice', id: 'LIST' }]));
           dispatch(layoutsApi.util.invalidateTags([{ type: 'Layout', id: 'LIST' }]));
           dispatch(presetsApi.util.invalidateTags([{ type: 'Preset', id: 'LIST' }]));
           dispatch(settingsApi.util.invalidateTags([{ type: 'Settings', id: 'SINGLETON' }]));

@@ -8,6 +8,7 @@ import { categoriesApi } from '../shared/api/categoriesApi';
 import { clientsApi } from '../shared/api/clientsApi';
 import { currenciesApi } from '../shared/api/currenciesApi';
 import { dbSelectorApi } from '../shared/api/dbSelectorApi';
+import { invoicesApi } from '../shared/api/invoicesApi';
 import { itemsApi } from '../shared/api/itemsApi';
 import { layoutsApi } from '../shared/api/layoutsApi';
 import { presetsApi } from '../shared/api/presetsApi';
@@ -41,6 +42,7 @@ const apiReducerPaths = [
   presetsApi.reducerPath,
   layoutsApi.reducerPath,
   itemsApi.reducerPath,
+  invoicesApi.reducerPath,
   settingsApi.reducerPath
 ];
 const ignoredApiStatePaths = apiReducerPaths.map(path => new RegExp(`^${path}\\.`));
@@ -60,6 +62,7 @@ export const store = configureStore({
     [presetsApi.reducerPath]: presetsApi.reducer,
     [layoutsApi.reducerPath]: layoutsApi.reducer,
     [itemsApi.reducerPath]: itemsApi.reducer,
+    [invoicesApi.reducerPath]: invoicesApi.reducer,
     [settingsApi.reducerPath]: settingsApi.reducer
   },
   middleware: getDefaultMiddleware =>
@@ -82,6 +85,7 @@ export const store = configureStore({
       presetsApi.middleware,
       layoutsApi.middleware,
       itemsApi.middleware,
+      invoicesApi.middleware,
       settingsApi.middleware
     )
 });

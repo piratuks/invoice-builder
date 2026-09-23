@@ -108,6 +108,7 @@ interface Props<T, TAdd, TUpdate> {
   showRightSide?: boolean;
   showAddButton?: boolean;
   onAddClick?: (defaultOnAdd: () => void) => void;
+  onItemsChange?: (items: T[]) => void;
 }
 
 export const CRUDPageRTK = <T, TAdd, TUpdate>(props: Props<T, TAdd, TUpdate>) => {
@@ -149,7 +150,8 @@ export const CRUDPageRTK = <T, TAdd, TUpdate>(props: Props<T, TAdd, TUpdate>) =>
     showRightSide = true,
     showAddButton = true,
     renderCustomButtons = () => null,
-    onAddClick
+    onAddClick,
+    onItemsChange
   } = props;
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
@@ -193,6 +195,10 @@ export const CRUDPageRTK = <T, TAdd, TUpdate>(props: Props<T, TAdd, TUpdate>) =>
     error: retrieveError
   } = useRetrieve(persistentFilters);
   const items = useMemo(() => retrievedItems ?? ([] as T[]), [retrievedItems]);
+
+  useEffect(() => {
+    onItemsChange?.(items);
+  }, [items, onItemsChange]);
 
   useEffect(() => {
     if (retrieveIsError) reportError(retrieveError);
