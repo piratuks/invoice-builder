@@ -123,15 +123,6 @@ describe('InvoiceForm', () => {
     );
   });
 
-  afterEach(() => {
-    store.dispatch(banksApi.util.resetApiState());
-    store.dispatch(businessesApi.util.resetApiState());
-    store.dispatch(clientsApi.util.resetApiState());
-    store.dispatch(currenciesApi.util.resetApiState());
-    store.dispatch(itemsApi.util.resetApiState());
-    store.dispatch(styleProfilesApi.util.resetApiState());
-  });
-
   it('renders the invoice form without items and shows the add-item selector', async () => {
     render(<InvoiceForm invoiceForm={baseInvoiceForm as InvoiceFromData} type={InvoiceType.invoice} />, { wrapper });
 
