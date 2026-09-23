@@ -5,6 +5,8 @@ import { I18nextProvider } from 'react-i18next';
 import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router-dom';
 import i18n from '../../../i18n';
+import { businessesApi } from '../../../shared/api/businessesApi';
+import { currenciesApi } from '../../../shared/api/currenciesApi';
 import { getApi } from '../../../shared/api/restApi';
 import type { Preset } from '../../../shared/types/preset';
 import { store } from '../../../state/configureStore';
@@ -62,8 +64,15 @@ describe('presets Form', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    store.dispatch(businessesApi.util.resetApiState());
+    store.dispatch(currenciesApi.util.resetApiState());
     Object.values(mockApi).forEach(fn => fn.mockResolvedValue({ success: true, data: [] }));
     vi.mocked(getApi).mockReturnValue(mockApi as never);
+  });
+
+  afterEach(() => {
+    store.dispatch(businessesApi.util.resetApiState());
+    store.dispatch(currenciesApi.util.resetApiState());
   });
 
   it('reports an invalid form when the required name field is empty', async () => {

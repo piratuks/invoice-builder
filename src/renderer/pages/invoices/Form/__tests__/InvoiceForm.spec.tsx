@@ -5,7 +5,13 @@ import { I18nextProvider } from 'react-i18next';
 import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router-dom';
 import i18n from '../../../../i18n';
+import { banksApi } from '../../../../shared/api/banksApi';
+import { businessesApi } from '../../../../shared/api/businessesApi';
+import { clientsApi } from '../../../../shared/api/clientsApi';
+import { currenciesApi } from '../../../../shared/api/currenciesApi';
+import { itemsApi } from '../../../../shared/api/itemsApi';
 import { getApi } from '../../../../shared/api/restApi';
+import { styleProfilesApi } from '../../../../shared/api/styleProfilesApi';
 import { AmountFormat } from '../../../../shared/enums/amountFormat';
 import { DateFormat } from '../../../../shared/enums/dateFormat';
 import { InvoiceType } from '../../../../shared/enums/invoiceType';
@@ -86,6 +92,12 @@ describe('InvoiceForm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    store.dispatch(banksApi.util.resetApiState());
+    store.dispatch(businessesApi.util.resetApiState());
+    store.dispatch(clientsApi.util.resetApiState());
+    store.dispatch(currenciesApi.util.resetApiState());
+    store.dispatch(itemsApi.util.resetApiState());
+    store.dispatch(styleProfilesApi.util.resetApiState());
     Object.values(mockApi).forEach(fn => fn.mockResolvedValue({ success: true, data: [] }));
     vi.mocked(getApi).mockReturnValue(mockApi as never);
     store.dispatch(
@@ -109,6 +121,15 @@ describe('InvoiceForm', () => {
         updatedAt: ''
       })
     );
+  });
+
+  afterEach(() => {
+    store.dispatch(banksApi.util.resetApiState());
+    store.dispatch(businessesApi.util.resetApiState());
+    store.dispatch(clientsApi.util.resetApiState());
+    store.dispatch(currenciesApi.util.resetApiState());
+    store.dispatch(itemsApi.util.resetApiState());
+    store.dispatch(styleProfilesApi.util.resetApiState());
   });
 
   it('renders the invoice form without items and shows the add-item selector', async () => {
