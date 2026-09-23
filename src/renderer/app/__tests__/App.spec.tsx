@@ -110,6 +110,7 @@ describe('App', () => {
   ] as const)('reports settings retrieval failures', (error, expected) => {
     mocks.getSettingsResult = { data: undefined, isLoading: false, isFetching: false, isError: true, error };
     render(<App />, { wrapper });
+    act(() => mocks.databaseRead?.());
     expect(store.getState().pageSlice.toasts.at(-1)?.message).toBe(expected);
   });
 
@@ -119,6 +120,7 @@ describe('App', () => {
     mocks.showPrompt = true;
     store.dispatch(setAllowed(false));
     render(<App />, { wrapper });
+    act(() => mocks.databaseRead?.());
 
     expect(store.getState().pageSlice.settings).toEqual(settings);
     expect(localStorage.getItem('lastUsedLanguage')).toBe('de');

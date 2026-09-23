@@ -35,30 +35,11 @@ export const App: FC = () => {
 
   const {
     data: settings,
-    isLoading: isSettingsLoading,
-    isFetching: isSettingsFetching,
     isError: isSettingsError,
-    error: settingsError
+    error: settingsError,
+    isLoading: isSettingsLoading,
+    isFetching: isSettingsFetching
   } = useGetSettingsQuery(undefined, { skip: !dbReady });
-
-  useEffect(() => {
-    if (!isSettingsError) return;
-    const { message, key } = (settingsError as { message?: string; key?: string }) ?? {};
-    if (message) {
-      dispatch(addToast({ message: i18n.exists(message) ? t(message) : message, severity: 'error' }));
-    } else if (key) {
-      dispatch(addToast({ message: t(key), severity: 'error' }));
-    }
-  }, [isSettingsError, settingsError, dispatch, t]);
-
-  const isSettingsBusy = isSettingsLoading || isSettingsFetching;
-  useEffect(() => {
-    if (!isSettingsBusy) return;
-    dispatch(enableLoadingCursor());
-    return () => {
-      dispatch(disableLoadingCursor());
-    };
-  }, [isSettingsBusy, dispatch]);
 
   const handleClose = useCallback(
     (id: string) => {
@@ -80,12 +61,32 @@ export const App: FC = () => {
   }, [cancelNavigation]);
 
   useEffect(() => {
+    if (isSettingsError) {
+      const message = settingsError && 'message' in settingsError ? settingsError.message : undefined;
+      const key = settingsError && 'key' in settingsError ? settingsError.key : undefined;
+      if (message) {
+        dispatch(addToast({ message: i18n.exists(message) ? t(message) : message, severity: 'error' }));
+      } else if (key) {
+        dispatch(addToast({ message: t(key), severity: 'error' }));
+      }
+    }
+  }, [dispatch, isSettingsError, settingsError, t]);
+
+  useEffect(() => {
     if (settings) {
       dispatch(setSettings(settings));
       i18n.changeLanguage(settings.language);
       localStorage.setItem('lastUsedLanguage', settings.language);
     }
   }, [settings, dispatch]);
+
+  useEffect(() => {
+    if (!isSettingsLoading && !isSettingsFetching) return;
+    dispatch(enableLoadingCursor());
+    return () => {
+      dispatch(disableLoadingCursor());
+    };
+  }, [dispatch, isSettingsFetching, isSettingsLoading]);
 
   return (
     <>
