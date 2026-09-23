@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { I18nextProvider } from 'react-i18next';
 import { Provider } from 'react-redux';
 import i18n from '../../../../../i18n';
+import { invoicesApi } from '../../../../../shared/api/invoicesApi';
 import { getApi } from '../../../../../shared/api/restApi';
 import { Alignment } from '../../../../../shared/enums/alignment';
 import { InvoiceType } from '../../../../../shared/enums/invoiceType';
@@ -24,6 +25,7 @@ describe('ItemMetadataSetter', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    store.dispatch(invoicesApi.util.resetApiState());
     mockApi.getCustomHeaders.mockResolvedValue({ success: true, data: [] });
     vi.mocked(getApi).mockReturnValue(mockApi as never);
   });

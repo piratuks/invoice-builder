@@ -66,8 +66,8 @@ vi.mock('../Form', () => ({
   )
 }));
 
-vi.mock('../../../shared/components/layout/crudPage/CRUDPage', () => ({
-  CRUDPage: (props: MockCrudProps) => {
+vi.mock('../../../shared/components/layout/crudPage/CRUDPageRTK', () => ({
+  CRUDPageRTK: (props: MockCrudProps) => {
     const sampleInvoice = {
       id: 7,
       invoiceType: InvoiceType.invoice,

@@ -2,16 +2,15 @@ import { Box, Grid, SwipeableDrawer, TextField, useMediaQuery, useTheme } from '
 import { memo, useEffect, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../../../i18n';
+import { useLazyGetNextSequenceQuery } from '../../../../shared/api/invoicesApi';
 import { Datepicker } from '../../../../shared/components/inputs/datepicker/Datepicker';
 import { PageHeader } from '../../../../shared/components/layout/pageHeader/PageHeader';
 import { InvoiceType } from '../../../../shared/enums/invoiceType';
 import { useForm } from '../../../../shared/hooks/form/useForm';
-import { useGetNextSequence } from '../../../../shared/hooks/invoices/useGetNextSequence';
-import type { InvoiceInfo, NextSequenceData } from '../../../../shared/types/invoice';
-import type { Response } from '../../../../shared/types/response';
+import type { InvoiceInfo } from '../../../../shared/types/invoice';
 import { validators } from '../../../../shared/utils/validatorFunctions';
 import { useAppDispatch, useAppSelector } from '../../../../state/configureStore';
-import { addToast, selectSettings } from '../../../../state/pageSlice';
+import { addToast, disableLoadingCursor, enableLoadingCursor, selectSettings } from '../../../../state/pageSlice';
 
 interface Props {
   isOpen: boolean;
@@ -51,29 +50,7 @@ const InvoiceInformationDropdownComponent: FC<Props> = ({ isOpen, onClose, onOpe
   const [isFormValid, setIsFormValid] = useState(false);
   const dispatch = useAppDispatch();
 
-  const { execute: retrieveSequence } = useGetNextSequence({
-    seqData: {
-      businessId: information.businessId ?? -1,
-      clientId: information.clientId ?? -1,
-      invoiceType: information.invoiceType ?? InvoiceType.invoice
-    },
-    immediate: false,
-    onDone: (data: Response<NextSequenceData | undefined>) => {
-      if (!data.success) {
-        if (data.message) {
-          const message = i18n.exists(data.message) ? t(data.message) : data.message;
-          dispatch(addToast({ message: message, severity: 'error' }));
-        } else if (data.key) dispatch(addToast({ message: t(data.key), severity: 'error' }));
-      }
-
-      const nextSequence = data.data?.formattedSequence;
-
-      if (shouldAutoFillInvoiceNumber(form.invoiceNumber, nextSequence)) {
-        update('invoiceNumber', nextSequence);
-        validateField('invoiceNumber', nextSequence);
-      }
-    }
-  });
+  const [retrieveSequence, { isFetching: isSequenceFetching }] = useLazyGetNextSequenceQuery();
 
   const validateField = (field: keyof typeof errors, value: string) => {
     if (!validators.required(value) && (field === 'invoiceNumber' || field === 'issuedAt')) {
@@ -85,11 +62,39 @@ const InvoiceInformationDropdownComponent: FC<Props> = ({ isOpen, onClose, onOpe
 
   useEffect(() => {
     if (form.invoiceNumber == undefined || form.invoiceNumber === '') {
-      retrieveSequence();
+      void retrieveSequence({
+        businessId: information.businessId ?? -1,
+        clientId: information.clientId ?? -1,
+        invoiceType: information.invoiceType ?? InvoiceType.invoice
+      })
+        .unwrap()
+        .then(data => {
+          const nextSequence = data?.formattedSequence;
+          if (shouldAutoFillInvoiceNumber(form.invoiceNumber, nextSequence)) {
+            update('invoiceNumber', nextSequence);
+            validateField('invoiceNumber', nextSequence);
+          }
+        })
+        .catch(error => {
+          const { message, key } = (error as { message?: string; key?: string }) ?? {};
+          if (message) {
+            dispatch(addToast({ message: i18n.exists(message) ? t(message) : message, severity: 'error' }));
+          } else if (key) {
+            dispatch(addToast({ message: t(key), severity: 'error' }));
+          }
+        });
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [information.businessId, information.clientId]);
+
+  useEffect(() => {
+    if (!isSequenceFetching) return;
+    dispatch(enableLoadingCursor());
+    return () => {
+      dispatch(disableLoadingCursor());
+    };
+  }, [dispatch, isSequenceFetching]);
 
   useEffect(() => {
     setForm({

@@ -17,17 +17,16 @@ import {
 import { memo, useCallback, useEffect, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../../../i18n';
+import { useGetCustomHeadersQuery } from '../../../../shared/api/invoicesApi';
 import { AmountInput } from '../../../../shared/components/inputs/amountInput/AmountInput';
 import { ModalAppBar } from '../../../../shared/components/layout/modalAppBar/ModalAppBar';
 import { Alignment } from '../../../../shared/enums/alignment';
 import type { InvoiceType } from '../../../../shared/enums/invoiceType';
 import { useForm } from '../../../../shared/hooks/form/useForm';
-import { useHeadersRetrieve } from '../../../../shared/hooks/invoices/useHeadersRetrieve';
 import type { CustomField, CustomFieldMeta, ItemForm } from '../../../../shared/types/invoice';
-import type { Response } from '../../../../shared/types/response';
 import { validators } from '../../../../shared/utils/validatorFunctions';
 import { useAppDispatch, useAppSelector } from '../../../../state/configureStore';
-import { addToast, selectSettings } from '../../../../state/pageSlice';
+import { addToast, disableLoadingCursor, enableLoadingCursor, selectSettings } from '../../../../state/pageSlice';
 
 interface Props {
   isOpen: boolean;
@@ -39,6 +38,8 @@ interface Props {
   onCancel?: () => void;
   onSave?: (data: ItemForm) => void;
 }
+const EMPTY_CUSTOM_HEADERS: CustomFieldMeta[] = [];
+
 const ItemMetadataSetterComponent: FC<Props> = ({
   isOpen,
   type,
@@ -77,22 +78,37 @@ const ItemMetadataSetterComponent: FC<Props> = ({
 
   const dispatch = useAppDispatch();
   const [customHeaders, setCustomHeaders] = useState<CustomFieldMeta[]>([]);
-  const { execute: retrieveHeaders } = useHeadersRetrieve({
-    type: type,
-    immediate: false,
-    onDone: (data: Response<CustomFieldMeta[]>) => {
-      if (!data.success) {
-        if (data.message) {
-          const message = i18n.exists(data.message) ? t(data.message) : data.message;
-          dispatch(addToast({ message: message, severity: 'error' }));
-        } else if (data.key) dispatch(addToast({ message: t(data.key), severity: 'error' }));
-      }
+  const {
+    data: retrievedHeaderData,
+    isLoading: isHeadersLoading,
+    isFetching: isHeadersFetching,
+    isError: isHeadersError,
+    error: headersError
+  } = useGetCustomHeadersQuery(type, { skip: !isOpen });
+  const retrievedHeaders = retrievedHeaderData ?? EMPTY_CUSTOM_HEADERS;
 
-      const unique = [...new Map([...headerOptions, ...(data.data ?? [])].map(h => [h.header, h])).values()];
+  useEffect(() => {
+    const unique = [...new Map([...headerOptions, ...retrievedHeaders].map(h => [h.header, h])).values()];
+    setCustomHeaders(unique);
+  }, [headerOptions, retrievedHeaders]);
 
-      setCustomHeaders(unique);
+  useEffect(() => {
+    if (!isHeadersError) return;
+    const { message, key } = (headersError as { message?: string; key?: string }) ?? {};
+    if (message) {
+      dispatch(addToast({ message: i18n.exists(message) ? t(message) : message, severity: 'error' }));
+    } else if (key) {
+      dispatch(addToast({ message: t(key), severity: 'error' }));
     }
-  });
+  }, [dispatch, headersError, isHeadersError, t]);
+
+  useEffect(() => {
+    if (!isHeadersLoading && !isHeadersFetching) return;
+    dispatch(enableLoadingCursor());
+    return () => {
+      dispatch(disableLoadingCursor());
+    };
+  }, [dispatch, isHeadersFetching, isHeadersLoading]);
 
   const isAnyMetadataPresent = useCallback(() => {
     return (
@@ -132,10 +148,6 @@ const ItemMetadataSetterComponent: FC<Props> = ({
       alignment: touched.alignment ? !validators.required(alignmentStr) : false
     }));
   }, [isAnyMetadataPresent, form, touched]);
-
-  useEffect(() => {
-    if (isOpen) retrieveHeaders();
-  }, [isOpen, retrieveHeaders]);
 
   useEffect(() => {
     const valid = (() => {

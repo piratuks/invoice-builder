@@ -32,8 +32,8 @@ const actionMocks = vi.hoisted(() => ({
   exportPdfWithXml: vi.fn(),
   printReceipt: vi.fn(),
   retrieveXML: vi.fn(),
-  xmlOptions: undefined as
-    { onDone: (result: { success: boolean; data?: Uint8Array; message?: string; key?: string }) => void } | undefined
+  resolveXML: undefined as ((value: unknown) => void) | undefined,
+  rejectXML: undefined as ((reason: unknown) => void) | undefined
 }));
 
 vi.mock('../../../../shared/api/restApi', () => ({
@@ -53,12 +53,22 @@ vi.mock('../../../../shared/hooks/fileExport/useExportPdfWithXml', () => ({
 vi.mock('../../../../shared/hooks/print/usePrintReceipt', () => ({
   usePrintReceipt: () => ({ printReceipt: actionMocks.printReceipt })
 }));
-vi.mock('../../../../shared/hooks/invoices/useGetEInvoiceXML', () => ({
-  useGetEInvoiceXML: (options: typeof actionMocks.xmlOptions) => {
-    actionMocks.xmlOptions = options;
-    return { execute: actionMocks.retrieveXML };
-  }
-}));
+vi.mock('../../../../shared/api/invoicesApi', async importOriginal => {
+  const actual = await importOriginal<typeof import('../../../../shared/api/invoicesApi')>();
+  return {
+    ...actual,
+    useLazyGetEInvoiceXMLQuery: () => {
+      actionMocks.retrieveXML.mockImplementation(() => ({
+        unwrap: () =>
+          new Promise((resolve, reject) => {
+            actionMocks.resolveXML = resolve;
+            actionMocks.rejectXML = reject;
+          })
+      }));
+      return [actionMocks.retrieveXML, { isFetching: false }];
+    }
+  };
+});
 
 vi.mock('react-signature-canvas', () => ({ default: () => <div data-testid="signature-canvas-stub" /> }));
 
@@ -616,7 +626,8 @@ function InvoiceFormHarness({ initial = baseForm }: { initial?: InvoiceFromData 
 describe('InvoiceForm branching behaviors', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    actionMocks.xmlOptions = undefined;
+    actionMocks.resolveXML = undefined;
+    actionMocks.rejectXML = undefined;
     store.dispatch(
       setSettings({
         id: 1,
@@ -743,16 +754,15 @@ describe('InvoiceForm branching behaviors', () => {
     await user.click(screen.getByRole('button', { name: 'action-pdf' }));
     await user.click(screen.getByRole('button', { name: 'action-pdf-ubl' }));
     await waitFor(() => expect(actionMocks.retrieveXML).toHaveBeenCalledTimes(1));
-    actionMocks.xmlOptions!.onDone({ success: true, data: new Uint8Array([1]) });
-    expect(actionMocks.exportPdfWithXml).toHaveBeenCalledTimes(1);
+    actionMocks.resolveXML?.(new Uint8Array([1]));
+    await waitFor(() => expect(actionMocks.exportPdfWithXml).toHaveBeenCalledTimes(1));
     await user.click(screen.getByRole('button', { name: 'action-ubl' }));
     await waitFor(() => expect(actionMocks.retrieveXML).toHaveBeenCalledTimes(2));
-    actionMocks.xmlOptions!.onDone({ success: true, data: new Uint8Array([2]) });
-    expect(actionMocks.exportXML).toHaveBeenCalled();
+    actionMocks.resolveXML?.(new Uint8Array([2]));
+    await waitFor(() => expect(actionMocks.exportXML).toHaveBeenCalled());
     await user.click(screen.getByRole('button', { name: 'action-xrechnung' }));
     await waitFor(() => expect(actionMocks.retrieveXML).toHaveBeenCalledTimes(3));
-    actionMocks.xmlOptions!.onDone({ success: false, message: 'XML failed' });
-    actionMocks.xmlOptions!.onDone({ success: false, key: 'error.failedToLoad' });
+    actionMocks.rejectXML?.({ message: 'XML failed' });
 
     expect(onDelete).toHaveBeenCalledWith(1);
     expect(onDuplicate).toHaveBeenCalledWith(1, InvoiceType.quotation);

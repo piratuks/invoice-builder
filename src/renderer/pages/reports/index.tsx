@@ -1,14 +1,12 @@
-import { useCallback, useMemo, useState, type FC } from 'react';
+import { useCallback, useEffect, useMemo, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n';
+import { useGetInvoicesQuery } from '../../shared/api/invoicesApi';
 import { InvoiceType } from '../../shared/enums/invoiceType';
 import { ReportDateType } from '../../shared/enums/reportDateType';
-import { useInvoicesRetrieve } from '../../shared/hooks/invoices/useInvoicesRetrieve';
-import type { Invoice } from '../../shared/types/invoice';
-import type { Response } from '../../shared/types/response';
 import { aggregateInvoicesByCurrency } from '../../shared/utils/invoiceFunctions';
 import { useAppDispatch } from '../../state/configureStore';
-import { addToast } from '../../state/pageSlice';
+import { addToast, disableLoadingCursor, enableLoadingCursor } from '../../state/pageSlice';
 import { Header } from './Header';
 import { Overview } from './Overview';
 
@@ -23,17 +21,31 @@ export const ReportsPage: FC = () => {
   });
   const [selectedCurrencyCode, setSelectedCurrencyCode] = useState<string>('');
 
-  const { invoices } = useInvoicesRetrieve({
-    type: InvoiceType.invoice,
-    onDone: (data: Response<Invoice[]>) => {
-      if (!data.success) {
-        if (data.message) {
-          const message = i18n.exists(data.message) ? t(data.message) : data.message;
-          dispatch(addToast({ message: message, severity: 'error' }));
-        } else if (data.key) dispatch(addToast({ message: t(data.key), severity: 'error' }));
-      }
+  const {
+    data: invoices = [],
+    isLoading,
+    isFetching,
+    isError,
+    error
+  } = useGetInvoicesQuery({ invoiceType: InvoiceType.invoice });
+
+  useEffect(() => {
+    if (!isError) return;
+    const { message, key } = (error as { message?: string; key?: string }) ?? {};
+    if (message) {
+      dispatch(addToast({ message: i18n.exists(message) ? t(message) : message, severity: 'error' }));
+    } else if (key) {
+      dispatch(addToast({ message: t(key), severity: 'error' }));
     }
-  });
+  }, [dispatch, error, isError, t]);
+
+  useEffect(() => {
+    if (!isLoading && !isFetching) return;
+    dispatch(enableLoadingCursor());
+    return () => {
+      dispatch(disableLoadingCursor());
+    };
+  }, [dispatch, isFetching, isLoading]);
 
   const handleCurrencyChange = useCallback((data: string) => {
     setSelectedCurrencyCode(data);
