@@ -6,6 +6,7 @@ import { initCategoriesHandlers } from './categories';
 import { initClientsHandlers } from './clients';
 import { initCurrenciesHandlers } from './currencies';
 import { initImportExportHandlers } from './importExport';
+import { initInvoiceSchedulesHandlers } from './invoiceSchedules';
 import { initInvoicesHandlers } from './invoices';
 import { initItemsHandlers } from './items';
 import { initLayoutsHandlers } from './layouts';
@@ -29,6 +30,7 @@ export const initIpcHandler = (mainWindow: BrowserWindow) => {
   initImportExportHandlers();
   initLayoutsHandlers();
   initInvoicesHandlers();
+  initInvoiceSchedulesHandlers();
   initItemsHandlers();
   initSettingsHandlers();
   initUnitsHandlers();

@@ -28,5 +28,12 @@ export const DATE_FIELDS = [
   'issuedAt',
   'dueDate',
   'paidAt',
-  'expiresAt'
+  'expiresAt',
+  'startAt',
+  'endAt',
+  'nextRunAt',
+  'lastRunAt',
+  'dueAt',
+  'startedAt',
+  'completedAt'
 ] as const;

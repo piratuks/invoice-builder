@@ -20,6 +20,12 @@ import type {
   InvoiceWeb,
   NextSequenceData
 } from '../types/invoice';
+import type {
+  InvoiceSchedule,
+  InvoiceScheduleAdd,
+  InvoiceScheduleRun,
+  InvoiceScheduleUpdate
+} from '../types/invoiceSchedule';
 import type { Item, ItemAdd, ItemUpdate } from '../types/item';
 import type { Layout, LayoutAdd, LayoutUpdate } from '../types/layouts';
 import type { PostgresConfig } from '../types/postgresConfig';
@@ -559,6 +565,15 @@ export const webApi = () => {
       };
     },
     deleteInvoice: (id: number) => apiDelete<Response<unknown>>(`/api/invoices/${id}`),
+
+    getAllInvoiceSchedules: () => apiGet<Response<InvoiceSchedule[]>>('/api/invoice-schedules'),
+    getInvoiceScheduleRuns: (scheduleId: number) =>
+      apiGet<Response<InvoiceScheduleRun[]>>(`/api/invoice-schedules/${scheduleId}/runs`),
+    addInvoiceSchedule: (data: InvoiceScheduleAdd) =>
+      apiPost<Response<InvoiceSchedule>>('/api/invoice-schedules', data),
+    updateInvoiceSchedule: (data: InvoiceScheduleUpdate) =>
+      apiPut<Response<InvoiceSchedule>>('/api/invoice-schedules', data),
+    deleteInvoiceSchedule: (id: number) => apiDelete<Response<unknown>>(`/api/invoice-schedules/${id}`),
 
     exportAllData: async (): Promise<Response<ExportMeta>> => {
       const result = await apiGet<{ success: boolean; data?: unknown }>('/api/export');

@@ -1,4 +1,5 @@
 import { initBanksHandlers } from '../banks';
+import { initInvoiceSchedulesHandlers } from '../invoiceSchedules';
 import { initSettingsHandlers } from '../settings';
 
 const ipc = vi.hoisted(() => ({
@@ -23,10 +24,16 @@ const serviceMocks = vi.hoisted(() => ({
   batchAddBank: vi.fn().mockResolvedValue({ success: true }),
   getAllBanks: vi.fn().mockResolvedValue({ success: true, data: [] }),
   getAllSettings: vi.fn().mockResolvedValue({ success: true, data: [] }),
-  updateSettings: vi.fn().mockResolvedValue({ success: true })
+  updateSettings: vi.fn().mockResolvedValue({ success: true }),
+  getAllInvoiceSchedules: vi.fn().mockResolvedValue({ success: true, data: [] }),
+  getInvoiceScheduleRuns: vi.fn().mockResolvedValue({ success: true, data: [] }),
+  addInvoiceSchedule: vi.fn().mockResolvedValue({ success: true }),
+  updateInvoiceSchedule: vi.fn().mockResolvedValue({ success: true }),
+  deleteInvoiceSchedule: vi.fn().mockResolvedValue({ success: true })
 }));
 
 vi.mock('../../../shared/services/banks', () => serviceMocks);
+vi.mock('../../../shared/services/invoiceSchedules', () => serviceMocks);
 vi.mock('../../../shared/services/settings', () => serviceMocks);
 
 describe('Electron IPC handlers', () => {
@@ -67,5 +74,23 @@ describe('Electron IPC handlers', () => {
 
     expect(serviceMocks.getAllSettings).toHaveBeenCalledWith(db);
     expect(serviceMocks.updateSettings).toHaveBeenCalledWith(db, settings);
+  });
+
+  it('registers and forwards invoice schedule channels', async () => {
+    initInvoiceSchedulesHandlers();
+    const schedule = { id: 7, sourceInvoiceId: 3 };
+    const event = { sender: { id: 1 } };
+
+    await ipc.handlers.get('get-all-invoice-schedules')?.(event);
+    await ipc.handlers.get('get-invoice-schedule-runs')?.(event, 7);
+    await ipc.handlers.get('add-invoice-schedule')?.(event, schedule);
+    await ipc.handlers.get('update-invoice-schedule')?.(event, schedule);
+    await ipc.handlers.get('delete-invoice-schedule')?.(event, 7);
+
+    expect(serviceMocks.getAllInvoiceSchedules).toHaveBeenCalledWith(db);
+    expect(serviceMocks.getInvoiceScheduleRuns).toHaveBeenCalledWith(db, 7);
+    expect(serviceMocks.addInvoiceSchedule).toHaveBeenCalledWith(db, schedule);
+    expect(serviceMocks.updateInvoiceSchedule).toHaveBeenCalledWith(db, schedule);
+    expect(serviceMocks.deleteInvoiceSchedule).toHaveBeenCalledWith(db, 7);
   });
 });

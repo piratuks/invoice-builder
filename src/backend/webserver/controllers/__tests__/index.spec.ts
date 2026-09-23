@@ -7,6 +7,7 @@ const calls = vi.hoisted(() => ({
   clients: vi.fn(),
   currencies: vi.fn(),
   importExport: vi.fn(),
+  invoiceSchedules: vi.fn(),
   invoices: vi.fn(),
   items: vi.fn(),
   layouts: vi.fn(),
@@ -22,6 +23,7 @@ vi.mock('../categories', () => ({ initCategoriesController: calls.categories }))
 vi.mock('../clients', () => ({ initClientsController: calls.clients }));
 vi.mock('../currencies', () => ({ initCurrenciesController: calls.currencies }));
 vi.mock('../importExport', () => ({ initImportExportController: calls.importExport }));
+vi.mock('../invoiceSchedules', () => ({ initInvoiceSchedulesController: calls.invoiceSchedules }));
 vi.mock('../invoices', () => ({ initInvoicesController: calls.invoices }));
 vi.mock('../items', () => ({ initItemsController: calls.items }));
 vi.mock('../layouts', () => ({ initLayoutsController: calls.layouts }));

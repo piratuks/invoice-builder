@@ -3,6 +3,7 @@ import { app, BrowserWindow } from 'electron';
 import { join, resolve } from 'path';
 import { APP_CONFIG } from './config';
 import { cleanupDatabase } from './database';
+import { stopAllInvoiceScheduleRuntimes } from './invoiceScheduleRuntime';
 import { initIpcHandler } from './ipc';
 import { initDBDialogsHandlers } from './ipc/dbDialogs';
 
@@ -59,6 +60,7 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
+  stopAllInvoiceScheduleRuntimes();
   if (process.platform !== 'darwin') app.quit();
 });
 

@@ -8,6 +8,7 @@ import { categoriesApi } from '../shared/api/categoriesApi';
 import { clientsApi } from '../shared/api/clientsApi';
 import { currenciesApi } from '../shared/api/currenciesApi';
 import { dbSelectorApi } from '../shared/api/dbSelectorApi';
+import { invoiceSchedulesApi } from '../shared/api/invoiceSchedulesApi';
 import { invoicesApi } from '../shared/api/invoicesApi';
 import { itemsApi } from '../shared/api/itemsApi';
 import { layoutsApi } from '../shared/api/layoutsApi';
@@ -42,6 +43,7 @@ const apiReducerPaths = [
   presetsApi.reducerPath,
   layoutsApi.reducerPath,
   itemsApi.reducerPath,
+  invoiceSchedulesApi.reducerPath,
   invoicesApi.reducerPath,
   settingsApi.reducerPath
 ];
@@ -62,6 +64,7 @@ export const store = configureStore({
     [presetsApi.reducerPath]: presetsApi.reducer,
     [layoutsApi.reducerPath]: layoutsApi.reducer,
     [itemsApi.reducerPath]: itemsApi.reducer,
+    [invoiceSchedulesApi.reducerPath]: invoiceSchedulesApi.reducer,
     [invoicesApi.reducerPath]: invoicesApi.reducer,
     [settingsApi.reducerPath]: settingsApi.reducer
   },
@@ -85,6 +88,7 @@ export const store = configureStore({
       presetsApi.middleware,
       layoutsApi.middleware,
       itemsApi.middleware,
+      invoiceSchedulesApi.middleware,
       invoicesApi.middleware,
       settingsApi.middleware
     )

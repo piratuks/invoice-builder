@@ -21,6 +21,8 @@ describe('webserver controller route registration', () => {
 
     expect(registered.routes.length).toBeGreaterThan(50);
     expect(registered.routes).toContain('GET:/api/invoices');
+    expect(registered.routes).toContain('GET:/api/invoice-schedules');
+    expect(registered.routes).toContain('GET:/api/invoice-schedules/:id/runs');
     expect(registered.routes).toContain('POST:/api/invoices/duplicate');
     expect(registered.routes).toContain('POST:/api/import');
     expect(registered.routes).toContain('GET:/api/layouts/export/:id');
