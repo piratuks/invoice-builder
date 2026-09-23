@@ -45,16 +45,7 @@ export const SettingsPage = () => {
   const hasInitialized = useRef(false);
   const stableSettings = useMemo(() => storeSettings ?? {}, [storeSettings]);
   const [showImportConfirm, setShowImportConfirm] = useState(false);
-
-  const [updateSettingsTrigger, { isLoading: isUpdatingSettings }] = useUpdateSettingsMutation();
-
-  useEffect(() => {
-    if (!isUpdatingSettings) return;
-    dispatch(enableLoadingCursor());
-    return () => {
-      dispatch(disableLoadingCursor());
-    };
-  }, [isUpdatingSettings, dispatch]);
+  const [updateSettings, { isLoading: isUpdatingSettings }] = useUpdateSettingsMutation();
 
   const { execute: exportJSONBackup } = useExportJson({
     immediate: false,
@@ -202,21 +193,30 @@ export const SettingsPage = () => {
   );
 
   useEffect(() => {
+    if (!isUpdatingSettings) return;
+    dispatch(enableLoadingCursor());
+    return () => {
+      dispatch(disableLoadingCursor());
+    };
+  }, [dispatch, isUpdatingSettings]);
+
+  useEffect(() => {
     if (!hasInitialized.current) {
       hasInitialized.current = true;
       return;
     }
 
-    updateSettingsTrigger(stableSettings)
+    void updateSettings(stableSettings)
       .unwrap()
-      .catch((err: { message?: string; key?: string }) => {
-        if (err.message) {
-          dispatch(addToast({ message: i18n.exists(err.message) ? t(err.message) : err.message, severity: 'error' }));
-        } else if (err.key) {
-          dispatch(addToast({ message: t(err.key), severity: 'error' }));
+      .catch(error => {
+        if (error?.message) {
+          const message = i18n.exists(error.message) ? t(error.message) : error.message;
+          dispatch(addToast({ message, severity: 'error' }));
+        } else if (error?.key) {
+          dispatch(addToast({ message: t(error.key), severity: 'error' }));
         }
       });
-  }, [stableSettings, updateSettingsTrigger, dispatch, t]);
+  }, [dispatch, stableSettings, t, updateSettings]);
 
   const onSelected = useCallback((item: MenuItemSettings | undefined) => {
     setCurrentMenuItem(item);

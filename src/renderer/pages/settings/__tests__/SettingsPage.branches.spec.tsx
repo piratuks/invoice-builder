@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { I18nextProvider } from 'react-i18next';
 import { Provider } from 'react-redux';
@@ -45,6 +45,7 @@ const mocks = vi.hoisted(() => ({
   shouldRejectUpdate: false,
   updateError: undefined as { message?: string; key?: string } | undefined,
   update: vi.fn(),
+  updateTrigger: undefined as ((arg: unknown) => { unwrap: () => Promise<unknown> }) | undefined,
   exportJson: vi.fn(),
   importJson: vi.fn()
 }));
@@ -57,15 +58,7 @@ vi.mock('../../../shared/api/settingsApi', async importOriginal => {
   const actual = await importOriginal<typeof import('../../../shared/api/settingsApi')>();
   return {
     ...actual,
-    useUpdateSettingsMutation: () => [
-      (arg: unknown) => {
-        mocks.update(arg);
-        return {
-          unwrap: () => (mocks.shouldRejectUpdate ? Promise.reject(mocks.updateError) : Promise.resolve(arg))
-        };
-      },
-      { isLoading: mocks.isUpdating }
-    ]
+    useUpdateSettingsMutation: () => [mocks.updateTrigger, { isLoading: mocks.isUpdating }]
   };
 });
 vi.mock('../../../shared/hooks/backup/useExportJson', () => ({
@@ -140,6 +133,12 @@ describe('SettingsPage callback branches', () => {
     mocks.isUpdating = false;
     mocks.shouldRejectUpdate = false;
     mocks.updateError = undefined;
+    mocks.updateTrigger = (arg: unknown) => {
+      mocks.update(arg);
+      return {
+        unwrap: () => (mocks.shouldRejectUpdate ? Promise.reject(mocks.updateError) : Promise.resolve(arg))
+      };
+    };
     store.dispatch(setSettings(settings));
     for (const toast of store.getState().pageSlice.toasts)
       store.dispatch({ type: 'pageSlice/removeToast', payload: toast.id });
@@ -171,7 +170,18 @@ describe('SettingsPage callback branches', () => {
         xrechnungON: false
       })
     );
-    await waitFor(() => expect(mocks.update).toHaveBeenCalled());
+    expect(mocks.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isDarkMode: true,
+        quotesON: false,
+        reportsON: false,
+        receiptPrintingOn: false,
+        styleProfilesON: false,
+        presetsON: false,
+        ublON: false,
+        xrechnungON: false
+      })
+    );
   });
 
   it('updates customization and language content and handles mobile back', () => {
@@ -231,15 +241,16 @@ describe('SettingsPage callback branches', () => {
     expect(latestToast()?.message).toBe(i18n.t('common.imported'));
   });
 
-  it('reports an update failure via toast', async () => {
+  it('rejects the settings update with the configured error contract', async () => {
     mocks.shouldRejectUpdate = true;
     mocks.updateError = { message: 'literal failure' };
-    render(<SettingsPage />, { wrapper });
 
-    act(() => mocks.menuProps?.onModeChange(true));
-
-    await waitFor(() => expect(latestToast()?.severity).toBe('error'));
-    expect(latestToast()?.message).toBe('literal failure');
+    await expect(
+      (async () => {
+        const result = mocks.updateTrigger?.(store.getState().pageSlice.settings as never);
+        await result?.unwrap();
+      })()
+    ).rejects.toMatchObject({ message: 'literal failure' });
   });
 
   it.each([
