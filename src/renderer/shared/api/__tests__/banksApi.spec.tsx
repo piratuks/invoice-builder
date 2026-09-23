@@ -13,6 +13,7 @@ import {
   useUpdateBankMutation
 } from '../banksApi';
 import { getApi } from '../restApi';
+import { runApiTrigger } from './testUtils';
 
 vi.mock('../restApi', () => ({ getApi: vi.fn(), isWebMode: () => true }));
 
@@ -82,7 +83,7 @@ describe('banksApi', () => {
       const [addBank] = mutationResult.current;
 
       mockApi.getAllBanks.mockResolvedValue({ success: true, data: [{ id: 2, name: 'New Bank' }] });
-      await addBank({ name: 'New Bank' } as never);
+      await runApiTrigger(() => addBank({ name: 'New Bank' } as never));
 
       expect(mockApi.addBank).toHaveBeenCalledWith({ name: 'New Bank' });
       await waitFor(() => expect(mockApi.getAllBanks).toHaveBeenCalledTimes(2));
@@ -95,7 +96,7 @@ describe('banksApi', () => {
       const { result } = renderHook(() => useAddBanksBatchMutation(), { wrapper });
       const [addBatch] = result.current;
 
-      const response = await addBatch([{ name: 'Batch Bank' } as never]);
+      const response = await runApiTrigger(() => addBatch([{ name: 'Batch Bank' } as never]));
 
       expect(mockApi.addBatchBank).toHaveBeenCalledWith([{ name: 'Batch Bank' }]);
       expect(response).toEqual({ data: [{ id: 3, name: 'Batch Bank' }] });
@@ -107,7 +108,7 @@ describe('banksApi', () => {
       const { result } = renderHook(() => useUpdateBankMutation(), { wrapper });
       const [updateBank] = result.current;
 
-      const response = await updateBank({ id: 1, name: 'Updated' } as never);
+      const response = await runApiTrigger(() => updateBank({ id: 1, name: 'Updated' } as never));
 
       expect(mockApi.updateBank).toHaveBeenCalledWith({ id: 1, name: 'Updated' });
       expect(response).toEqual({ data: { id: 1, name: 'Updated' } });
@@ -119,7 +120,7 @@ describe('banksApi', () => {
       const { result } = renderHook(() => useDeleteBankMutation(), { wrapper });
       const [deleteBank] = result.current;
 
-      const response = await deleteBank(1);
+      const response = await runApiTrigger(() => deleteBank(1));
 
       expect(mockApi.deleteBank).toHaveBeenCalledWith(1);
       expect(response).toEqual({ error: { kind: 'response', message: undefined, key: 'error.deleteFailed' } });

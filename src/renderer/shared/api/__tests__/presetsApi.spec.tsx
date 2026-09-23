@@ -13,6 +13,7 @@ import {
   useUpdatePresetMutation
 } from '../presetsApi';
 import { getApi } from '../restApi';
+import { runApiTrigger } from './testUtils';
 
 vi.mock('../restApi', () => ({ getApi: vi.fn(), isWebMode: () => true }));
 
@@ -82,7 +83,7 @@ describe('presetsApi', () => {
       const [addPreset] = mutationResult.current;
 
       mockApi.getAllPresets.mockResolvedValue({ success: true, data: [{ id: 2, name: 'New Preset' }] });
-      await addPreset({ name: 'New Preset' } as never);
+      await runApiTrigger(() => addPreset({ name: 'New Preset' } as never));
 
       expect(mockApi.addPreset).toHaveBeenCalledWith({ name: 'New Preset' });
       await waitFor(() => expect(mockApi.getAllPresets).toHaveBeenCalledTimes(2));
@@ -95,7 +96,7 @@ describe('presetsApi', () => {
       const { result } = renderHook(() => useAddPresetsBatchMutation(), { wrapper });
       const [addBatch] = result.current;
 
-      const response = await addBatch([{ name: 'Batch Preset' } as never]);
+      const response = await runApiTrigger(() => addBatch([{ name: 'Batch Preset' } as never]));
 
       expect(mockApi.addBatchPreset).toHaveBeenCalledWith([{ name: 'Batch Preset' }]);
       expect(response).toEqual({ data: [{ id: 3, name: 'Batch Preset' }] });
@@ -107,7 +108,7 @@ describe('presetsApi', () => {
       const { result } = renderHook(() => useUpdatePresetMutation(), { wrapper });
       const [updatePreset] = result.current;
 
-      const response = await updatePreset({ id: 1, name: 'Updated' } as never);
+      const response = await runApiTrigger(() => updatePreset({ id: 1, name: 'Updated' } as never));
 
       expect(mockApi.updatePreset).toHaveBeenCalledWith({ id: 1, name: 'Updated' });
       expect(response).toEqual({ data: { id: 1, name: 'Updated' } });
@@ -119,7 +120,7 @@ describe('presetsApi', () => {
       const { result } = renderHook(() => useDeletePresetMutation(), { wrapper });
       const [deletePreset] = result.current;
 
-      const response = await deletePreset(1);
+      const response = await runApiTrigger(() => deletePreset(1));
 
       expect(mockApi.deletePreset).toHaveBeenCalledWith(1);
       expect(response).toEqual({ error: { kind: 'response', message: undefined, key: 'error.deleteFailed' } });

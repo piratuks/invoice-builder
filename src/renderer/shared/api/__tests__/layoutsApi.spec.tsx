@@ -13,6 +13,7 @@ import {
   useUpdateLayoutMutation
 } from '../layoutsApi';
 import { getApi } from '../restApi';
+import { runApiTrigger } from './testUtils';
 
 vi.mock('../restApi', () => ({ getApi: vi.fn(), isWebMode: () => true }));
 
@@ -82,7 +83,7 @@ describe('layoutsApi', () => {
       const [addLayout] = mutationResult.current;
 
       mockApi.getAllLayouts.mockResolvedValue({ success: true, data: [{ id: 2, schema: {} }] });
-      await addLayout({ schema: {} } as never);
+      await runApiTrigger(() => addLayout({ schema: {} } as never));
 
       expect(mockApi.addLayout).toHaveBeenCalledWith({ schema: {} });
       await waitFor(() => expect(mockApi.getAllLayouts).toHaveBeenCalledTimes(2));
@@ -95,7 +96,7 @@ describe('layoutsApi', () => {
       const { result } = renderHook(() => useUpdateLayoutMutation(), { wrapper });
       const [updateLayout] = result.current;
 
-      const response = await updateLayout({ id: 1, schema: { a: 1 } } as never);
+      const response = await runApiTrigger(() => updateLayout({ id: 1, schema: { a: 1 } } as never));
 
       expect(mockApi.updateLayout).toHaveBeenCalledWith({ id: 1, schema: { a: 1 } });
       expect(response).toEqual({ data: { id: 1, schema: { a: 1 } } });
@@ -107,7 +108,7 @@ describe('layoutsApi', () => {
       const { result } = renderHook(() => useDeleteLayoutMutation(), { wrapper });
       const [deleteLayout] = result.current;
 
-      const response = await deleteLayout(1);
+      const response = await runApiTrigger(() => deleteLayout(1));
 
       expect(mockApi.deleteLayout).toHaveBeenCalledWith(1);
       expect(response).toEqual({ error: { kind: 'response', message: undefined, key: 'error.deleteFailed' } });
@@ -119,7 +120,7 @@ describe('layoutsApi', () => {
       const { result } = renderHook(() => useExportLayoutMutation(), { wrapper });
       const [exportLayout] = result.current;
 
-      const response = await exportLayout(1);
+      const response = await runApiTrigger(() => exportLayout(1));
 
       expect(mockApi.exportLayout).toHaveBeenCalledWith(1);
       expect(response).toEqual({ data: { filePath: 'layout.json' } });

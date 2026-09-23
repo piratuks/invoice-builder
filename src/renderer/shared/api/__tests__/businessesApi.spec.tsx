@@ -13,6 +13,7 @@ import {
   useUpdateBusinessMutation
 } from '../businessesApi';
 import { getApi } from '../restApi';
+import { runApiTrigger } from './testUtils';
 
 vi.mock('../restApi', () => ({ getApi: vi.fn(), isWebMode: () => true }));
 
@@ -82,7 +83,7 @@ describe('businessesApi', () => {
       const [addBusiness] = mutationResult.current;
 
       mockApi.getAllBusinesses.mockResolvedValue({ success: true, data: [{ id: 2, name: 'New Biz' }] });
-      await addBusiness({ name: 'New Biz' } as never);
+      await runApiTrigger(() => addBusiness({ name: 'New Biz' } as never));
 
       expect(mockApi.addBusiness).toHaveBeenCalledWith({ name: 'New Biz' });
       await waitFor(() => expect(mockApi.getAllBusinesses).toHaveBeenCalledTimes(2));
@@ -95,7 +96,7 @@ describe('businessesApi', () => {
       const { result } = renderHook(() => useAddBusinessesBatchMutation(), { wrapper });
       const [addBatch] = result.current;
 
-      const response = await addBatch([{ name: 'Batch Biz' } as never]);
+      const response = await runApiTrigger(() => addBatch([{ name: 'Batch Biz' } as never]));
 
       expect(mockApi.addBatchBusiness).toHaveBeenCalledWith([{ name: 'Batch Biz' }]);
       expect(response).toEqual({ data: [{ id: 3, name: 'Batch Biz' }] });
@@ -107,7 +108,7 @@ describe('businessesApi', () => {
       const { result } = renderHook(() => useUpdateBusinessMutation(), { wrapper });
       const [updateBusiness] = result.current;
 
-      const response = await updateBusiness({ id: 1, name: 'Updated' } as never);
+      const response = await runApiTrigger(() => updateBusiness({ id: 1, name: 'Updated' } as never));
 
       expect(mockApi.updateBusiness).toHaveBeenCalledWith({ id: 1, name: 'Updated' });
       expect(response).toEqual({ data: { id: 1, name: 'Updated' } });
@@ -119,7 +120,7 @@ describe('businessesApi', () => {
       const { result } = renderHook(() => useDeleteBusinessMutation(), { wrapper });
       const [deleteBusiness] = result.current;
 
-      const response = await deleteBusiness(1);
+      const response = await runApiTrigger(() => deleteBusiness(1));
 
       expect(mockApi.deleteBusiness).toHaveBeenCalledWith(1);
       expect(response).toEqual({ error: { kind: 'response', message: undefined, key: 'error.deleteFailed' } });

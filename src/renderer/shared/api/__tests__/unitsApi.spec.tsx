@@ -13,6 +13,7 @@ import {
   useGetUnitsQuery,
   useUpdateUnitMutation
 } from '../unitsApi';
+import { runApiTrigger } from './testUtils';
 
 vi.mock('../restApi', () => ({ getApi: vi.fn(), isWebMode: () => true }));
 
@@ -82,7 +83,7 @@ describe('unitsApi', () => {
       const [addUnit] = mutationResult.current;
 
       mockApi.getAllUnits.mockResolvedValue({ success: true, data: [{ id: 2, name: 'hrs' }] });
-      await addUnit({ name: 'hrs' } as never);
+      await runApiTrigger(() => addUnit({ name: 'hrs' } as never));
 
       expect(mockApi.addUnit).toHaveBeenCalledWith({ name: 'hrs' });
       await waitFor(() => expect(mockApi.getAllUnits).toHaveBeenCalledTimes(2));
@@ -95,7 +96,7 @@ describe('unitsApi', () => {
       const { result } = renderHook(() => useAddUnitsBatchMutation(), { wrapper });
       const [addBatch] = result.current;
 
-      const response = await addBatch([{ name: 'kg' } as never]);
+      const response = await runApiTrigger(() => addBatch([{ name: 'kg' } as never]));
 
       expect(mockApi.addBatchUnit).toHaveBeenCalledWith([{ name: 'kg' }]);
       expect(response).toEqual({ data: [{ id: 3, name: 'kg' }] });
@@ -107,7 +108,7 @@ describe('unitsApi', () => {
       const { result } = renderHook(() => useUpdateUnitMutation(), { wrapper });
       const [updateUnit] = result.current;
 
-      const response = await updateUnit({ id: 1, name: 'Updated' } as never);
+      const response = await runApiTrigger(() => updateUnit({ id: 1, name: 'Updated' } as never));
 
       expect(mockApi.updateUnit).toHaveBeenCalledWith({ id: 1, name: 'Updated' });
       expect(response).toEqual({ data: { id: 1, name: 'Updated' } });
@@ -119,7 +120,7 @@ describe('unitsApi', () => {
       const { result } = renderHook(() => useDeleteUnitMutation(), { wrapper });
       const [deleteUnit] = result.current;
 
-      const response = await deleteUnit(1);
+      const response = await runApiTrigger(() => deleteUnit(1));
 
       expect(mockApi.deleteUnit).toHaveBeenCalledWith(1);
       expect(response).toEqual({ error: { kind: 'response', message: undefined, key: 'error.deleteFailed' } });

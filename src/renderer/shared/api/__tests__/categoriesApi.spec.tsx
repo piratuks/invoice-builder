@@ -13,6 +13,7 @@ import {
   useUpdateCategoryMutation
 } from '../categoriesApi';
 import { getApi } from '../restApi';
+import { runApiTrigger } from './testUtils';
 
 vi.mock('../restApi', () => ({ getApi: vi.fn(), isWebMode: () => true }));
 
@@ -82,7 +83,7 @@ describe('categoriesApi', () => {
       const [addCategory] = mutationResult.current;
 
       mockApi.getAllCategories.mockResolvedValue({ success: true, data: [{ id: 2, name: 'Services' }] });
-      await addCategory({ name: 'Services' } as never);
+      await runApiTrigger(() => addCategory({ name: 'Services' } as never));
 
       expect(mockApi.addCategory).toHaveBeenCalledWith({ name: 'Services' });
       await waitFor(() => expect(mockApi.getAllCategories).toHaveBeenCalledTimes(2));
@@ -95,7 +96,7 @@ describe('categoriesApi', () => {
       const { result } = renderHook(() => useAddCategoriesBatchMutation(), { wrapper });
       const [addBatch] = result.current;
 
-      const response = await addBatch([{ name: 'Batch Category' } as never]);
+      const response = await runApiTrigger(() => addBatch([{ name: 'Batch Category' } as never]));
 
       expect(mockApi.addBatchCategory).toHaveBeenCalledWith([{ name: 'Batch Category' }]);
       expect(response).toEqual({ data: [{ id: 3, name: 'Batch Category' }] });
@@ -107,7 +108,7 @@ describe('categoriesApi', () => {
       const { result } = renderHook(() => useUpdateCategoryMutation(), { wrapper });
       const [updateCategory] = result.current;
 
-      const response = await updateCategory({ id: 1, name: 'Updated' } as never);
+      const response = await runApiTrigger(() => updateCategory({ id: 1, name: 'Updated' } as never));
 
       expect(mockApi.updateCategory).toHaveBeenCalledWith({ id: 1, name: 'Updated' });
       expect(response).toEqual({ data: { id: 1, name: 'Updated' } });
@@ -119,7 +120,7 @@ describe('categoriesApi', () => {
       const { result } = renderHook(() => useDeleteCategoryMutation(), { wrapper });
       const [deleteCategory] = result.current;
 
-      const response = await deleteCategory(1);
+      const response = await runApiTrigger(() => deleteCategory(1));
 
       expect(mockApi.deleteCategory).toHaveBeenCalledWith(1);
       expect(response).toEqual({ error: { kind: 'response', message: undefined, key: 'error.deleteFailed' } });

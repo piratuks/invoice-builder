@@ -13,6 +13,7 @@ import {
   useGetStyleProfilesQuery,
   useUpdateStyleProfileMutation
 } from '../styleProfilesApi';
+import { runApiTrigger } from './testUtils';
 
 vi.mock('../restApi', () => ({ getApi: vi.fn(), isWebMode: () => true }));
 
@@ -82,7 +83,7 @@ describe('styleProfilesApi', () => {
       const [addStyleProfile] = mutationResult.current;
 
       mockApi.getAllStyleProfiles.mockResolvedValue({ success: true, data: [{ id: 2, name: 'New Profile' }] });
-      await addStyleProfile({ name: 'New Profile' } as never);
+      await runApiTrigger(() => addStyleProfile({ name: 'New Profile' } as never));
 
       expect(mockApi.addStyleProfile).toHaveBeenCalledWith({ name: 'New Profile' });
       await waitFor(() => expect(mockApi.getAllStyleProfiles).toHaveBeenCalledTimes(2));
@@ -95,7 +96,7 @@ describe('styleProfilesApi', () => {
       const { result } = renderHook(() => useAddStyleProfilesBatchMutation(), { wrapper });
       const [addBatch] = result.current;
 
-      const response = await addBatch([{ name: 'Batch Profile' } as never]);
+      const response = await runApiTrigger(() => addBatch([{ name: 'Batch Profile' } as never]));
 
       expect(mockApi.addBatchStyleProfile).toHaveBeenCalledWith([{ name: 'Batch Profile' }]);
       expect(response).toEqual({ data: [{ id: 3, name: 'Batch Profile' }] });
@@ -107,7 +108,7 @@ describe('styleProfilesApi', () => {
       const { result } = renderHook(() => useUpdateStyleProfileMutation(), { wrapper });
       const [updateStyleProfile] = result.current;
 
-      const response = await updateStyleProfile({ id: 1, name: 'Updated' } as never);
+      const response = await runApiTrigger(() => updateStyleProfile({ id: 1, name: 'Updated' } as never));
 
       expect(mockApi.updateStyleProfile).toHaveBeenCalledWith({ id: 1, name: 'Updated' });
       expect(response).toEqual({ data: { id: 1, name: 'Updated' } });
@@ -119,7 +120,7 @@ describe('styleProfilesApi', () => {
       const { result } = renderHook(() => useDeleteStyleProfileMutation(), { wrapper });
       const [deleteStyleProfile] = result.current;
 
-      const response = await deleteStyleProfile(1);
+      const response = await runApiTrigger(() => deleteStyleProfile(1));
 
       expect(mockApi.deleteStyleProfile).toHaveBeenCalledWith(1);
       expect(response).toEqual({ error: { kind: 'response', message: undefined, key: 'error.deleteFailed' } });
