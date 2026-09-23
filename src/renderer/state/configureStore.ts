@@ -1,6 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { setupListeners } from '@reduxjs/toolkit/query';
 import { useDispatch, useSelector, type TypedUseSelectorHook } from 'react-redux';
+import { backupApi } from '../shared/api/backupApi';
 import { banksApi } from '../shared/api/banksApi';
 import { businessesApi } from '../shared/api/businessesApi';
 import { categoriesApi } from '../shared/api/categoriesApi';
@@ -30,6 +31,7 @@ const isSerializableValue = (value: unknown): boolean => {
 const apiReducerPaths = [
   businessesApi.reducerPath,
   banksApi.reducerPath,
+  backupApi.reducerPath,
   categoriesApi.reducerPath,
   clientsApi.reducerPath,
   currenciesApi.reducerPath,
@@ -48,6 +50,7 @@ export const store = configureStore({
     [pageSlice.name]: pageSlice.reducer,
     [businessesApi.reducerPath]: businessesApi.reducer,
     [banksApi.reducerPath]: banksApi.reducer,
+    [backupApi.reducerPath]: backupApi.reducer,
     [categoriesApi.reducerPath]: categoriesApi.reducer,
     [clientsApi.reducerPath]: clientsApi.reducer,
     [currenciesApi.reducerPath]: currenciesApi.reducer,
@@ -69,6 +72,7 @@ export const store = configureStore({
     }).concat(
       businessesApi.middleware,
       banksApi.middleware,
+      backupApi.middleware,
       categoriesApi.middleware,
       clientsApi.middleware,
       currenciesApi.middleware,

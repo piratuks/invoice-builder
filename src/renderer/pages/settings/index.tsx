@@ -2,7 +2,8 @@ import { Grid, useMediaQuery, useTheme } from '@mui/material';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n';
-import { settingsApi, useUpdateSettingsMutation } from '../../shared/api/settingsApi';
+import { useExportAllDataMutation, useImportAllDataMutation } from '../../shared/api/backupApi';
+import { useUpdateSettingsMutation } from '../../shared/api/settingsApi';
 import { Content } from '../../shared/components/layout/content/Content';
 import { NoItem } from '../../shared/components/lists/noItem/NoItem';
 import { Confirmation } from '../../shared/components/modals/confirmation';
@@ -10,10 +11,6 @@ import type { AmountFormat } from '../../shared/enums/amountFormat';
 import type { DateFormat } from '../../shared/enums/dateFormat';
 import type { Language } from '../../shared/enums/language';
 import { MenuItemSettings } from '../../shared/enums/menuItemSettings';
-import { useExportJson } from '../../shared/hooks/backup/useExportJson';
-import { useImportJson } from '../../shared/hooks/backup/useImportJson';
-import type { ExportMeta } from '../../shared/types/exportMeta';
-import type { Response } from '../../shared/types/response';
 import { useAppDispatch, useAppSelector } from '../../state/configureStore';
 import {
   addToast,
@@ -46,41 +43,20 @@ export const SettingsPage = () => {
   const stableSettings = useMemo(() => storeSettings ?? {}, [storeSettings]);
   const [showImportConfirm, setShowImportConfirm] = useState(false);
   const [updateSettings, { isLoading: isUpdatingSettings }] = useUpdateSettingsMutation();
+  const [exportAllData, { isLoading: isExporting }] = useExportAllDataMutation();
+  const [importAllData, { isLoading: isImporting }] = useImportAllDataMutation();
 
-  const { execute: exportJSONBackup } = useExportJson({
-    immediate: false,
-    onDone: (data: Response<ExportMeta>) => {
-      if (!data.success) {
-        if (data.message) {
-          const message = i18n.exists(data.message) ? t(data.message) : data.message;
-          dispatch(addToast({ message: message, severity: 'error' }));
-        } else if (data.key) dispatch(addToast({ message: t(data.key), severity: 'error' }));
-      } else if (data?.success) {
-        const path = data.data?.filePath;
-        dispatch(
-          addToast({
-            message: path ? t('common.exportedTo', { path: path }) : t('common.exported'),
-            severity: 'success'
-          })
-        );
+  const reportBackupError = useCallback(
+    (error: unknown) => {
+      const { message, key } = (error as { message?: string; key?: string }) ?? {};
+      if (message) {
+        dispatch(addToast({ message: i18n.exists(message) ? t(message) : message, severity: 'error' }));
+      } else if (key) {
+        dispatch(addToast({ message: t(key), severity: 'error' }));
       }
-    }
-  });
-
-  const { execute: importJSON } = useImportJson({
-    immediate: false,
-    onDone: (data: Response<unknown>) => {
-      if (!data.success) {
-        if (data.message) {
-          const message = i18n.exists(data.message) ? t(data.message) : data.message;
-          dispatch(addToast({ message: message, severity: 'error' }));
-        } else if (data.key) dispatch(addToast({ message: t(data.key), severity: 'error' }));
-      } else {
-        dispatch(addToast({ message: t('common.imported'), severity: 'success' }));
-        dispatch(settingsApi.util.invalidateTags([{ type: 'Settings', id: 'SINGLETON' }]));
-      }
-    }
-  });
+    },
+    [dispatch, t]
+  );
 
   const onModeChange = useCallback(
     (isDark: boolean) => {
@@ -139,8 +115,19 @@ export const SettingsPage = () => {
   );
 
   const exportJSON = useCallback(() => {
-    exportJSONBackup();
-  }, [exportJSONBackup]);
+    void exportAllData()
+      .unwrap()
+      .then(result => {
+        const path = result?.filePath;
+        dispatch(
+          addToast({
+            message: path ? t('common.exportedTo', { path }) : t('common.exported'),
+            severity: 'success'
+          })
+        );
+      })
+      .catch(reportBackupError);
+  }, [dispatch, exportAllData, reportBackupError, t]);
 
   const importJSONCallback = useCallback(() => {
     setShowImportConfirm(true);
@@ -152,8 +139,11 @@ export const SettingsPage = () => {
 
   const handleConfirmImport = useCallback(() => {
     handleCancelImport();
-    importJSON();
-  }, [handleCancelImport, importJSON]);
+    void importAllData()
+      .unwrap()
+      .then(() => dispatch(addToast({ message: t('common.imported'), severity: 'success' })))
+      .catch(reportBackupError);
+  }, [dispatch, handleCancelImport, importAllData, reportBackupError, t]);
 
   const onCustomizedInvoice = useCallback(
     (data: {
@@ -199,6 +189,14 @@ export const SettingsPage = () => {
       dispatch(disableLoadingCursor());
     };
   }, [dispatch, isUpdatingSettings]);
+
+  useEffect(() => {
+    if (!isExporting && !isImporting) return;
+    dispatch(enableLoadingCursor());
+    return () => {
+      dispatch(disableLoadingCursor());
+    };
+  }, [dispatch, isExporting, isImporting]);
 
   useEffect(() => {
     if (!hasInitialized.current) {
