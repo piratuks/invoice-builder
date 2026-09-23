@@ -1,5 +1,6 @@
-import { useCallback, useMemo, useState, type FC } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
+import i18n from '../../i18n';
 import {
   useAddInvoiceMutation,
   useDeleteInvoiceMutation,
@@ -21,6 +22,9 @@ import { createCommonFilters } from '../../shared/utils/filterSortFunctions';
 import { isInvoiceFromData } from '../../shared/utils/typeGuardFunctions';
 import { useAppDispatch, useAppSelector } from '../../state/configureStore';
 import {
+  addToast,
+  disableLoadingCursor,
+  enableLoadingCursor,
   selectBusinessesSnapshotsOptions,
   selectClientsSnapshotsOptions,
   selectSettings,
@@ -36,6 +40,7 @@ import { List } from './List';
 interface Props {
   type: InvoiceType;
 }
+const EMPTY_INVOICES: Invoice[] = [];
 
 export const InvoicesPage: FC<Props> = ({ type }) => {
   const { t } = useTranslation();
@@ -43,17 +48,43 @@ export const InvoicesPage: FC<Props> = ({ type }) => {
   const businessesOptions = useAppSelector(selectBusinessesSnapshotsOptions);
   const settings = useAppSelector(selectSettings);
   const dispatch = useAppDispatch();
-  const onInvoicesChange = useCallback(
-    (invoices: Invoice[]) => {
-      const businessNames = [
-        ...new Set(invoices.map(invoice => invoice.invoiceBusinessSnapshot?.businessName ?? 'N/A'))
-      ];
-      const clientNames = [...new Set(invoices.map(invoice => invoice.invoiceClientSnapshot?.clientName ?? 'N/A'))];
-      dispatch(setBusinessSnapshotOptions(businessNames.map(label => ({ label, value: label }))));
-      dispatch(setClientSnapshotOptions(clientNames.map(label => ({ label, value: label }))));
-    },
-    [dispatch]
-  );
+  const {
+    data: snapshotInvoiceData,
+    isLoading: isSnapshotLoading,
+    isFetching: isSnapshotFetching,
+    isError: isSnapshotError,
+    error: snapshotError
+  } = useGetInvoicesQuery({ invoiceType: type });
+  const snapshotInvoices = snapshotInvoiceData ?? EMPTY_INVOICES;
+
+  useEffect(() => {
+    if (!isSnapshotError) return;
+    const { message, key } = (snapshotError as { message?: string; key?: string }) ?? {};
+    if (message) {
+      dispatch(addToast({ message: i18n.exists(message) ? t(message) : message, severity: 'error' }));
+    } else if (key) {
+      dispatch(addToast({ message: t(key), severity: 'error' }));
+    }
+  }, [dispatch, isSnapshotError, snapshotError, t]);
+
+  useEffect(() => {
+    if (!isSnapshotLoading && !isSnapshotFetching) return;
+    dispatch(enableLoadingCursor());
+    return () => {
+      dispatch(disableLoadingCursor());
+    };
+  }, [dispatch, isSnapshotFetching, isSnapshotLoading]);
+
+  useEffect(() => {
+    const businessNames = [
+      ...new Set(snapshotInvoices.map(invoice => invoice.invoiceBusinessSnapshot?.businessName ?? 'N/A'))
+    ];
+    const clientNames = [
+      ...new Set(snapshotInvoices.map(invoice => invoice.invoiceClientSnapshot?.clientName ?? 'N/A'))
+    ];
+    dispatch(setBusinessSnapshotOptions(businessNames.map(label => ({ label, value: label }))));
+    dispatch(setClientSnapshotOptions(clientNames.map(label => ({ label, value: label }))));
+  }, [dispatch, snapshotInvoices]);
   const filters: Filter[] = [
     ...createCommonFilters({
       t,
@@ -93,12 +124,12 @@ export const InvoicesPage: FC<Props> = ({ type }) => {
             ]
     }
   ];
-  const [currType, setCurrType] = useState<InvoiceType>(type);
+  const currTypeRef = useRef(type);
   const useInvoicesCRUDRetrieve = (filter?: FilterData[] | void) =>
     useGetInvoicesQuery({ invoiceType: type, filter: filter ?? undefined });
   const useInvoiceCRUDDuplicate = () => {
     const [duplicate, state] = useDuplicateInvoiceMutation();
-    return [(id: number) => duplicate({ id, invoiceType: currType }), state] as const;
+    return [(id: number) => duplicate({ id, invoiceType: currTypeRef.current }), state] as const;
   };
   const exportInvoices = useCallback(
     async (invoices: Invoice[]) => {
@@ -242,7 +273,6 @@ export const InvoicesPage: FC<Props> = ({ type }) => {
         noItemText={type === InvoiceType.quotation ? t('invoices.noItemQuote') : t('invoices.noItemInvoice')}
         leftTitle={type === InvoiceType.quotation ? t('menuItems.quotes') : t('menuItems.invoices')}
         exportExcelHandler={exportInvoices}
-        onItemsChange={onInvoicesChange}
         onAddClick={defaultOnAdd => {
           if (!isPresetsEnabled) {
             defaultOnAdd();
@@ -274,7 +304,7 @@ export const InvoicesPage: FC<Props> = ({ type }) => {
             mode={mode}
             preset={selectedPreset}
             handleDuplicate={(id, invoiceType) => {
-              setCurrType(invoiceType);
+              currTypeRef.current = invoiceType;
               if (onDuplicate) onDuplicate(id);
             }}
             handleChange={d => {

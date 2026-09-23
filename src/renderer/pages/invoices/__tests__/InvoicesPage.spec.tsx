@@ -82,7 +82,7 @@ describe('InvoicesPage', () => {
     render(<InvoicesPage type={InvoiceType.invoice} />, { wrapper });
 
     await waitFor(() => expect(mockApi.getAllInvoices).toHaveBeenCalled());
-    expect(mockApi.getAllInvoices).toHaveBeenCalledTimes(1);
+    expect(mockApi.getAllInvoices).toHaveBeenCalledTimes(2);
     expect(await screen.findByText(i18n.t('invoices.noItemInvoice'))).toBeInTheDocument();
   });
 

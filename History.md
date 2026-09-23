@@ -2,6 +2,10 @@
 
 ## [DATE], version 2.11.0
 
+New features & improvements
+
+- Migrated the renderer data layer to Redux Toolkit Query for shared caching, loading states, error handling, and cache invalidation.
+
 Bug fixes
 
 - Fixed AppImage compatibility with older supported Linux distributions by using a static runtime and compiling native dependencies against Ubuntu 22.04, preventing blank startup caused by an incompatible `sqlite3` glibc requirement.
