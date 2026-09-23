@@ -2,7 +2,9 @@ import { createApi, type BaseQueryFn } from '@reduxjs/toolkit/query/react';
 import type { FilterData } from '../types/filter';
 import type { Item, ItemAdd, ItemUpdate } from '../types/item';
 import type { Response } from '../types/response';
+import { categoriesApi } from './categoriesApi';
 import { getApi } from './restApi';
+import { unitsApi } from './unitsApi';
 
 export interface ItemsApiError {
   kind: 'response' | 'exception';
@@ -66,7 +68,16 @@ export const itemsApi = createApi({
     }),
     addItemsBatch: builder.mutation<Item[], ItemAdd[]>({
       query: body => ({ type: 'addItemsBatch', body }),
-      invalidatesTags: [{ type: 'Item', id: 'LIST' }]
+      invalidatesTags: [{ type: 'Item', id: 'LIST' }],
+      async onQueryStarted(_body, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          dispatch(categoriesApi.util.invalidateTags([{ type: 'Category', id: 'LIST' }]));
+          dispatch(unitsApi.util.invalidateTags([{ type: 'Unit', id: 'LIST' }]));
+        } catch {
+          return;
+        }
+      }
     }),
     updateItem: builder.mutation<Item, ItemUpdate>({
       query: body => ({ type: 'updateItem', body }),
