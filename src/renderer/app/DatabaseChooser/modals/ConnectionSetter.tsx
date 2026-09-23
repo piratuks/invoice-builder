@@ -2,14 +2,13 @@ import { Button, Dialog, DialogContent, FormControlLabel, Grid, Switch, TextFiel
 import { useEffect, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../../i18n';
+import { useTestConnectionMutation } from '../../../shared/api/dbSelectorApi';
 import { ModalAppBar } from '../../../shared/components/layout/modalAppBar/ModalAppBar';
-import { useTestConnection } from '../../../shared/hooks/dbSelector/useDBTestConnection';
 import { useForm } from '../../../shared/hooks/form/useForm';
 import type { PostgresConfig } from '../../../shared/types/postgresConfig';
-import type { Response } from '../../../shared/types/response';
 import { validators } from '../../../shared/utils/validatorFunctions';
 import { useAppDispatch } from '../../../state/configureStore';
-import { addToast } from '../../../state/pageSlice';
+import { addToast, disableLoadingCursor, enableLoadingCursor } from '../../../state/pageSlice';
 
 interface Props {
   isOpen: boolean;
@@ -33,8 +32,28 @@ export const ConnectionSetter: FC<Props> = ({ isOpen, onCancel = () => {}, onSav
     user: false,
     database: false
   });
-  const [isTesting, setIsTesting] = useState(false);
   const dispatch = useAppDispatch();
+  const [testConnection, { isLoading: isTestingMutation }] = useTestConnectionMutation();
+  const [isTestingRequest, setIsTestingRequest] = useState(false);
+  const isTesting = isTestingMutation || isTestingRequest;
+
+  useEffect(() => {
+    if (!isTesting) return;
+    dispatch(enableLoadingCursor());
+    return () => {
+      dispatch(disableLoadingCursor());
+    };
+  }, [dispatch, isTesting]);
+
+  const reportError = (error: unknown) => {
+    const { message, key } = (error as { message?: string; key?: string }) ?? {};
+    if (message) {
+      const resolvedMessage = i18n.exists(message) ? t(message) : message;
+      dispatch(addToast({ message: resolvedMessage, severity: 'error' }));
+    } else if (key) {
+      dispatch(addToast({ message: t(key), severity: 'error' }));
+    }
+  };
 
   const validateField = (field: keyof typeof errors, value: string) => {
     if (
@@ -46,23 +65,6 @@ export const ConnectionSetter: FC<Props> = ({ isOpen, onCancel = () => {}, onSav
       setErrors(e => ({ ...e, [field]: false }));
     }
   };
-
-  const { execute: testConneciton } = useTestConnection({
-    postgresConfig: form,
-    immediate: false,
-    onDone: (data: Response<unknown>) => {
-      if (!data.success) {
-        if (data.message) {
-          const message = i18n.exists(data.message) ? t(data.message) : data.message;
-          dispatch(addToast({ message: message, severity: 'error' }));
-        } else if (data.key) dispatch(addToast({ message: t(data.key), severity: 'error' }));
-      } else if (data.success) {
-        dispatch(addToast({ message: t('common.testConnectionSuccess'), severity: 'success' }));
-      }
-
-      setIsTesting(false);
-    }
-  });
 
   useEffect(() => {
     const valid =
@@ -92,8 +94,14 @@ export const ConnectionSetter: FC<Props> = ({ isOpen, onCancel = () => {}, onSav
               variant="outlined"
               disabled={isTesting}
               onClick={() => {
-                setIsTesting(true);
-                testConneciton();
+                setIsTestingRequest(true);
+                void testConnection(form)
+                  .unwrap()
+                  .then(() => {
+                    dispatch(addToast({ message: t('common.testConnectionSuccess'), severity: 'success' }));
+                  })
+                  .catch(reportError)
+                  .finally(() => setIsTestingRequest(false));
               }}
             >
               {t('common.testConnection')}

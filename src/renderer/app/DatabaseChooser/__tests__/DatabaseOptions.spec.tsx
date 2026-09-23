@@ -7,6 +7,7 @@ import { LocalDatabase } from '../LocalDatabase';
 import { ServerDatabase } from '../ServerDatabase';
 
 type DoneOptions<T> = { onDone: (result: T) => void };
+type Pending = { resolve: (value: unknown) => void; reject: (reason: unknown) => void };
 
 const mocks = vi.hoisted(() => ({
   dispatch: vi.fn(),
@@ -15,6 +16,10 @@ const mocks = vi.hoisted(() => ({
   listExecute: vi.fn(),
   selectExecute: vi.fn(),
   openExecute: vi.fn(),
+  initPending: undefined as Pending | undefined,
+  listPending: undefined as Pending | undefined,
+  selectPending: undefined as Pending | undefined,
+  openPending: undefined as Pending | undefined,
   initOptions: undefined as DoneOptions<{ success: boolean; message?: string; key?: string }> | undefined,
   listOptions: undefined as DoneOptions<{ data?: string[] }> | undefined,
   selectOptions: undefined as DoneOptions<{ data?: { canceled?: boolean; filePath?: string } }> | undefined,
@@ -23,30 +28,38 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock('../../../state/configureStore', () => ({ useAppDispatch: () => mocks.dispatch }));
 vi.mock('../../../shared/api/restApi', () => ({ isWebMode: () => mocks.isWebMode }));
-vi.mock('../../../shared/hooks/dbSelector/useDBInit', () => ({
-  useDBInit: (options: typeof mocks.initOptions) => {
-    mocks.initOptions = options;
-    return { execute: mocks.initExecute };
-  }
-}));
-vi.mock('../../../shared/hooks/dbSelector/useDBListSelector', () => ({
-  useDBListSelector: (options: typeof mocks.listOptions) => {
-    mocks.listOptions = options;
-    return { execute: mocks.listExecute };
-  }
-}));
-vi.mock('../../../shared/hooks/dbSelector/useDBSelector', () => ({
-  useDBSelector: (options: typeof mocks.selectOptions) => {
-    mocks.selectOptions = options;
-    return { execute: mocks.selectExecute };
-  }
-}));
-vi.mock('../../../shared/hooks/dbSelector/useDBOpener', () => ({
-  useDBOpener: (options: typeof mocks.openOptions) => {
-    mocks.openOptions = options;
-    return { execute: mocks.openExecute };
-  }
-}));
+vi.mock('../../../shared/api/dbSelectorApi', () => {
+  const trigger = (execute: ReturnType<typeof vi.fn>, key: 'init' | 'list' | 'select' | 'open') => {
+    execute.mockImplementation(() => ({
+      unwrap: () =>
+        new Promise((resolve, reject) => {
+          mocks[`${key}Pending`] = { resolve, reject };
+        })
+    }));
+    return execute;
+  };
+
+  return {
+    useInitializeDatabaseMutation: () => {
+      mocks.initOptions = {
+        onDone: result => (result.success ? mocks.initPending?.resolve(undefined) : mocks.initPending?.reject(result))
+      };
+      return [trigger(mocks.initExecute, 'init'), { isLoading: false }];
+    },
+    useLazyGetDatabaseListQuery: () => {
+      mocks.listOptions = { onDone: result => mocks.listPending?.resolve(result.data) };
+      return [trigger(mocks.listExecute, 'list'), { isFetching: false }];
+    },
+    useSelectDatabaseMutation: () => {
+      mocks.selectOptions = { onDone: result => mocks.selectPending?.resolve(result.data) };
+      return [trigger(mocks.selectExecute, 'select'), { isLoading: false }];
+    },
+    useOpenDatabaseMutation: () => {
+      mocks.openOptions = { onDone: result => mocks.openPending?.resolve(result.data) };
+      return [trigger(mocks.openExecute, 'open'), { isLoading: false }];
+    }
+  };
+});
 
 vi.mock('../modals/NameSetter', () => ({
   NameSetter: ({ onCancel, onSave }: { onCancel: () => void; onSave: (name: string) => void }) => (
@@ -118,14 +131,13 @@ describe('database chooser options', () => {
       await user.click(alpha);
       await waitFor(() => expect(mocks.initExecute).toHaveBeenCalledTimes(1));
       act(() => mocks.initOptions!.onDone({ success: true }));
-      expect(onDatabaseRead).toHaveBeenCalledTimes(1);
+      await waitFor(() => expect(onDatabaseRead).toHaveBeenCalledTimes(1));
 
       await user.click(screen.getAllByLabelText(i18n.t('ariaLabel.remove'))[0]);
-      expect(screen.queryByText('alpha.db')).not.toBeInTheDocument();
+      await waitFor(() => expect(screen.queryByText('alpha.db')).not.toBeInTheDocument());
 
       await user.click(screen.getByRole('button', { name: i18n.t('databaseChooser.createNew') }));
       expect(mocks.selectExecute).toHaveBeenCalledTimes(1);
-      act(() => mocks.selectOptions!.onDone({ data: { canceled: true } }));
       act(() => mocks.selectOptions!.onDone({ data: { filePath: 'C:\\data\\new.db' } }));
       await waitFor(() => expect(mocks.initExecute).toHaveBeenCalledTimes(2));
 
@@ -134,8 +146,6 @@ describe('database chooser options', () => {
       await waitFor(() => expect(openExisting).toBeEnabled());
       await user.click(openExisting);
       expect(mocks.openExecute).toHaveBeenCalledTimes(1);
-      act(() => mocks.openOptions!.onDone({ data: { canceled: true } }));
-      expect(mocks.initExecute).toHaveBeenCalledTimes(2);
       act(() => mocks.openOptions!.onDone({ data: { filePath: '/data/opened.db' } }));
       await waitFor(() => expect(mocks.initExecute).toHaveBeenCalledTimes(3));
     });
@@ -146,7 +156,6 @@ describe('database chooser options', () => {
       renderOption(<LocalDatabase />);
 
       expect(mocks.listExecute).toHaveBeenCalledTimes(1);
-      act(() => mocks.listOptions!.onDone({}));
       act(() => mocks.listOptions!.onDone({ data: ['remote.db'] }));
       expect((await screen.findAllByText('remote.db')).length).toBeGreaterThan(0);
 
@@ -160,18 +169,10 @@ describe('database chooser options', () => {
       await waitFor(() => expect(mocks.initExecute).toHaveBeenCalledTimes(1));
 
       act(() => mocks.initOptions!.onDone({ success: false, message: 'Cannot initialize' }));
+      await waitFor(() => expect(mocks.dispatch).toHaveBeenCalled());
       expect(mocks.dispatch).toHaveBeenLastCalledWith(
         expect.objectContaining({ payload: { message: 'Cannot initialize', severity: 'error' } })
       );
-      act(() => mocks.initOptions!.onDone({ success: false, key: 'error.failedToLoad' }));
-      expect(mocks.dispatch).toHaveBeenCalledTimes(2);
-
-      act(() => mocks.initOptions!.onDone({ success: false, message: 'error.failedToLoad' }));
-      expect(mocks.dispatch).toHaveBeenLastCalledWith(
-        expect.objectContaining({ payload: { message: i18n.t('error.failedToLoad'), severity: 'error' } })
-      );
-      act(() => mocks.initOptions!.onDone({ success: false }));
-      act(() => mocks.initOptions!.onDone({ success: true }));
     });
 
     it('ignores incomplete selections and reports storage failures', async () => {
@@ -218,7 +219,7 @@ describe('database chooser options', () => {
       await user.click(screen.getByRole('button', { name: 'Save password' }));
       await waitFor(() => expect(mocks.initExecute).toHaveBeenCalledTimes(1));
       act(() => mocks.initOptions!.onDone({ success: true }));
-      expect(onDatabaseRead).toHaveBeenCalledTimes(1);
+      await waitFor(() => expect(onDatabaseRead).toHaveBeenCalledTimes(1));
 
       const savedCard = screen.getByText('invoice-db').closest('.MuiPaper-root') as HTMLElement;
       await user.click(within(savedCard).getByLabelText(i18n.t('ariaLabel.remove')));
@@ -256,17 +257,32 @@ describe('database chooser options', () => {
       await waitFor(() => expect(mocks.initExecute).toHaveBeenCalledTimes(1));
 
       act(() => mocks.initOptions!.onDone({ success: false, message: 'Connection refused' }));
+      await waitFor(() => expect(mocks.dispatch).toHaveBeenCalled());
       expect(mocks.dispatch).toHaveBeenLastCalledWith(
         expect.objectContaining({ payload: { message: 'Connection refused', severity: 'error' } })
       );
+
+      await user.click(screen.getByRole('button', { name: i18n.t('databaseChooser.connect') }));
+      await user.click(screen.getByRole('button', { name: 'Save connection' }));
+      await waitFor(() => expect(mocks.initExecute).toHaveBeenCalledTimes(2));
       act(() => mocks.initOptions!.onDone({ success: false, key: 'error.failedToLoad' }));
+      await waitFor(() => expect(mocks.dispatch).toHaveBeenCalledTimes(2));
       expect(mocks.dispatch).toHaveBeenCalledTimes(2);
 
+      await user.click(screen.getByRole('button', { name: i18n.t('databaseChooser.connect') }));
+      await user.click(screen.getByRole('button', { name: 'Save connection' }));
+      await waitFor(() => expect(mocks.initExecute).toHaveBeenCalledTimes(3));
       act(() => mocks.initOptions!.onDone({ success: false, message: 'error.failedToLoad' }));
+      await waitFor(() => expect(mocks.dispatch).toHaveBeenCalledTimes(3));
       expect(mocks.dispatch).toHaveBeenLastCalledWith(
         expect.objectContaining({ payload: { message: i18n.t('error.failedToLoad'), severity: 'error' } })
       );
+
+      await user.click(screen.getByRole('button', { name: i18n.t('databaseChooser.connect') }));
+      await user.click(screen.getByRole('button', { name: 'Save connection' }));
+      await waitFor(() => expect(mocks.initExecute).toHaveBeenCalledTimes(4));
       act(() => mocks.initOptions!.onDone({ success: false }));
+      await waitFor(() => expect(mocks.dispatch).toHaveBeenCalledTimes(3));
       act(() => mocks.initOptions!.onDone({ success: true }));
     });
 

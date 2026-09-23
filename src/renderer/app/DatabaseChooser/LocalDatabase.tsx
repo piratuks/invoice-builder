@@ -14,17 +14,17 @@ import {
 import { useCallback, useEffect, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n';
+import {
+  useInitializeDatabaseMutation,
+  useLazyGetDatabaseListQuery,
+  useOpenDatabaseMutation,
+  useSelectDatabaseMutation
+} from '../../shared/api/dbSelectorApi';
 import { isWebMode } from '../../shared/api/restApi';
 import { DatabaseType } from '../../shared/enums/databaseType';
 import { DBInitType } from '../../shared/enums/dbInitType';
-import { useDBInit } from '../../shared/hooks/dbSelector/useDBInit';
-import { useDBListSelector } from '../../shared/hooks/dbSelector/useDBListSelector';
-import { useDBOpener } from '../../shared/hooks/dbSelector/useDBOpener';
-import { useDBSelector } from '../../shared/hooks/dbSelector/useDBSelector';
-import type { DBSelector } from '../../shared/types/dbSelector';
-import type { Response } from '../../shared/types/response';
 import { useAppDispatch } from '../../state/configureStore';
-import { addToast } from '../../state/pageSlice';
+import { addToast, disableLoadingCursor, enableLoadingCursor } from '../../state/pageSlice';
 import { NameSetter } from './modals/NameSetter';
 
 interface Props {
@@ -39,54 +39,46 @@ export const LocalDatabase: FC<Props> = ({ onDatabaseRead }) => {
   const [selectionMode, setSelectionMode] = useState<DBInitType | undefined>(undefined);
   const [isInitializing, setIsInitializing] = useState(false);
   const [isDBSetterModalOpen, setIsDBSetterModalOpen] = useState(false);
+  const [getDBList, { isFetching: isListing }] = useLazyGetDatabaseListQuery();
+  const [selectDB, { isLoading: isSelecting }] = useSelectDatabaseMutation();
+  const [openDB, { isLoading: isOpening }] = useOpenDatabaseMutation();
+  const [initializeDB, { isLoading: isInitializingDB }] = useInitializeDatabaseMutation();
 
-  const { execute: getDBList } = useDBListSelector({
-    immediate: false,
-    onDone: (results: Response<string[]>) => {
-      if (results.data) {
-        setSavedDbs(results.data);
+  const reportError = useCallback(
+    (error: unknown) => {
+      const { message, key } = (error as { message?: string; key?: string }) ?? {};
+      if (message) {
+        dispatch(addToast({ message: i18n.exists(message) ? t(message) : message, severity: 'error' }));
+      } else if (key) {
+        dispatch(addToast({ message: t(key), severity: 'error' }));
       }
-    }
-  });
+    },
+    [dispatch, t]
+  );
 
-  const { execute: selectDB } = useDBSelector({
-    immediate: false,
-    onDone: (results: Response<DBSelector>) => {
-      if (results.data && !results.data.canceled && results.data.filePath) {
-        setSelectionMode(DBInitType.create);
-        setSelectedPath(results.data.filePath);
-      }
-    }
-  });
+  const startInitialization = useCallback(
+    (fullPath: string, mode: DBInitType) => {
+      setIsInitializing(true);
+      void initializeDB({ fullPath, mode, dbType: DatabaseType.sqlite })
+        .unwrap()
+        .then(() => onDatabaseRead?.())
+        .catch(error => {
+          setSelectedPath(null);
+          reportError(error);
+        })
+        .finally(() => setIsInitializing(false));
+    },
+    [initializeDB, onDatabaseRead, reportError]
+  );
 
-  const { execute: openDB } = useDBOpener({
-    immediate: false,
-    onDone: (results: Response<DBSelector>) => {
-      if (results.data && !results.data.canceled && results.data.filePath) {
-        setSelectionMode(DBInitType.open);
-        setSelectedPath(results.data.filePath);
-      }
-    }
-  });
-
-  const { execute: initDB } = useDBInit({
-    fullPath: selectedPath ?? '',
-    mode: selectionMode,
-    dbType: DatabaseType.sqlite,
-    immediate: false,
-    onDone: (data: Response<unknown>) => {
-      if (!data.success) {
-        setSelectedPath(null);
-        if (data.message) {
-          const message = i18n.exists(data.message) ? t(data.message) : data.message;
-          dispatch(addToast({ message: message, severity: 'error' }));
-        } else if (data.key) dispatch(addToast({ message: t(data.key), severity: 'error' }));
-      } else {
-        if (onDatabaseRead) onDatabaseRead();
-      }
-      setIsInitializing(false);
-    }
-  });
+  const isBusy = isListing || isSelecting || isOpening || isInitializingDB;
+  useEffect(() => {
+    if (!isBusy) return;
+    dispatch(enableLoadingCursor());
+    return () => {
+      dispatch(disableLoadingCursor());
+    };
+  }, [dispatch, isBusy]);
 
   const saveDbList = useCallback(
     (list: string[]) => {
@@ -101,30 +93,34 @@ export const LocalDatabase: FC<Props> = ({ onDatabaseRead }) => {
     [t, dispatch]
   );
 
-  const handleOpenSaved = useCallback(
-    async (fullPath: string) => {
-      // Guard against duplicate/overlapping init calls (e.g. rapid double-clicks) which
-      // can race with the backend's shared database connection and intermittently
-      // fail with "database not initialized".
-      if (isInitializing) return;
-      const newList = Array.from(new Set([fullPath, ...savedDbs]));
-      saveDbList(newList);
-      setIsInitializing(true);
-      initDB();
-    },
-    [savedDbs, initDB, saveDbList, isInitializing]
-  );
-
   const handleSelectPath = async () => {
     if (isWebMode()) {
       setIsDBSetterModalOpen(true);
     } else {
-      selectDB();
+      void selectDB()
+        .unwrap()
+        .then(result => {
+          if (result && !result.canceled && result.filePath) {
+            setSelectionMode(DBInitType.create);
+            saveDbList(Array.from(new Set([result.filePath, ...savedDbs])));
+            setSelectedPath(result.filePath);
+          }
+        })
+        .catch(reportError);
     }
   };
 
   const handleOpenPath = () => {
-    openDB();
+    void openDB()
+      .unwrap()
+      .then(result => {
+        if (result && !result.canceled && result.filePath) {
+          setSelectionMode(DBInitType.open);
+          saveDbList(Array.from(new Set([result.filePath, ...savedDbs])));
+          setSelectedPath(result.filePath);
+        }
+      })
+      .catch(reportError);
   };
 
   const handleForget = (fullPath: string) => {
@@ -135,9 +131,8 @@ export const LocalDatabase: FC<Props> = ({ onDatabaseRead }) => {
   const getFileName = (fullPath: string) => fullPath.split(/[/\\]/).pop() ?? fullPath;
 
   useEffect(() => {
-    if (selectedPath && selectionMode) handleOpenSaved(selectedPath);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedPath, selectionMode]);
+    if (selectedPath && selectionMode) startInitialization(selectedPath, selectionMode);
+  }, [selectedPath, selectionMode, startInitialization]);
 
   useEffect(() => {
     try {
@@ -155,8 +150,12 @@ export const LocalDatabase: FC<Props> = ({ onDatabaseRead }) => {
   }, [dispatch]);
 
   useEffect(() => {
-    if (isWebMode()) getDBList();
-  }, [getDBList]);
+    if (!isWebMode()) return;
+    void getDBList()
+      .unwrap()
+      .then(list => setSavedDbs(list ?? []))
+      .catch(reportError);
+  }, [getDBList, reportError]);
 
   return (
     <Box
@@ -175,6 +174,7 @@ export const LocalDatabase: FC<Props> = ({ onDatabaseRead }) => {
             onCancel={() => setIsDBSetterModalOpen(false)}
             onSave={name => {
               setSelectionMode(DBInitType.create);
+              saveDbList(Array.from(new Set([`${name}.db`, ...savedDbs])));
               setSelectedPath(`${name}.db`);
               setIsDBSetterModalOpen(false);
             }}
@@ -242,6 +242,7 @@ export const LocalDatabase: FC<Props> = ({ onDatabaseRead }) => {
                 onClick={() => {
                   if (isInitializing) return;
                   setSelectionMode(DBInitType.open);
+                  saveDbList(Array.from(new Set([item, ...savedDbs])));
                   setSelectedPath(item);
                 }}
                 sx={{

@@ -14,13 +14,12 @@ import {
 import { useCallback, useEffect, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n';
+import { useInitializeDatabaseMutation } from '../../shared/api/dbSelectorApi';
 import { DatabaseType } from '../../shared/enums/databaseType';
 import { DBInitType } from '../../shared/enums/dbInitType';
-import { useDBInit } from '../../shared/hooks/dbSelector/useDBInit';
 import type { PostgresConfig } from '../../shared/types/postgresConfig';
-import type { Response } from '../../shared/types/response';
 import { useAppDispatch } from '../../state/configureStore';
-import { addToast } from '../../state/pageSlice';
+import { addToast, disableLoadingCursor, enableLoadingCursor } from '../../state/pageSlice';
 import { ConnectionSetter } from './modals/ConnectionSetter';
 import { PasswordSetter } from './modals/PasswordSetter';
 
@@ -40,24 +39,43 @@ export const ServerDatabase: FC<Props> = ({ onDatabaseRead }) => {
   };
   const [savedDbs, setSavedDbs] = useState<PostgresConfig[]>([]);
   const [isInitializing, setIsInitializing] = useState(false);
+  const [initializeDB, { isLoading: isInitializingDB }] = useInitializeDatabaseMutation();
 
-  const { execute: initDB } = useDBInit({
-    mode: DBInitType.create,
-    postgresConfig: connection,
-    dbType: DatabaseType.postgre,
-    immediate: false,
-    onDone: (data: Response<unknown>) => {
-      if (!data.success) {
-        if (data.message) {
-          const message = i18n.exists(data.message) ? t(data.message) : data.message;
-          dispatch(addToast({ message: message, severity: 'error' }));
-        } else if (data.key) dispatch(addToast({ message: t(data.key), severity: 'error' }));
-      } else {
-        if (onDatabaseRead) onDatabaseRead();
+  const reportError = useCallback(
+    (error: unknown) => {
+      const { message, key } = (error as { message?: string; key?: string }) ?? {};
+      if (message) {
+        dispatch(addToast({ message: i18n.exists(message) ? t(message) : message, severity: 'error' }));
+      } else if (key) {
+        dispatch(addToast({ message: t(key), severity: 'error' }));
       }
-      setIsInitializing(false);
-    }
-  });
+    },
+    [dispatch, t]
+  );
+
+  const startInitialization = useCallback(
+    (config: PostgresConfig) => {
+      setIsInitializing(true);
+      void initializeDB({
+        mode: DBInitType.create,
+        postgresConfig: config,
+        dbType: DatabaseType.postgre
+      })
+        .unwrap()
+        .then(() => onDatabaseRead?.())
+        .catch(reportError)
+        .finally(() => setIsInitializing(false));
+    },
+    [initializeDB, onDatabaseRead, reportError]
+  );
+
+  useEffect(() => {
+    if (!isInitializingDB) return;
+    dispatch(enableLoadingCursor());
+    return () => {
+      dispatch(disableLoadingCursor());
+    };
+  }, [dispatch, isInitializingDB]);
 
   const isSameDb = (a: PostgresConfig, b: PostgresConfig) =>
     a.host === b.host && a.port === b.port && a.database === b.database && a.user === b.user;
@@ -93,10 +111,9 @@ export const ServerDatabase: FC<Props> = ({ onDatabaseRead }) => {
       void password;
       const newList = Array.from(new Set([rest, ...savedDbs]));
       saveDbList(newList);
-      setIsInitializing(true);
-      initDB();
+      startInitialization(config);
     },
-    [savedDbs, initDB, saveDbList, isInitializing]
+    [savedDbs, saveDbList, isInitializing, startInitialization]
   );
 
   useEffect(() => {

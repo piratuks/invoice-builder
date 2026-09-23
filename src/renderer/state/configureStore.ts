@@ -6,6 +6,7 @@ import { businessesApi } from '../shared/api/businessesApi';
 import { categoriesApi } from '../shared/api/categoriesApi';
 import { clientsApi } from '../shared/api/clientsApi';
 import { currenciesApi } from '../shared/api/currenciesApi';
+import { dbSelectorApi } from '../shared/api/dbSelectorApi';
 import { itemsApi } from '../shared/api/itemsApi';
 import { layoutsApi } from '../shared/api/layoutsApi';
 import { presetsApi } from '../shared/api/presetsApi';
@@ -32,6 +33,7 @@ const apiReducerPaths = [
   categoriesApi.reducerPath,
   clientsApi.reducerPath,
   currenciesApi.reducerPath,
+  dbSelectorApi.reducerPath,
   unitsApi.reducerPath,
   styleProfilesApi.reducerPath,
   presetsApi.reducerPath,
@@ -49,6 +51,7 @@ export const store = configureStore({
     [categoriesApi.reducerPath]: categoriesApi.reducer,
     [clientsApi.reducerPath]: clientsApi.reducer,
     [currenciesApi.reducerPath]: currenciesApi.reducer,
+    [dbSelectorApi.reducerPath]: dbSelectorApi.reducer,
     [unitsApi.reducerPath]: unitsApi.reducer,
     [styleProfilesApi.reducerPath]: styleProfilesApi.reducer,
     [presetsApi.reducerPath]: presetsApi.reducer,
@@ -69,6 +72,7 @@ export const store = configureStore({
       categoriesApi.middleware,
       clientsApi.middleware,
       currenciesApi.middleware,
+      dbSelectorApi.middleware,
       unitsApi.middleware,
       styleProfilesApi.middleware,
       presetsApi.middleware,
