@@ -6,6 +6,7 @@ import { businessesApi } from '../shared/api/businessesApi';
 import { categoriesApi } from '../shared/api/categoriesApi';
 import { clientsApi } from '../shared/api/clientsApi';
 import { currenciesApi } from '../shared/api/currenciesApi';
+import { itemsApi } from '../shared/api/itemsApi';
 import { layoutsApi } from '../shared/api/layoutsApi';
 import { presetsApi } from '../shared/api/presetsApi';
 import { settingsApi } from '../shared/api/settingsApi';
@@ -35,6 +36,7 @@ const apiReducerPaths = [
   styleProfilesApi.reducerPath,
   presetsApi.reducerPath,
   layoutsApi.reducerPath,
+  itemsApi.reducerPath,
   settingsApi.reducerPath
 ];
 const ignoredApiStatePaths = apiReducerPaths.map(path => new RegExp(`^${path}\\.`));
@@ -51,6 +53,7 @@ export const store = configureStore({
     [styleProfilesApi.reducerPath]: styleProfilesApi.reducer,
     [presetsApi.reducerPath]: presetsApi.reducer,
     [layoutsApi.reducerPath]: layoutsApi.reducer,
+    [itemsApi.reducerPath]: itemsApi.reducer,
     [settingsApi.reducerPath]: settingsApi.reducer
   },
   middleware: getDefaultMiddleware =>
@@ -70,6 +73,7 @@ export const store = configureStore({
       styleProfilesApi.middleware,
       presetsApi.middleware,
       layoutsApi.middleware,
+      itemsApi.middleware,
       settingsApi.middleware
     )
 });
