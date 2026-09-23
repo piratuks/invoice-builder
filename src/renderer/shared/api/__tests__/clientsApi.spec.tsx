@@ -13,6 +13,7 @@ import {
   useUpdateClientMutation
 } from '../clientsApi';
 import { getApi } from '../restApi';
+import { runApiTrigger } from './testUtils';
 
 vi.mock('../restApi', () => ({ getApi: vi.fn(), isWebMode: () => true }));
 
@@ -82,7 +83,7 @@ describe('clientsApi', () => {
       const [addClient] = mutationResult.current;
 
       mockApi.getAllClients.mockResolvedValue({ success: true, data: [{ id: 2, name: 'New Client' }] });
-      await addClient({ name: 'New Client' } as never);
+      await runApiTrigger(() => addClient({ name: 'New Client' } as never));
 
       expect(mockApi.addClient).toHaveBeenCalledWith({ name: 'New Client' });
       await waitFor(() => expect(mockApi.getAllClients).toHaveBeenCalledTimes(2));
@@ -95,7 +96,7 @@ describe('clientsApi', () => {
       const { result } = renderHook(() => useAddClientsBatchMutation(), { wrapper });
       const [addBatch] = result.current;
 
-      const response = await addBatch([{ name: 'Batch Client' } as never]);
+      const response = await runApiTrigger(() => addBatch([{ name: 'Batch Client' } as never]));
 
       expect(mockApi.addBatchClient).toHaveBeenCalledWith([{ name: 'Batch Client' }]);
       expect(response).toEqual({ data: [{ id: 3, name: 'Batch Client' }] });
@@ -107,7 +108,7 @@ describe('clientsApi', () => {
       const { result } = renderHook(() => useUpdateClientMutation(), { wrapper });
       const [updateClient] = result.current;
 
-      const response = await updateClient({ id: 1, name: 'Updated' } as never);
+      const response = await runApiTrigger(() => updateClient({ id: 1, name: 'Updated' } as never));
 
       expect(mockApi.updateClient).toHaveBeenCalledWith({ id: 1, name: 'Updated' });
       expect(response).toEqual({ data: { id: 1, name: 'Updated' } });
@@ -119,7 +120,7 @@ describe('clientsApi', () => {
       const { result } = renderHook(() => useDeleteClientMutation(), { wrapper });
       const [deleteClient] = result.current;
 
-      const response = await deleteClient(1);
+      const response = await runApiTrigger(() => deleteClient(1));
 
       expect(mockApi.deleteClient).toHaveBeenCalledWith(1);
       expect(response).toEqual({ error: { kind: 'response', message: undefined, key: 'error.deleteFailed' } });

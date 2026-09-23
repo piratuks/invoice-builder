@@ -15,6 +15,7 @@ import {
   useTestConnectionMutation
 } from '../dbSelectorApi';
 import { getApi } from '../restApi';
+import { runApiTrigger } from './testUtils';
 
 vi.mock('../restApi', () => ({ getApi: vi.fn(), isWebMode: () => true }));
 
@@ -43,7 +44,7 @@ describe('dbSelectorApi', () => {
     mockApi.getDatabaseList.mockResolvedValue({ success: true, data: ['one.db', 'two.db'] });
     const query = renderHook(() => useLazyGetDatabaseListQuery(), { wrapper });
     const [trigger] = query.result.current;
-    const response = await trigger().unwrap();
+    const response = await runApiTrigger(() => trigger().unwrap());
     expect(response).toEqual(['one.db', 'two.db']);
     expect(mockApi.getDatabaseList).toHaveBeenCalledTimes(1);
   });
@@ -59,10 +60,14 @@ describe('dbSelectorApi', () => {
     const init = renderHook(() => useInitializeDatabaseMutation(), { wrapper });
     const test = renderHook(() => useTestConnectionMutation(), { wrapper });
 
-    await select.result.current[0]();
-    await open.result.current[0]();
-    await init.result.current[0]({ fullPath: 'new.db', mode: DBInitType.create, dbType: DatabaseType.sqlite });
-    await test.result.current[0]({ host: 'localhost', port: 5432, user: 'u', database: 'db', ssl: false });
+    await runApiTrigger(() => select.result.current[0]());
+    await runApiTrigger(() => open.result.current[0]());
+    await runApiTrigger(() =>
+      init.result.current[0]({ fullPath: 'new.db', mode: DBInitType.create, dbType: DatabaseType.sqlite })
+    );
+    await runApiTrigger(() =>
+      test.result.current[0]({ host: 'localhost', port: 5432, user: 'u', database: 'db', ssl: false })
+    );
 
     expect(mockApi.selectDatabase).toHaveBeenCalledTimes(1);
     expect(mockApi.openDatabase).toHaveBeenCalledTimes(1);
@@ -83,7 +88,9 @@ describe('dbSelectorApi', () => {
   it('normalizes failed database operations', async () => {
     mockApi.testConnection.mockResolvedValue({ success: false, key: 'error.connectionFailed' });
     const test = renderHook(() => useTestConnectionMutation(), { wrapper });
-    const response = await test.result.current[0]({ host: 'h', port: 1, user: 'u', database: 'd', ssl: false });
+    const response = await runApiTrigger(() =>
+      test.result.current[0]({ host: 'h', port: 1, user: 'u', database: 'd', ssl: false })
+    );
     expect(response).toEqual({ error: { kind: 'response', message: undefined, key: 'error.connectionFailed' } });
   });
 });

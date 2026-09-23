@@ -6,6 +6,7 @@ import i18n from '../../../i18n';
 import { store } from '../../../state/configureStore';
 import { getApi } from '../restApi';
 import { settingsApi, useGetSettingsQuery, useUpdateSettingsMutation } from '../settingsApi';
+import { runApiTrigger } from './testUtils';
 
 vi.mock('../restApi', () => ({ getApi: vi.fn(), isWebMode: () => true }));
 
@@ -68,7 +69,7 @@ describe('settingsApi', () => {
       const { result: mutationResult } = renderHook(() => useUpdateSettingsMutation(), { wrapper });
       const [updateSettings] = mutationResult.current;
 
-      const response = await updateSettings({ language: 'fr' } as never);
+      const response = await runApiTrigger(() => updateSettings({ language: 'fr' } as never));
 
       expect(mockApi.updateSettings).toHaveBeenCalledWith({ language: 'fr' });
       expect(response).toEqual({ data: { id: 1, language: 'fr' } });
@@ -81,7 +82,7 @@ describe('settingsApi', () => {
       const { result } = renderHook(() => useUpdateSettingsMutation(), { wrapper });
       const [updateSettings] = result.current;
 
-      const response = await updateSettings({ language: 'fr' } as never);
+      const response = await runApiTrigger(() => updateSettings({ language: 'fr' } as never));
 
       expect(response).toEqual({ error: { kind: 'response', message: undefined, key: 'error.updateFailed' } });
     });

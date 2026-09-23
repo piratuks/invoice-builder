@@ -70,10 +70,11 @@ const InvoiceInformationDropdownComponent: FC<Props> = ({ isOpen, onClose, onOpe
         .unwrap()
         .then(data => {
           const nextSequence = data?.formattedSequence;
-          if (shouldAutoFillInvoiceNumber(form.invoiceNumber, nextSequence)) {
-            update('invoiceNumber', nextSequence);
-            validateField('invoiceNumber', nextSequence);
-          }
+          setForm(currentForm => {
+            if (!shouldAutoFillInvoiceNumber(currentForm.invoiceNumber, nextSequence)) return currentForm;
+            setErrors(e => ({ ...e, invoiceNumber: false }));
+            return { ...currentForm, invoiceNumber: nextSequence };
+          });
         })
         .catch(error => {
           const { message, key } = (error as { message?: string; key?: string }) ?? {};

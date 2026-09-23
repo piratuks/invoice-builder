@@ -85,7 +85,9 @@ describe('InvoiceInformationDropdown', () => {
     render(<InvoiceInformationDropdown isOpen={true} information={information} onClick={onClick} />, { wrapper });
 
     await waitFor(() => expect(execute).toHaveBeenCalled());
-    act(() => resolveSequence?.({ formattedSequence: '000042' }));
+    await act(async () => {
+      resolveSequence?.({ formattedSequence: '000042' });
+    });
 
     const numberInput = screen.getByRole('textbox', { name: /invoice number/i });
     await waitFor(() => expect(numberInput).toHaveValue('000042'));
@@ -104,19 +106,21 @@ describe('InvoiceInformationDropdown', () => {
 
     const numberInput = screen.getByRole('textbox', { name: /invoice number/i });
     await user.type(numberInput, 'MANUAL-7');
-    act(() => resolveSequence?.({ formattedSequence: '000043' }));
+    await act(async () => {
+      resolveSequence?.({ formattedSequence: '000043' });
+    });
 
-    expect(numberInput).toHaveValue('MANUAL-7');
+    await waitFor(() => expect(numberInput).toHaveValue('MANUAL-7'));
   });
 
   it('handles sequence failures with a message or translation key', async () => {
     render(<InvoiceInformationDropdown isOpen={true} information={information} />, { wrapper });
 
     await waitFor(() => expect(execute).toHaveBeenCalled());
-    act(() => {
+    await act(async () => {
       rejectSequence?.({ message: 'Sequence unavailable' });
     });
-    act(() => {
+    await act(async () => {
       rejectSequence?.({ key: 'common.error' });
     });
 

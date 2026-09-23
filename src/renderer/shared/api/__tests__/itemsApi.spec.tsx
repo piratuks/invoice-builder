@@ -8,6 +8,7 @@ import { categoriesApi, useGetCategoriesQuery } from '../categoriesApi';
 import { itemsApi, useAddItemMutation, useAddItemsBatchMutation, useGetItemsQuery } from '../itemsApi';
 import { getApi } from '../restApi';
 import { unitsApi, useGetUnitsQuery } from '../unitsApi';
+import { runApiTrigger } from './testUtils';
 
 vi.mock('../restApi', () => ({ getApi: vi.fn(), isWebMode: () => true }));
 
@@ -41,6 +42,7 @@ describe('itemsApi', () => {
     await waitFor(() => expect(query.result.current.isSuccess).toBe(true));
     expect(mockApi.getAllItems).toHaveBeenCalledWith(filter);
 
+    query.unmount();
     store.dispatch(itemsApi.util.resetApiState());
     mockApi.getAllItems.mockResolvedValue({ success: false, message: 'failed' });
     const failed = renderHook(() => useGetItemsQuery(undefined), { wrapper });
@@ -56,7 +58,7 @@ describe('itemsApi', () => {
     mockApi.getAllItems.mockResolvedValueOnce({ success: true, data: [{ id: 2, name: 'Pen' }] });
 
     const mutation = renderHook(() => useAddItemMutation(), { wrapper });
-    await mutation.result.current[0]({ name: 'Pen' } as never);
+    await runApiTrigger(() => mutation.result.current[0]({ name: 'Pen' } as never));
     await waitFor(() => expect(mockApi.getAllItems).toHaveBeenCalledTimes(2));
     await waitFor(() => expect(query.result.current.data).toEqual([{ id: 2, name: 'Pen' }]));
   });
@@ -71,7 +73,7 @@ describe('itemsApi', () => {
 
     mockApi.addBatchItem.mockResolvedValue({ success: true, data: [] });
     const mutation = renderHook(() => useAddItemsBatchMutation(), { wrapper });
-    await mutation.result.current[0]([{ name: 'New', isArchived: false } as never]);
+    await runApiTrigger(() => mutation.result.current[0]([{ name: 'New', isArchived: false } as never]));
 
     await waitFor(() => expect(mockApi.getAllCategories).toHaveBeenCalledTimes(2));
     await waitFor(() => expect(mockApi.getAllUnits).toHaveBeenCalledTimes(2));

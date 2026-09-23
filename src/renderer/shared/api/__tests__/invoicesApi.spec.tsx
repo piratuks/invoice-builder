@@ -18,6 +18,7 @@ import {
   useUpdateInvoiceMutation
 } from '../invoicesApi';
 import { getApi } from '../restApi';
+import { runApiTrigger } from './testUtils';
 
 vi.mock('../restApi', () => ({ getApi: vi.fn(), isWebMode: () => true }));
 
@@ -66,6 +67,7 @@ describe('invoicesApi', () => {
       key: 'error.loadFailed'
     });
 
+    responseError.unmount();
     store.dispatch(invoicesApi.util.resetApiState());
     mockApi.getAllInvoices.mockRejectedValueOnce(new Error('offline'));
     const exceptionError = renderHook(() => useGetInvoicesQuery({ invoiceType: InvoiceType.invoice }), { wrapper });
@@ -81,7 +83,7 @@ describe('invoicesApi', () => {
     mockApi.getAllInvoices.mockResolvedValueOnce({ success: true, data: [{ id: 2 }] });
     mockApi.addInvoice.mockResolvedValue({ success: true, data: { id: 2 } });
     const mutation = renderHook(() => useAddInvoiceMutation(), { wrapper });
-    await mutation.result.current[0]({ invoiceType: InvoiceType.invoice } as never);
+    await runApiTrigger(() => mutation.result.current[0]({ invoiceType: InvoiceType.invoice } as never));
 
     await waitFor(() => expect(mockApi.getAllInvoices).toHaveBeenCalledTimes(2));
     await waitFor(() => expect(query.result.current.data).toEqual([{ id: 2 }]));
@@ -96,9 +98,9 @@ describe('invoicesApi', () => {
     const remove = renderHook(() => useDeleteInvoiceMutation(), { wrapper });
     const duplicate = renderHook(() => useDuplicateInvoiceMutation(), { wrapper });
 
-    await update.result.current[0]({ id: 3 } as never);
-    await remove.result.current[0](3);
-    await duplicate.result.current[0]({ id: 3, invoiceType: InvoiceType.quotation });
+    await runApiTrigger(() => update.result.current[0]({ id: 3 } as never));
+    await runApiTrigger(() => remove.result.current[0](3));
+    await runApiTrigger(() => duplicate.result.current[0]({ id: 3, invoiceType: InvoiceType.quotation }));
 
     expect(mockApi.updateInvoice).toHaveBeenCalledWith({ id: 3 });
     expect(mockApi.deleteInvoice).toHaveBeenCalledWith(3);
@@ -114,8 +116,12 @@ describe('invoicesApi', () => {
     const headers = renderHook(() => useGetCustomHeadersQuery(InvoiceType.invoice), { wrapper });
     const xml = renderHook(() => useLazyGetEInvoiceXMLQuery(), { wrapper });
 
-    await sequence.result.current[0]({ businessId: 1, clientId: 2, invoiceType: InvoiceType.invoice }).unwrap();
-    const xmlResponse = await xml.result.current[0]({ invoiceId: 9, einvoice: EInvoice.ubl21 }).unwrap();
+    await runApiTrigger(() =>
+      sequence.result.current[0]({ businessId: 1, clientId: 2, invoiceType: InvoiceType.invoice }).unwrap()
+    );
+    const xmlResponse = await runApiTrigger(() =>
+      xml.result.current[0]({ invoiceId: 9, einvoice: EInvoice.ubl21 }).unwrap()
+    );
     await waitFor(() => expect(headers.result.current.isSuccess).toBe(true));
     expect(mockApi.getNextSequence).toHaveBeenCalledWith({
       businessId: 1,

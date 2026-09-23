@@ -131,10 +131,10 @@ describe('CRUDPageRTK', () => {
     vi.clearAllMocks();
   });
 
-  it('shows the empty state and add button when there are no items', () => {
+  it('shows the empty state and add button when there are no items', async () => {
     render(<CRUDPageRTK {...baseProps} useRetrieve={useRetrieveWith([])} />, { wrapper });
 
-    expect(screen.getByText('No entities yet')).toBeInTheDocument();
+    expect(await screen.findByText('No entities yet')).toBeInTheDocument();
     expect(screen.getByText('Add entity')).toBeInTheDocument();
   });
 

@@ -13,6 +13,7 @@ import {
   useUpdateCurrencyMutation
 } from '../currenciesApi';
 import { getApi } from '../restApi';
+import { runApiTrigger } from './testUtils';
 
 vi.mock('../restApi', () => ({ getApi: vi.fn(), isWebMode: () => true }));
 
@@ -82,7 +83,7 @@ describe('currenciesApi', () => {
       const [addCurrency] = mutationResult.current;
 
       mockApi.getAllCurrencies.mockResolvedValue({ success: true, data: [{ id: 2, code: 'EUR' }] });
-      await addCurrency({ code: 'EUR' } as never);
+      await runApiTrigger(() => addCurrency({ code: 'EUR' } as never));
 
       expect(mockApi.addCurrency).toHaveBeenCalledWith({ code: 'EUR' });
       await waitFor(() => expect(mockApi.getAllCurrencies).toHaveBeenCalledTimes(2));
@@ -95,7 +96,7 @@ describe('currenciesApi', () => {
       const { result } = renderHook(() => useAddCurrenciesBatchMutation(), { wrapper });
       const [addBatch] = result.current;
 
-      const response = await addBatch([{ code: 'GBP' } as never]);
+      const response = await runApiTrigger(() => addBatch([{ code: 'GBP' } as never]));
 
       expect(mockApi.addBatchCurrency).toHaveBeenCalledWith([{ code: 'GBP' }]);
       expect(response).toEqual({ data: [{ id: 3, code: 'GBP' }] });
@@ -107,7 +108,7 @@ describe('currenciesApi', () => {
       const { result } = renderHook(() => useUpdateCurrencyMutation(), { wrapper });
       const [updateCurrency] = result.current;
 
-      const response = await updateCurrency({ id: 1, code: 'USD' } as never);
+      const response = await runApiTrigger(() => updateCurrency({ id: 1, code: 'USD' } as never));
 
       expect(mockApi.updateCurrency).toHaveBeenCalledWith({ id: 1, code: 'USD' });
       expect(response).toEqual({ data: { id: 1, code: 'USD' } });
@@ -119,7 +120,7 @@ describe('currenciesApi', () => {
       const { result } = renderHook(() => useDeleteCurrencyMutation(), { wrapper });
       const [deleteCurrency] = result.current;
 
-      const response = await deleteCurrency(1);
+      const response = await runApiTrigger(() => deleteCurrency(1));
 
       expect(mockApi.deleteCurrency).toHaveBeenCalledWith(1);
       expect(response).toEqual({ error: { kind: 'response', message: undefined, key: 'error.deleteFailed' } });
