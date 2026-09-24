@@ -14,6 +14,7 @@ export interface Settings {
   shouldIncludeMonth: boolean;
   shouldIncludeBusinessName: boolean;
   quotesON: boolean;
+  invoiceSchedulesON: boolean;
   styleProfilesON: boolean;
   ublON: boolean;
   xrechnungON: boolean;

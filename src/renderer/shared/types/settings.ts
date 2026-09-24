@@ -14,6 +14,7 @@ export interface Settings {
   shouldIncludeMonth: boolean;
   shouldIncludeBusinessName: boolean;
   quotesON: boolean;
+  invoiceSchedulesON: boolean;
   styleProfilesON: boolean;
   ublON: boolean;
   xrechnungON: boolean;
@@ -35,6 +36,7 @@ export interface SettingsUpdate {
   shouldIncludeMonth?: boolean;
   shouldIncludeBusinessName?: boolean;
   quotesON?: boolean;
+  invoiceSchedulesON?: boolean;
   receiptPrintingOn?: boolean;
   styleProfilesON?: boolean;
   ublON?: boolean;

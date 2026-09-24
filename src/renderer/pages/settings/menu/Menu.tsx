@@ -5,7 +5,8 @@ import {
   FileDownload,
   Language,
   LightMode,
-  LocalPrintshopOutlined
+  LocalPrintshopOutlined,
+  Update
 } from '@mui/icons-material';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import AutorenewIcon from '@mui/icons-material/Autorenew';
@@ -36,6 +37,7 @@ interface Props {
   selectedMenu?: MenuItemSettings | undefined;
   onModeChange?: (isDark: boolean) => void;
   toggleQuotes?: (value: boolean) => void;
+  toggleInvoiceSchedules?: (value: boolean) => void;
   toggleReports?: (value: boolean) => void;
   toggleStyleProfiles?: (value: boolean) => void;
   togglePresets?: (value: boolean) => void;
@@ -49,6 +51,7 @@ export const Menu: FC<Props> = ({
   onSelected = () => {},
   selectedMenu,
   toggleQuotes = () => {},
+  toggleInvoiceSchedules = () => {},
   toggleReports = () => {},
   toggleStyleProfiles = () => {},
   togglePresets = () => {},
@@ -124,6 +127,17 @@ export const Menu: FC<Props> = ({
           checked: storeSettings?.reportsON ?? true,
           onChange: () => {
             toggleReports(!storeSettings?.reportsON);
+          }
+        },
+        {
+          text: t('settingsMenuItems.titles.turnInvoiceSchedules'),
+          description: t('settingsMenuItems.descriptions.turnInvoiceSchedules'),
+          icon: <Update />,
+          isToggle: true,
+          isSelected: false,
+          checked: storeSettings?.invoiceSchedulesON ?? true,
+          onChange: () => {
+            toggleInvoiceSchedules(!storeSettings?.invoiceSchedulesON);
           }
         },
         {

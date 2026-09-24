@@ -20,6 +20,7 @@ import {
   setCustomInvoiseSettings,
   setEInvoiceUBL,
   setEInvoiceXRechnung,
+  setInvoiceSchedules,
   setLanguageDate,
   setMode,
   setPresets,
@@ -68,6 +69,13 @@ export const SettingsPage = () => {
   const toggleQuotes = useCallback(
     (value: boolean) => {
       dispatch(setQuotes(value));
+    },
+    [dispatch]
+  );
+
+  const toggleInvoiceSchedules = useCallback(
+    (value: boolean) => {
+      dispatch(setInvoiceSchedules(value));
     },
     [dispatch]
   );
@@ -249,6 +257,7 @@ export const SettingsPage = () => {
       selectedMenu={currentMenuItem}
       onModeChange={onModeChange}
       toggleQuotes={toggleQuotes}
+      toggleInvoiceSchedules={toggleInvoiceSchedules}
       toggleReports={toggleReports}
       toggleReceiptPrinting={toggleReceiptPrinting}
       toggleStyleProfiles={toggleStyleProfiles}

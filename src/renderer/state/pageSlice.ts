@@ -130,6 +130,13 @@ export const pageSlice = createSlice({
         quotesON: action.payload
       };
     },
+    setInvoiceSchedules: (state, action: PayloadAction<boolean>) => {
+      if (!state.settings) return;
+      state.settings = {
+        ...state.settings,
+        invoiceSchedulesON: action.payload
+      };
+    },
     setReceiptPrintingOn: (state, action: PayloadAction<boolean>) => {
       if (!state.settings) return;
       state.settings = {
@@ -208,6 +215,7 @@ export const {
   setSettings,
   setMode,
   setQuotes,
+  setInvoiceSchedules,
   setReports,
   setStyleProfiles,
   setEInvoiceUBL,

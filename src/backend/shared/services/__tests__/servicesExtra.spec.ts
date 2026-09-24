@@ -1,6 +1,7 @@
 import { AmountFormat } from '../../enums/amountFormat';
 import { DatabaseType } from '../../enums/databaseType';
 import { DateFormat } from '../../enums/dateFormat';
+import { InvoiceScheduleStatus } from '../../enums/invoiceSchedule';
 import { Language } from '../../enums/language';
 import type { DatabaseAdapter } from '../../types/DatabaseAdapter';
 import type { Business } from '../../types/business';
@@ -99,6 +100,7 @@ const makeSettings = (overrides: Partial<Settings> = {}): Settings => ({
   shouldIncludeMonth: true,
   shouldIncludeBusinessName: true,
   quotesON: false,
+  invoiceSchedulesON: true,
   styleProfilesON: false,
   ublON: false,
   xrechnungON: false,
@@ -132,6 +134,37 @@ describe('settings service', () => {
 
     const after = await getAllSettings(db);
     expect((after.data as Settings | null)?.language).toBe('fr');
+  });
+
+  it('pauses active invoice schedules when recurring schedules are disabled', async () => {
+    await db.run('PRAGMA foreign_keys = OFF');
+    const scheduleId = await db.run(
+      `INSERT INTO invoice_schedules (
+        "sourceInvoiceId", "cadence", "intervalCount", "timezone", "startAt", "nextRunAt",
+        "dueDateOffsetDays", "status", "isArchived", "deliveryMethod"
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        1,
+        'monthly',
+        1,
+        'UTC',
+        '2026-01-01T09:00:00.000Z',
+        '2026-01-01T09:00:00.000Z',
+        0,
+        InvoiceScheduleStatus.active,
+        false,
+        'none'
+      ],
+      true
+    );
+
+    const result = await updateSettings(db, makeSettings({ invoiceSchedulesON: false }));
+    expect(result.success).toBe(true);
+
+    const schedule = await db.get<{ status: string }>('SELECT "status" FROM invoice_schedules WHERE "id" = ?', [
+      scheduleId
+    ]);
+    expect(schedule?.status).toBe(InvoiceScheduleStatus.paused);
   });
 
   it('is a no-op when no fields provided', async () => {

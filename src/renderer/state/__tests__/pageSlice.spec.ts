@@ -28,6 +28,7 @@ import {
   setDbReady,
   setEInvoiceUBL,
   setEInvoiceXRechnung,
+  setInvoiceSchedules,
   setLanguageDate,
   setMode,
   setNewVersion,
@@ -51,6 +52,7 @@ const makeSettings = (overrides: Partial<Settings> = {}): Settings => ({
   shouldIncludeMonth: true,
   shouldIncludeBusinessName: true,
   quotesON: false,
+  invoiceSchedulesON: false,
   styleProfilesON: false,
   ublON: false,
   xrechnungON: false,
@@ -185,6 +187,7 @@ describe('pageSlice reducer', () => {
       expect(pageReducer(initialState, setStyleProfiles(true)).settings).toBeUndefined();
       expect(pageReducer(initialState, setEInvoiceUBL(true)).settings).toBeUndefined();
       expect(pageReducer(initialState, setEInvoiceXRechnung(true)).settings).toBeUndefined();
+      expect(pageReducer(initialState, setInvoiceSchedules(true)).settings).toBeUndefined();
       expect(pageReducer(initialState, setQuotes(true)).settings).toBeUndefined();
       expect(pageReducer(initialState, setReceiptPrintingOn(true)).settings).toBeUndefined();
       expect(pageReducer(initialState, setReports(true)).settings).toBeUndefined();
@@ -215,6 +218,7 @@ describe('pageSlice reducer', () => {
       expect(pageReducer(withSettings, setStyleProfiles(true)).settings?.styleProfilesON).toBe(true);
       expect(pageReducer(withSettings, setEInvoiceUBL(true)).settings?.ublON).toBe(true);
       expect(pageReducer(withSettings, setEInvoiceXRechnung(true)).settings?.xrechnungON).toBe(true);
+      expect(pageReducer(withSettings, setInvoiceSchedules(true)).settings?.invoiceSchedulesON).toBe(true);
       expect(pageReducer(withSettings, setQuotes(true)).settings?.quotesON).toBe(true);
       expect(pageReducer(withSettings, setReceiptPrintingOn(true)).settings?.receiptPrintingOn).toBe(true);
       expect(pageReducer(withSettings, setReports(true)).settings?.reportsON).toBe(true);

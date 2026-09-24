@@ -33,6 +33,7 @@ vi.mock('../../../../shared/components/lists/menuList/MenuList', () => ({
 
 const settings = {
   quotesON: true,
+  invoiceSchedulesON: true,
   reportsON: false,
   styleProfilesON: true,
   presetsON: false,
@@ -66,6 +67,7 @@ describe('settings Menu', () => {
       onSelected: vi.fn(),
       onModeChange: vi.fn(),
       toggleQuotes: vi.fn(),
+      toggleInvoiceSchedules: vi.fn(),
       toggleReports: vi.fn(),
       toggleStyleProfiles: vi.fn(),
       togglePresets: vi.fn(),
@@ -82,6 +84,9 @@ describe('settings Menu', () => {
     item('settingsMenuItems.titles.customizeInvoice').onClick?.(item('settingsMenuItems.titles.customizeInvoice'));
     item('settingsMenuItems.titles.darkMode').onChange?.(item('settingsMenuItems.titles.darkMode'));
     item('settingsMenuItems.titles.turnQuotes').onChange?.(item('settingsMenuItems.titles.turnQuotes'));
+    item('settingsMenuItems.titles.turnInvoiceSchedules').onChange?.(
+      item('settingsMenuItems.titles.turnInvoiceSchedules')
+    );
     item('settingsMenuItems.titles.turnReports').onChange?.(item('settingsMenuItems.titles.turnReports'));
     item('settingsMenuItems.titles.turnStyleProfiles').onChange?.(item('settingsMenuItems.titles.turnStyleProfiles'));
     item('settingsMenuItems.titles.turnPresets').onChange?.(item('settingsMenuItems.titles.turnPresets'));
@@ -98,6 +103,7 @@ describe('settings Menu', () => {
     expect(toggleMode).toHaveBeenCalledTimes(1);
     expect(callbacks.onModeChange).toHaveBeenCalledWith(true);
     expect(callbacks.toggleQuotes).toHaveBeenCalledWith(false);
+    expect(callbacks.toggleInvoiceSchedules).toHaveBeenCalledWith(false);
     expect(callbacks.toggleReports).toHaveBeenCalledWith(true);
     expect(callbacks.toggleStyleProfiles).toHaveBeenCalledWith(false);
     expect(callbacks.togglePresets).toHaveBeenCalledWith(true);

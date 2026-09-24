@@ -35,6 +35,7 @@ import { up as layoutSchemaSeeds } from '../20260902-28-layout-schema-seeds';
 import { up as styleProfilesLayoutId } from '../20260903-29-style-profiles-layout-id';
 import { up as layoutSchemaRepair } from '../20260915-30-layout-schema-repair';
 import { up as invoiceSchedules } from '../20260923-32-invoice-schedules';
+import { up as invoiceSchedulesSetting } from '../20260924-33-invoice-schedules-setting';
 
 describe('all migrations applied sequentially against a fresh schema', () => {
   let db: DatabaseAdapter;
@@ -77,6 +78,7 @@ describe('all migrations applied sequentially against a fresh schema', () => {
     await styleProfilesLayoutId(db);
     await layoutSchemaRepair(db);
     await invoiceSchedules(db);
+    await invoiceSchedulesSetting(db);
 
     const invoiceCols = (await getTableColumns(db, 'invoices')).map(c => c.name);
     expect(invoiceCols).toEqual(
@@ -96,7 +98,14 @@ describe('all migrations applied sequentially against a fresh schema', () => {
 
     const settingsCols = (await getTableColumns(db, 'settings')).map(c => c.name);
     expect(settingsCols).toEqual(
-      expect.arrayContaining(['styleProfilesON', 'presetsON', 'ublON', 'xrechnungON', 'receiptPrintingOn'])
+      expect.arrayContaining([
+        'styleProfilesON',
+        'presetsON',
+        'ublON',
+        'xrechnungON',
+        'receiptPrintingOn',
+        'invoiceSchedulesON'
+      ])
     );
 
     const styleProfileCols = (await getTableColumns(db, 'style_profiles')).map(c => c.name);

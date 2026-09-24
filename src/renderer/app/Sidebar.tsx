@@ -94,15 +94,19 @@ export const Sidebar: FC = () => {
           isSelected: isSelected,
           onClick: onClickNavigate
         },
-        {
-          text: t('menuItems.invoiceSchedules'),
-          icon: <Update />,
-          path: '/invoice-schedules',
-          isToggle: false,
-          minHeight: 50,
-          isSelected: isSelected,
-          onClick: onClickNavigate
-        },
+        ...((storeSettings?.invoiceSchedulesON ?? true)
+          ? [
+              {
+                text: t('menuItems.invoiceSchedules'),
+                icon: <Update />,
+                path: '/invoice-schedules',
+                isToggle: false,
+                minHeight: 50,
+                isSelected: isSelected,
+                onClick: onClickNavigate
+              }
+            ]
+          : []),
         ...(storeSettings?.quotesON
           ? [
               {

@@ -66,6 +66,7 @@ describe('SettingsPage', () => {
     shouldIncludeMonth: true,
     shouldIncludeBusinessName: true,
     quotesON: true,
+    invoiceSchedulesON: true,
     styleProfilesON: true,
     ublON: true,
     xrechnungON: true,
