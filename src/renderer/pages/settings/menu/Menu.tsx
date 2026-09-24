@@ -1,6 +1,7 @@
 import {
   DarkMode,
   Description,
+  Email,
   FavoriteBorderOutlined,
   FileDownload,
   Language,
@@ -44,6 +45,7 @@ interface Props {
   toggleUBL?: (value: boolean) => void;
   toggleXRechnung?: (value: boolean) => void;
   toggleReceiptPrinting?: (value: boolean) => void;
+  onDeliverySettings?: () => void;
   onExportJSON?: () => void;
   onImportJSON?: () => void;
 }
@@ -58,6 +60,7 @@ export const Menu: FC<Props> = ({
   toggleReceiptPrinting = () => {},
   toggleUBL = () => {},
   onModeChange = () => {},
+  onDeliverySettings = () => {},
   onExportJSON = () => {},
   onImportJSON = () => {},
   toggleXRechnung = () => {}
@@ -87,6 +90,14 @@ export const Menu: FC<Props> = ({
           isToggle: false,
           isSelected: MenuItemSettings.Receipt === selectedMenu,
           onClick: () => onSelected(MenuItemSettings.Receipt)
+        },
+        {
+          text: t('settingsMenuItems.titles.deliverySettings'),
+          description: t('settingsMenuItems.descriptions.deliverySettings'),
+          icon: <Email />,
+          isToggle: false,
+          isSelected: MenuItemSettings.Delivery === selectedMenu,
+          onClick: onDeliverySettings
         },
         {
           text: t('settingsMenuItems.titles.darkMode'),

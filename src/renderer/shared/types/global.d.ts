@@ -50,6 +50,9 @@ declare global {
 
       getAllSettings: () => Promise<Response<Settings>>;
       updateSettings: (data: SettingsUpdate) => Promise<Response<SettingsUpdate>>;
+      getSmtpPasswordStatus: () => Promise<Response<{ configured: boolean; source: 'keychain' | 'env' }>>;
+      setSmtpPassword: (password: string) => Promise<Response<unknown>>;
+      deleteSmtpPassword: () => Promise<Response<unknown>>;
 
       getAllBusinesses: (filter?: FilterData[]) => Promise<Response<Business[]>>;
       updateBusiness: (data: BusinessUpdate) => Promise<Response<Business>>;

@@ -36,6 +36,7 @@ import { up as styleProfilesLayoutId } from '../20260903-29-style-profiles-layou
 import { up as layoutSchemaRepair } from '../20260915-30-layout-schema-repair';
 import { up as invoiceSchedules } from '../20260923-32-invoice-schedules';
 import { up as invoiceSchedulesSetting } from '../20260924-33-invoice-schedules-setting';
+import { up as invoiceScheduleDelivery } from '../20260925-34-invoice-schedule-delivery';
 
 describe('all migrations applied sequentially against a fresh schema', () => {
   let db: DatabaseAdapter;
@@ -79,6 +80,7 @@ describe('all migrations applied sequentially against a fresh schema', () => {
     await layoutSchemaRepair(db);
     await invoiceSchedules(db);
     await invoiceSchedulesSetting(db);
+    await invoiceScheduleDelivery(db);
 
     const invoiceCols = (await getTableColumns(db, 'invoices')).map(c => c.name);
     expect(invoiceCols).toEqual(
@@ -140,6 +142,7 @@ describe('all migrations applied sequentially against a fresh schema', () => {
     expect(await isTableExists(db, 'layouts')).toBe(true);
     expect(await isTableExists(db, 'invoice_schedules')).toBe(true);
     expect(await isTableExists(db, 'invoice_schedule_runs')).toBe(true);
+    expect(await isTableExists(db, 'invoice_schedule_delivery_attempts')).toBe(true);
 
     const sequenceCols = (await getTableColumns(db, 'invoice_sequences')).map(c => c.name);
     expect(sequenceCols).toContain('invoiceType');
@@ -163,6 +166,20 @@ describe('all migrations applied sequentially against a fresh schema', () => {
     const invoiceScheduleRunCols = (await getTableColumns(db, 'invoice_schedule_runs')).map(c => c.name);
     expect(invoiceScheduleRunCols).toEqual(
       expect.arrayContaining(['scheduleId', 'dueAt', 'idempotencyKey', 'generatedInvoiceId', 'deliveryStatus'])
+    );
+
+    const invoiceScheduleDeliveryAttemptCols = (await getTableColumns(db, 'invoice_schedule_delivery_attempts')).map(
+      c => c.name
+    );
+    expect(invoiceScheduleDeliveryAttemptCols).toEqual(
+      expect.arrayContaining([
+        'scheduleRunId',
+        'scheduleId',
+        'generatedInvoiceId',
+        'recipient',
+        'status',
+        'errorMessage'
+      ])
     );
   });
 
@@ -199,6 +216,8 @@ describe('all migrations applied sequentially against a fresh schema', () => {
     await styleProfilesLayoutId(db);
     await layoutSchemaRepair(db);
     await invoiceSchedules(db);
+    await invoiceSchedulesSetting(db);
+    await invoiceScheduleDelivery(db);
 
     // re-applying every migration a second time should hit each early-return guard without error
     await expect(quantityToText(db)).resolves.not.toThrow();
@@ -226,5 +245,7 @@ describe('all migrations applied sequentially against a fresh schema', () => {
     await expect(invoiceLayouts(db)).resolves.not.toThrow();
     await expect(layoutSchemaSeeds(db)).resolves.not.toThrow();
     await expect(invoiceSchedules(db)).resolves.not.toThrow();
+    await expect(invoiceSchedulesSetting(db)).resolves.not.toThrow();
+    await expect(invoiceScheduleDelivery(db)).resolves.not.toThrow();
   });
 });

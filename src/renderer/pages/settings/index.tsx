@@ -27,9 +27,11 @@ import {
   setQuotes,
   setReceiptPrintingOn,
   setReports,
+  setSmtpSettings,
   setStyleProfiles
 } from '../../state/pageSlice';
 import { CustomizeInvoice } from './content/CustomizeInvoice';
+import { DeliverySettings } from './content/DeliverySettings';
 import { LanguageFormat } from './content/LanguageFormat';
 import { Menu } from './menu/Menu';
 
@@ -190,6 +192,20 @@ export const SettingsPage = () => {
     [dispatch]
   );
 
+  const onDeliverySettings = useCallback(
+    (data: {
+      smtpHost?: string;
+      smtpPort?: number;
+      smtpSecure: boolean;
+      smtpUser?: string;
+      smtpFromEmail?: string;
+      smtpFromName?: string;
+    }) => {
+      dispatch(setSmtpSettings(data));
+    },
+    [dispatch]
+  );
+
   useEffect(() => {
     if (!isUpdatingSettings) return;
     dispatch(enableLoadingCursor());
@@ -245,6 +261,11 @@ export const SettingsPage = () => {
       case MenuItemSettings.LanguageFormat:
         rightColumn = <LanguageFormat onLanguageFormat={onLanguageFormat} showBack={!isDesktop} onBack={onBack} />;
         break;
+      case MenuItemSettings.Delivery:
+        rightColumn = (
+          <DeliverySettings onDeliverySettings={onDeliverySettings} showBack={!isDesktop} onBack={onBack} />
+        );
+        break;
       default:
         rightColumn = <NoItem text={t('app.noItems')} />;
         break;
@@ -264,6 +285,7 @@ export const SettingsPage = () => {
       togglePresets={togglePresets}
       toggleUBL={toggleUBL}
       toggleXRechnung={toggleXRechnung}
+      onDeliverySettings={() => onSelected(MenuItemSettings.Delivery)}
       onExportJSON={exportJSON}
       onImportJSON={importJSONCallback}
     />

@@ -15,6 +15,12 @@ export interface Settings {
   shouldIncludeBusinessName: boolean;
   quotesON: boolean;
   invoiceSchedulesON: boolean;
+  smtpHost?: string;
+  smtpPort?: number;
+  smtpSecure: boolean;
+  smtpUser?: string;
+  smtpFromEmail?: string;
+  smtpFromName?: string;
   styleProfilesON: boolean;
   ublON: boolean;
   xrechnungON: boolean;
@@ -37,6 +43,12 @@ export interface SettingsUpdate {
   shouldIncludeBusinessName?: boolean;
   quotesON?: boolean;
   invoiceSchedulesON?: boolean;
+  smtpHost?: string;
+  smtpPort?: number;
+  smtpSecure?: boolean;
+  smtpUser?: string;
+  smtpFromEmail?: string;
+  smtpFromName?: string;
   receiptPrintingOn?: boolean;
   styleProfilesON?: boolean;
   ublON?: boolean;

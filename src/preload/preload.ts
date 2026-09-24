@@ -57,6 +57,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   getAllSettings: () => ipcRenderer.invoke('get-all-settings'),
   updateSettings: (data: SettingsUpdate) => ipcRenderer.invoke('update-settings', data),
+  getSmtpPasswordStatus: () => ipcRenderer.invoke('get-smtp-password-status'),
+  setSmtpPassword: (password: string) => ipcRenderer.invoke('set-smtp-password', password),
+  deleteSmtpPassword: () => ipcRenderer.invoke('delete-smtp-password'),
 
   getAllBusinesses: (filter?: FilterData[]) => ipcRenderer.invoke('get-all-businesses', filter),
   updateBusiness: (data: BusinessUpdate) => ipcRenderer.invoke('update-business', data),

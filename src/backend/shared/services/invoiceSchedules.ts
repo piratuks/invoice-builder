@@ -1,3 +1,4 @@
+import nodemailer from 'nodemailer';
 import {
   InvoiceScheduleCadence,
   InvoiceScheduleDeliveryMethod,
@@ -16,6 +17,7 @@ import type {
   InvoiceScheduleUpdate
 } from '../types/invoiceSchedule';
 import type { Response } from '../types/response';
+import type { Settings } from '../types/settings';
 import { getDefaultValue, prepareUpdate } from '../utils/dbHelper';
 import { mapDatabaseError } from '../utils/errorFunctions';
 import { getWhereClauseFromFilters } from '../utils/filterFunctions';
@@ -37,7 +39,13 @@ export type ClaimScheduleRunResult = {
 export type ProcessDueInvoiceSchedulesOptions = {
   now?: Date;
   maxRunsPerSchedule?: number;
+  smtpPassword?: string;
 };
+
+type SmtpSettings = Pick<
+  Settings,
+  'smtpHost' | 'smtpPort' | 'smtpSecure' | 'smtpUser' | 'smtpFromEmail' | 'smtpFromName'
+>;
 
 const invoiceScheduleFields: (keyof InvoiceScheduleAdd)[] = [
   'sourceInvoiceId',
@@ -155,7 +163,17 @@ export const getInvoiceScheduleRuns = async (
 ): Promise<Response<InvoiceScheduleRun[]>> => {
   try {
     const runs = await db.all<InvoiceScheduleRun>(
-      `SELECT * FROM invoice_schedule_runs WHERE "scheduleId" = ? ORDER BY "dueAt" DESC, "id" DESC`,
+      `SELECT
+        r.*,
+        da."id" as "deliveryAttemptId",
+        da."attemptedAt" as "deliveryAttemptedAt",
+        da."recipient" as "deliveryRecipient",
+        da."provider" as "deliveryProvider",
+        da."errorMessage" as "deliveryAttemptError"
+       FROM invoice_schedule_runs r
+       LEFT JOIN invoice_schedule_delivery_attempts da ON da."scheduleRunId" = r."id"
+       WHERE r."scheduleId" = ?
+       ORDER BY r."dueAt" DESC, r."id" DESC`,
       [scheduleId]
     );
     return { success: true, data: runs };
@@ -238,7 +256,13 @@ export const processDueInvoiceSchedules = async (
       toValidDate(currentSchedule.nextRunAt).getTime() <= now.getTime() &&
       runsForSchedule < maxRunsPerSchedule
     ) {
-      const result = await generateInvoiceForScheduleRun(db, currentSchedule, currentSchedule.nextRunAt, now);
+      const result = await generateInvoiceForScheduleRun(
+        db,
+        currentSchedule,
+        currentSchedule.nextRunAt,
+        now,
+        options.smtpPassword
+      );
       if (!result.success) return { success: false, key: result.key, message: result.message };
       if (!result.data?.processed) break;
 
@@ -271,7 +295,8 @@ const generateInvoiceForScheduleRun = async (
   db: DatabaseAdapter,
   schedule: InvoiceSchedule,
   dueAt: string,
-  now: Date
+  now: Date,
+  smtpPassword?: string
 ): Promise<Response<{ processed: boolean; schedule: InvoiceSchedule }>> => {
   const claim = await claimScheduleRun(db, schedule, dueAt, now);
   if (!claim.success || !claim.data) return { success: false, key: claim.key, message: claim.message };
@@ -313,6 +338,10 @@ const generateInvoiceForScheduleRun = async (
       throw new Error(completeResult.key ?? completeResult.message ?? 'error.scheduleRunNotFound');
     }
 
+    if (schedule.deliveryMethod === InvoiceScheduleDeliveryMethod.email) {
+      await deliverGeneratedInvoiceEmail(db, schedule, claim.data.run.id!, generatedInvoice, now, smtpPassword);
+    }
+
     const advanceResult = await advanceScheduleAfterRun(db, schedule, dueAt);
     if (!advanceResult.success || !advanceResult.data) {
       throw new Error(advanceResult.key ?? advanceResult.message ?? 'error.scheduleNotFound');
@@ -326,6 +355,127 @@ const generateInvoiceForScheduleRun = async (
       await updateScheduleRecord(db, schedule.id, { status: InvoiceScheduleStatus.failed, failureReason: message });
     }
     return { success: false, ...mapDatabaseError(error, db.type) };
+  }
+};
+
+const getSmtpSettings = async (db: DatabaseAdapter) => db.get<SmtpSettings>('SELECT * FROM settings LIMIT 1');
+
+const isSmtpConfigured = (settings: SmtpSettings | null | undefined, smtpPassword?: string) => {
+  return Boolean(
+    settings?.smtpHost && settings.smtpPort && settings.smtpFromEmail && (!settings.smtpUser || smtpPassword)
+  );
+};
+
+const recordDeliveryAttempt = async (
+  db: DatabaseAdapter,
+  data: {
+    scheduleRunId: number;
+    scheduleId: number;
+    generatedInvoiceId?: number;
+    recipient?: string;
+    status: InvoiceScheduleDeliveryStatus;
+    errorMessage?: string;
+    attemptedAt: string;
+  }
+) => {
+  await db.run(
+    `INSERT INTO invoice_schedule_delivery_attempts (
+      "scheduleRunId", "scheduleId", "generatedInvoiceId", "provider", "recipient", "status", "errorMessage", "attemptedAt"
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      data.scheduleRunId,
+      data.scheduleId,
+      data.generatedInvoiceId ?? null,
+      'smtp',
+      data.recipient ?? null,
+      data.status,
+      data.errorMessage ?? null,
+      data.attemptedAt
+    ]
+  );
+};
+
+const updateRunDeliveryStatus = async (
+  db: DatabaseAdapter,
+  runId: number,
+  status: InvoiceScheduleDeliveryStatus,
+  errorMessage?: string
+) => {
+  await updateScheduleRunRecord(db, runId, {
+    deliveryStatus: status,
+    deliveryError: errorMessage ?? null
+  });
+};
+
+const deliverGeneratedInvoiceEmail = async (
+  db: DatabaseAdapter,
+  schedule: InvoiceSchedule,
+  runId: number,
+  generatedInvoice: Invoice,
+  now: Date,
+  smtpPassword?: string
+) => {
+  const attemptedAt = toIso(now);
+  const recipient = generatedInvoice.invoiceClientSnapshot?.clientEmail;
+  const fail = async (errorMessage: string) => {
+    await recordDeliveryAttempt(db, {
+      scheduleRunId: runId,
+      scheduleId: schedule.id!,
+      generatedInvoiceId: generatedInvoice.id,
+      recipient,
+      status: InvoiceScheduleDeliveryStatus.failed,
+      errorMessage,
+      attemptedAt
+    });
+    await updateRunDeliveryStatus(db, runId, InvoiceScheduleDeliveryStatus.failed, errorMessage);
+  };
+
+  if (!recipient) {
+    await fail('error.clientEmailRequired');
+    return;
+  }
+
+  const settings = await getSmtpSettings(db);
+  if (!isSmtpConfigured(settings, smtpPassword)) {
+    await fail('error.smtpNotConfigured');
+    return;
+  }
+
+  try {
+    const transporter = nodemailer.createTransport({
+      host: settings!.smtpHost,
+      port: settings!.smtpPort,
+      secure: settings!.smtpSecure,
+      auth: settings!.smtpUser
+        ? {
+            user: settings!.smtpUser,
+            pass: smtpPassword
+          }
+        : undefined
+    });
+    const from = settings!.smtpFromName
+      ? `"${settings!.smtpFromName.replace(/"/g, '\\"')}" <${settings!.smtpFromEmail}>`
+      : settings!.smtpFromEmail;
+    const invoiceNumber = generatedInvoice.invoiceFullNumber ?? generatedInvoice.invoiceNumber;
+
+    await transporter.sendMail({
+      from,
+      to: recipient,
+      subject: `Invoice ${invoiceNumber}`,
+      text: `Invoice ${invoiceNumber} has been generated.`
+    });
+
+    await recordDeliveryAttempt(db, {
+      scheduleRunId: runId,
+      scheduleId: schedule.id!,
+      generatedInvoiceId: generatedInvoice.id,
+      recipient,
+      status: InvoiceScheduleDeliveryStatus.sent,
+      attemptedAt
+    });
+    await updateRunDeliveryStatus(db, runId, InvoiceScheduleDeliveryStatus.sent);
+  } catch (error) {
+    await fail(error instanceof Error ? error.message : String(error));
   }
 };
 

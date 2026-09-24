@@ -53,7 +53,10 @@ describe('SettingsPage', () => {
     exportAllData: vi.fn(),
     importAllData: vi.fn(),
     openUrl: vi.fn(),
-    checkForUpdates: vi.fn()
+    checkForUpdates: vi.fn(),
+    getSmtpPasswordStatus: vi.fn(),
+    setSmtpPassword: vi.fn(),
+    deleteSmtpPassword: vi.fn()
   };
 
   const baseSettings = {
@@ -82,6 +85,9 @@ describe('SettingsPage', () => {
     store.dispatch(setSettings(baseSettings));
     mockApi.getAllSettings.mockResolvedValue({ success: true, data: {} });
     mockApi.updateSettings.mockResolvedValue({ success: true, data: {} });
+    mockApi.getSmtpPasswordStatus.mockResolvedValue({ success: true, data: { configured: false, source: 'env' } });
+    mockApi.setSmtpPassword.mockResolvedValue({ success: true });
+    mockApi.deleteSmtpPassword.mockResolvedValue({ success: true });
     mockApi.exportAllData.mockResolvedValue({ success: true, data: { filePath: '/tmp/export.json' } });
     vi.mocked(getApi).mockReturnValue(mockApi as never);
   });
@@ -110,6 +116,15 @@ describe('SettingsPage', () => {
     expect(screen.queryByText(i18n.t('app.noItems'))).not.toBeInTheDocument();
   });
 
+  it('shows the delivery settings content when that menu item is selected', async () => {
+    const user = userEvent.setup();
+    render(<SettingsPage />, { wrapper });
+
+    await user.click(screen.getByText(i18n.t('settingsMenuItems.titles.deliverySettings')));
+
+    expect(screen.getByLabelText(i18n.t('deliverySettings.smtpHost'))).toBeInTheDocument();
+  });
+
   it('exports a JSON backup when requested', async () => {
     const user = userEvent.setup();
     render(<SettingsPage />, { wrapper });
@@ -132,6 +147,7 @@ describe('SettingsPage', () => {
 
   it.each([
     'turnQuotes',
+    'turnInvoiceSchedules',
     'turnReports',
     'turnStyleProfiles',
     'turnPresets',

@@ -34,7 +34,9 @@ const scheduleApiMocks = vi.hoisted(() => ({
       idempotencyKey: 'invoice-schedule:11:2026-01-01T09:00:00.000Z',
       generatedInvoiceId: 15,
       status: 'success',
-      deliveryStatus: 'not_applicable'
+      deliveryStatus: 'not_applicable',
+      deliveryRecipient: 'billing@example.com',
+      deliveryAttemptedAt: '2026-01-01T09:01:00.000Z'
     }
   ]
 }));
@@ -113,6 +115,7 @@ describe('InvoiceSchedulesPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /history/i }));
     expect(await screen.findByText('Run history')).toBeInTheDocument();
     expect(screen.getByText('INV-2')).toBeInTheDocument();
+    expect(screen.getByText('billing@example.com')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /cancel/i }));
 
     fireEvent.click(screen.getByLabelText('Archived'));

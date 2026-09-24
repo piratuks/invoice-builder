@@ -1,5 +1,6 @@
 import { processDueInvoiceSchedules as processDueInvoiceSchedulesShared } from '../shared/services/invoiceSchedules';
 import type { DatabaseAdapter } from '../shared/types/DatabaseAdapter';
+import { APP_CONFIG } from './config';
 import { getOpenDatabases } from './database';
 
 export type WebInvoiceScheduleRuntimeProcessor = (db: DatabaseAdapter, databaseKey: string) => Promise<void>;
@@ -14,10 +15,13 @@ type WebInvoiceScheduleRuntime = {
 
 let runtime: WebInvoiceScheduleRuntime | undefined;
 
-const getInvoiceScheduleRuntimeIntervalMs = () => Number(process.env.WEBSERVER_INVOICE_SCHEDULER_INTERVAL_MS) || 60_000;
+const getInvoiceScheduleRuntimeIntervalMs = () =>
+  Number(process.env.WEBSERVER_INVOICE_SCHEDULER_INTERVAL_MS || APP_CONFIG.WEBSERVER_INVOICE_SCHEDULER_INTERVAL_MS);
 
 export const processDueInvoiceSchedules: WebInvoiceScheduleRuntimeProcessor = async db => {
-  const result = await processDueInvoiceSchedulesShared(db);
+  const result = await processDueInvoiceSchedulesShared(db, {
+    smtpPassword: process.env.SMTP_PASSWORD || APP_CONFIG.SMTP_PASSWORD
+  });
   if (!result.success) throw new Error(result.key ?? result.message ?? 'error.scheduleProcessingFailed');
 };
 

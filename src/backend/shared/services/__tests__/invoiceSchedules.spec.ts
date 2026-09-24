@@ -10,6 +10,7 @@ import { InvoiceStatus } from '../../enums/invoiceStatus';
 import { InvoiceType } from '../../enums/invoiceType';
 import { Language } from '../../enums/language';
 import { up as invoiceSchedulesMigration } from '../../migrations/20260923-32-invoice-schedules';
+import { up as invoiceScheduleDeliveryMigration } from '../../migrations/20260925-34-invoice-schedule-delivery';
 import type { DatabaseAdapter } from '../../types/DatabaseAdapter';
 import type {
   Invoice,
@@ -38,6 +39,7 @@ const setupDb = async () => {
   const db = createSqliteAdapter(new sqlite3.Database(':memory:'));
   await initSchema(db);
   await invoiceSchedulesMigration(db);
+  await invoiceScheduleDeliveryMigration(db);
   await initInitialData(db);
   return db;
 };
@@ -184,6 +186,7 @@ const createInvoicePayload = (
 const setupFullDb = async () => {
   const db = await createTestDatabase();
   await invoiceSchedulesMigration(db);
+  await invoiceScheduleDeliveryMigration(db);
   return db;
 };
 
@@ -442,5 +445,34 @@ describe('invoice schedule generation worker', () => {
 
     const secondPass = await processDueInvoiceSchedules(db, { now: new Date('2026-03-15T00:00:00.000Z') });
     expect(secondPass).toEqual({ success: true, data: { processed: 0 } });
+  });
+
+  it('records failed email delivery attempts when SMTP is not configured', async () => {
+    const sourceInvoice = await createSourceInvoice(db);
+    const scheduleResult = await addInvoiceSchedule(db, {
+      sourceInvoiceId: sourceInvoice.id!,
+      cadence: InvoiceScheduleCadence.monthly,
+      intervalCount: 1,
+      timezone: 'UTC',
+      startAt: '2026-01-01T09:00:00.000Z',
+      maxOccurrences: 1,
+      dueDateOffsetDays: 10,
+      status: InvoiceScheduleStatus.active,
+      isArchived: false,
+      deliveryMethod: InvoiceScheduleDeliveryMethod.email
+    });
+
+    expect(scheduleResult.success).toBe(true);
+    const result = await processDueInvoiceSchedules(db, { now: new Date('2026-01-02T00:00:00.000Z') });
+    expect(result).toEqual({ success: true, data: { processed: 1 } });
+
+    const runs = await getInvoiceScheduleRuns(db, scheduleResult.data!.id!);
+    expect(runs.data?.[0]).toEqual(
+      expect.objectContaining({
+        deliveryStatus: 'failed',
+        deliveryError: 'error.clientEmailRequired',
+        deliveryAttemptError: 'error.clientEmailRequired'
+      })
+    );
   });
 });

@@ -1,5 +1,7 @@
 import { processDueInvoiceSchedules as processDueInvoiceSchedulesShared } from '../shared/services/invoiceSchedules';
 import type { DatabaseAdapter } from '../shared/types/DatabaseAdapter';
+import { APP_CONFIG } from './config';
+import { getSmtpPassword } from './smtpPassword';
 
 export type InvoiceScheduleRuntimeProcessor = (db: DatabaseAdapter) => Promise<void>;
 
@@ -12,10 +14,11 @@ type InvoiceScheduleRuntime = {
 
 const runtimes = new Map<number, InvoiceScheduleRuntime>();
 
-const getInvoiceScheduleRuntimeIntervalMs = () => Number(process.env.ELECTRON_INVOICE_SCHEDULER_INTERVAL_MS) || 60_000;
+const getInvoiceScheduleRuntimeIntervalMs = () =>
+  Number(process.env.ELECTRON_INVOICE_SCHEDULER_INTERVAL_MS || APP_CONFIG.ELECTRON_INVOICE_SCHEDULER_INTERVAL_MS);
 
 export const processDueInvoiceSchedules: InvoiceScheduleRuntimeProcessor = async db => {
-  const result = await processDueInvoiceSchedulesShared(db);
+  const result = await processDueInvoiceSchedulesShared(db, { smtpPassword: (await getSmtpPassword()) ?? undefined });
   if (!result.success) throw new Error(result.key ?? result.message ?? 'error.scheduleProcessingFailed');
 };
 

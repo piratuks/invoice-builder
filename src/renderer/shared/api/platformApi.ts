@@ -315,6 +315,10 @@ export const webApi = () => {
 
     getAllSettings: () => apiGet<Response<Settings>>('/api/settings'),
     updateSettings: (data: SettingsUpdate) => apiPut<Response<SettingsUpdate>>('/api/settings', data),
+    getSmtpPasswordStatus: () =>
+      apiGet<Response<{ configured: boolean; source: 'keychain' | 'env' }>>('/api/settings/smtp-password-status'),
+    setSmtpPassword: (password: string) => apiPut<Response<unknown>>('/api/settings/smtp-password', { password }),
+    deleteSmtpPassword: () => apiDelete<Response<unknown>>('/api/settings/smtp-password'),
 
     getAllBusinesses: async (filter?: FilterData[]) => {
       const response = await apiGet<Response<BusinessWeb[]>>(

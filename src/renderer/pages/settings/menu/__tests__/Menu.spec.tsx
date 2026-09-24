@@ -74,6 +74,7 @@ describe('settings Menu', () => {
       toggleUBL: vi.fn(),
       toggleXRechnung: vi.fn(),
       toggleReceiptPrinting: vi.fn(),
+      onDeliverySettings: vi.fn(),
       onExportJSON: vi.fn(),
       onImportJSON: vi.fn()
     };
@@ -82,6 +83,7 @@ describe('settings Menu', () => {
 
     item('settingsMenuItems.titles.languageFormat').onClick?.(item('settingsMenuItems.titles.languageFormat'));
     item('settingsMenuItems.titles.customizeInvoice').onClick?.(item('settingsMenuItems.titles.customizeInvoice'));
+    item('settingsMenuItems.titles.deliverySettings').onClick?.(item('settingsMenuItems.titles.deliverySettings'));
     item('settingsMenuItems.titles.darkMode').onChange?.(item('settingsMenuItems.titles.darkMode'));
     item('settingsMenuItems.titles.turnQuotes').onChange?.(item('settingsMenuItems.titles.turnQuotes'));
     item('settingsMenuItems.titles.turnInvoiceSchedules').onChange?.(
@@ -100,6 +102,7 @@ describe('settings Menu', () => {
 
     expect(callbacks.onSelected).toHaveBeenNthCalledWith(1, MenuItemSettings.LanguageFormat);
     expect(callbacks.onSelected).toHaveBeenNthCalledWith(2, MenuItemSettings.Receipt);
+    expect(callbacks.onDeliverySettings).toHaveBeenCalledTimes(1);
     expect(toggleMode).toHaveBeenCalledTimes(1);
     expect(callbacks.onModeChange).toHaveBeenCalledWith(true);
     expect(callbacks.toggleQuotes).toHaveBeenCalledWith(false);

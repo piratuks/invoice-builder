@@ -144,6 +144,23 @@ export const pageSlice = createSlice({
         receiptPrintingOn: action.payload
       };
     },
+    setSmtpSettings: (
+      state,
+      action: PayloadAction<{
+        smtpHost?: string;
+        smtpPort?: number;
+        smtpSecure: boolean;
+        smtpUser?: string;
+        smtpFromEmail?: string;
+        smtpFromName?: string;
+      }>
+    ) => {
+      if (!state.settings) return;
+      state.settings = {
+        ...state.settings,
+        ...action.payload
+      };
+    },
     setReports: (state, action: PayloadAction<boolean>) => {
       if (!state.settings) return;
       state.settings = {
@@ -230,6 +247,7 @@ export const {
   setClientSnapshotOptions,
   setAllowed,
   setReceiptPrintingOn,
+  setSmtpSettings,
   setDbReady,
   logout
 } = pageSlice.actions;

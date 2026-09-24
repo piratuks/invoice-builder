@@ -60,6 +60,7 @@ export const Form: FC<Props> = ({ item, handleChange = () => {} }) => {
     invoiceType: InvoiceType.invoice,
     filter: [{ type: FilterType.active }]
   });
+  const isEmailDeliveryConfigured = Boolean(settings?.smtpHost && settings.smtpPort && settings.smtpFromEmail);
   const getInitialForm = useCallback((): InvoiceScheduleForm => {
     return {
       id: item?.id,
@@ -142,6 +143,7 @@ export const Form: FC<Props> = ({ item, handleChange = () => {} }) => {
     if (!item?.id) return;
     const id = item.id;
     await updateSchedule({ ...item, id, status }).unwrap();
+    initialFormRef.current = { ...form, status };
     update('status', status);
   };
 
@@ -315,8 +317,10 @@ export const Form: FC<Props> = ({ item, handleChange = () => {} }) => {
               onChange={event => update('deliveryMethod', event.target.value as InvoiceScheduleDeliveryMethod)}
             >
               <MenuItem value={InvoiceScheduleDeliveryMethod.none}>{t('invoiceSchedules.deliveryNone')}</MenuItem>
-              <MenuItem value={InvoiceScheduleDeliveryMethod.email} disabled>
-                {t('invoiceSchedules.deliveryEmailSoon')}
+              <MenuItem value={InvoiceScheduleDeliveryMethod.email} disabled={!isEmailDeliveryConfigured}>
+                {isEmailDeliveryConfigured
+                  ? t('invoiceSchedules.deliveryValue.email')
+                  : t('invoiceSchedules.deliveryEmailSoon')}
               </MenuItem>
             </Select>
           </FormControl>

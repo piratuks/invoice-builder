@@ -49,6 +49,25 @@ export interface InvoiceScheduleRun {
   deliveryStatus: InvoiceScheduleDeliveryStatus;
   deliveryError?: string;
   errorMessage?: string;
+  deliveryAttemptId?: number;
+  deliveryAttemptedAt?: string;
+  deliveryRecipient?: string;
+  deliveryProvider?: string;
+  deliveryAttemptError?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface InvoiceScheduleDeliveryAttempt {
+  id?: number;
+  scheduleRunId: number;
+  scheduleId: number;
+  generatedInvoiceId?: number;
+  provider: string;
+  recipient?: string;
+  status: InvoiceScheduleDeliveryStatus;
+  errorMessage?: string;
+  attemptedAt: string;
   createdAt?: string;
   updatedAt?: string;
 }
