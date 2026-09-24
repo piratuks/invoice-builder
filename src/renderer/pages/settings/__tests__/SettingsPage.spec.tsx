@@ -5,6 +5,7 @@ import { I18nextProvider } from 'react-i18next';
 import { Provider } from 'react-redux';
 import i18n from '../../../i18n';
 import { getApi } from '../../../shared/api/restApi';
+import { DeliveryProvider } from '../../../shared/enums/deliveryProvider';
 import type { Settings } from '../../../shared/types/settings';
 import { store } from '../../../state/configureStore';
 import { setSettings } from '../../../state/pageSlice';
@@ -56,7 +57,8 @@ describe('SettingsPage', () => {
     checkForUpdates: vi.fn(),
     getSmtpPasswordStatus: vi.fn(),
     setSmtpPassword: vi.fn(),
-    deleteSmtpPassword: vi.fn()
+    deleteSmtpPassword: vi.fn(),
+    testSmtpDelivery: vi.fn()
   };
 
   const baseSettings = {
@@ -70,6 +72,7 @@ describe('SettingsPage', () => {
     shouldIncludeBusinessName: true,
     quotesON: true,
     invoiceSchedulesON: true,
+    deliveryProvider: DeliveryProvider.smtp,
     styleProfilesON: true,
     ublON: true,
     xrechnungON: true,
@@ -88,6 +91,7 @@ describe('SettingsPage', () => {
     mockApi.getSmtpPasswordStatus.mockResolvedValue({ success: true, data: { configured: false, source: 'env' } });
     mockApi.setSmtpPassword.mockResolvedValue({ success: true });
     mockApi.deleteSmtpPassword.mockResolvedValue({ success: true });
+    mockApi.testSmtpDelivery.mockResolvedValue({ success: true });
     mockApi.exportAllData.mockResolvedValue({ success: true, data: { filePath: '/tmp/export.json' } });
     vi.mocked(getApi).mockReturnValue(mockApi as never);
   });
@@ -123,6 +127,18 @@ describe('SettingsPage', () => {
     await user.click(screen.getByText(i18n.t('settingsMenuItems.titles.deliverySettings')));
 
     expect(screen.getByLabelText(i18n.t('deliverySettings.smtpHost'))).toBeInTheDocument();
+  });
+
+  it('sends a test SMTP email from delivery settings', async () => {
+    const user = userEvent.setup();
+    render(<SettingsPage />, { wrapper });
+
+    await user.click(screen.getByText(i18n.t('settingsMenuItems.titles.deliverySettings')));
+    await user.type(screen.getByLabelText(i18n.t('deliverySettings.smtpTestRecipient')), 'billing@example.com');
+    await user.click(screen.getByRole('button', { name: i18n.t('deliverySettings.smtpTestSend') }));
+
+    await waitFor(() => expect(mockApi.testSmtpDelivery).toHaveBeenCalledWith({ recipient: 'billing@example.com' }));
+    expect(await screen.findByText(i18n.t('deliverySettings.smtpTestSent'))).toBeInTheDocument();
   });
 
   it('exports a JSON backup when requested', async () => {

@@ -1,6 +1,7 @@
 import { AmountFormat } from '../../enums/amountFormat';
 import { DatabaseType } from '../../enums/databaseType';
 import { DateFormat } from '../../enums/dateFormat';
+import { DeliveryProvider } from '../../enums/deliveryProvider';
 import { InvoiceScheduleStatus } from '../../enums/invoiceSchedule';
 import { Language } from '../../enums/language';
 import type { DatabaseAdapter } from '../../types/DatabaseAdapter';
@@ -101,6 +102,7 @@ const makeSettings = (overrides: Partial<Settings> = {}): Settings => ({
   shouldIncludeBusinessName: true,
   quotesON: false,
   invoiceSchedulesON: true,
+  deliveryProvider: DeliveryProvider.smtp,
   styleProfilesON: false,
   ublON: false,
   xrechnungON: false,

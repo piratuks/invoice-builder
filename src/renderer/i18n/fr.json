@@ -248,9 +248,12 @@
     "routingNumber": "Numéro d’acheminement",
     "routingNumberInvalid": "Le numéro d’acheminement doit comporter 9 chiffres",
     "remove": "Supprimer",
+    "removing": "Suppression...",
     "save": "Enregistrer",
     "saveAsProfile": "Enregistrer comme profil",
     "search": "Rechercher...",
+    "saving": "Enregistrement...",
+    "sending": "Envoi...",
     "selectFilterType": "Sélectionnez un type de filtre",
     "selectImage": "Sélectionnez un fichier image",
     "setLabel": "Personnaliser le libellé",
@@ -342,6 +345,8 @@
     "titleWeb": "Créer une base de données"
   },
   "deliverySettings": {
+    "provider": "Fournisseur de livraison",
+    "providerSmtp": "SMTP",
     "smtpFromEmail": "E-mail d'expéditeur",
     "smtpFromName": "Nom d'expéditeur",
     "smtpHost": "Hôte SMTP",
@@ -356,6 +361,11 @@
     "smtpPort": "Port SMTP",
     "smtpSecure": "Utiliser une connexion SMTP sécurisée",
     "smtpSettings": "Paramètres SMTP",
+    "smtpTestHelp": "Envoyez un message simple pour vérifier la configuration SMTP actuelle et la source du mot de passe.",
+    "smtpTestRecipient": "E-mail du destinataire de test",
+    "smtpTestSection": "Tester la livraison",
+    "smtpTestSend": "Envoyer un e-mail de test",
+    "smtpTestSent": "E-mail de test envoyé",
     "smtpUser": "Nom d'utilisateur SMTP"
   },
   "error": {
@@ -422,6 +432,7 @@
     "smtpNotConfigured": "Les paramètres de livraison SMTP ne sont pas configurés",
     "smtpPasswordEnvOnly": "Le mot de passe SMTP doit être configuré via les variables d'environnement en mode web",
     "smtpPasswordRequired": "Le mot de passe SMTP est requis",
+    "smtpTestRecipientRequired": "L'e-mail du destinataire de test est requis",
     "unknownError": "Erreur de base de données inconnue",
     "unsupportedImage": "Type d’image non pris en charge",
     "unsupportedValue": "Type de valeur non pris en charge pour la clé",

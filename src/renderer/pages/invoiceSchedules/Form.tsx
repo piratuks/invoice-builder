@@ -17,8 +17,10 @@ import {
 } from '@mui/material';
 import { useCallback, useEffect, useMemo, useRef, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
+import i18n from '../../i18n';
 import { useUpdateInvoiceScheduleMutation } from '../../shared/api/invoiceSchedulesApi';
 import { useGetInvoicesQuery } from '../../shared/api/invoicesApi';
+import { useGetSmtpPasswordStatusQuery } from '../../shared/api/settingsApi';
 import { Datepicker } from '../../shared/components/inputs/datepicker/Datepicker';
 import { DateFormat } from '../../shared/enums/dateFormat';
 import { FilterType } from '../../shared/enums/filterType';
@@ -33,8 +35,8 @@ import { useFormDirtyCheck } from '../../shared/hooks/form/useFormDirtyCheck';
 import type { InvoiceSchedule, InvoiceScheduleForm } from '../../shared/types/invoiceSchedule';
 import { getInvoiceLabel } from '../../shared/utils/invoiceScheduleFunctions';
 import { validators } from '../../shared/utils/validatorFunctions';
-import { useAppSelector } from '../../state/configureStore';
-import { selectSettings } from '../../state/pageSlice';
+import { useAppDispatch, useAppSelector } from '../../state/configureStore';
+import { addToast, disableLoadingCursor, enableLoadingCursor, selectSettings } from '../../state/pageSlice';
 import { ScheduleRunHistoryDialog } from './ScheduleRunHistoryDialog';
 
 interface Props {
@@ -44,8 +46,12 @@ interface Props {
 
 export const Form: FC<Props> = ({ item, handleChange = () => {} }) => {
   const { t } = useTranslation();
+  const dispatch = useAppDispatch();
   const settings = useAppSelector(selectSettings);
-  const [updateSchedule] = useUpdateInvoiceScheduleMutation();
+  const [
+    updateSchedule,
+    { error: updateScheduleError, isError: isUpdateScheduleError, isLoading: isUpdatingSchedule }
+  ] = useUpdateInvoiceScheduleMutation();
   const [historySchedule, setHistorySchedule] = useState<InvoiceSchedule | undefined>();
   const timezone = useMemo(() => Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC', []);
   const timezones = useMemo(() => {
@@ -60,7 +66,14 @@ export const Form: FC<Props> = ({ item, handleChange = () => {} }) => {
     invoiceType: InvoiceType.invoice,
     filter: [{ type: FilterType.active }]
   });
-  const isEmailDeliveryConfigured = Boolean(settings?.smtpHost && settings.smtpPort && settings.smtpFromEmail);
+  const {
+    data: smtpPasswordStatus,
+    error: smtpPasswordStatusError,
+    isError: isSmtpPasswordStatusError
+  } = useGetSmtpPasswordStatusQuery();
+  const isEmailDeliveryConfigured = Boolean(
+    settings?.smtpHost && settings.smtpPort && settings.smtpFromEmail && smtpPasswordStatus?.configured
+  );
   const getInitialForm = useCallback((): InvoiceScheduleForm => {
     return {
       id: item?.id,
@@ -118,6 +131,34 @@ export const Form: FC<Props> = ({ item, handleChange = () => {} }) => {
   useFormDirtyCheck(form, initialFormRef);
 
   useEffect(() => {
+    if (!isUpdateScheduleError) return;
+    const { message, key } = (updateScheduleError as { message?: string; key?: string }) ?? {};
+    if (message) {
+      dispatch(addToast({ message: i18n.exists(message) ? t(message) : message, severity: 'error' }));
+    } else if (key) {
+      dispatch(addToast({ message: t(key), severity: 'error' }));
+    }
+  }, [dispatch, isUpdateScheduleError, t, updateScheduleError]);
+
+  useEffect(() => {
+    if (!isSmtpPasswordStatusError) return;
+    const { message, key } = (smtpPasswordStatusError as { message?: string; key?: string }) ?? {};
+    if (message) {
+      dispatch(addToast({ message: i18n.exists(message) ? t(message) : message, severity: 'error' }));
+    } else if (key) {
+      dispatch(addToast({ message: t(key), severity: 'error' }));
+    }
+  }, [dispatch, isSmtpPasswordStatusError, smtpPasswordStatusError, t]);
+
+  useEffect(() => {
+    if (!isUpdatingSchedule) return;
+    dispatch(enableLoadingCursor());
+    return () => {
+      dispatch(disableLoadingCursor());
+    };
+  }, [dispatch, isUpdatingSchedule]);
+
+  useEffect(() => {
     const initial = getInitialForm();
     initialFormRef.current = initial;
     setForm(initial);
@@ -166,6 +207,7 @@ export const Form: FC<Props> = ({ item, handleChange = () => {} }) => {
                   variant="outlined"
                   size="small"
                   startIcon={<PauseIcon />}
+                  disabled={isUpdatingSchedule}
                   onClick={() => setScheduleStatus(InvoiceScheduleStatus.paused)}
                 >
                   {t('invoiceSchedules.pause')}
@@ -175,7 +217,7 @@ export const Form: FC<Props> = ({ item, handleChange = () => {} }) => {
                   variant="outlined"
                   size="small"
                   startIcon={<PlayArrowIcon />}
-                  disabled={form.status === InvoiceScheduleStatus.completed || form.isArchived}
+                  disabled={form.status === InvoiceScheduleStatus.completed || form.isArchived || isUpdatingSchedule}
                   onClick={() => setScheduleStatus(InvoiceScheduleStatus.active)}
                 >
                   {t('invoiceSchedules.resume')}

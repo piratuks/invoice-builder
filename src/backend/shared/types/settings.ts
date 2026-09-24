@@ -1,5 +1,6 @@
 import type { AmountFormat } from '../enums/amountFormat';
 import type { DateFormat } from '../enums/dateFormat';
+import type { DeliveryProvider } from '../enums/deliveryProvider';
 import type { Language } from '../enums/language';
 
 export interface Settings {
@@ -15,6 +16,7 @@ export interface Settings {
   shouldIncludeBusinessName: boolean;
   quotesON: boolean;
   invoiceSchedulesON: boolean;
+  deliveryProvider: DeliveryProvider;
   smtpHost?: string;
   smtpPort?: number;
   smtpSecure: boolean;

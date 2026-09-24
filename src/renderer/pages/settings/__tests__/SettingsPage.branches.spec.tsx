@@ -5,6 +5,7 @@ import { Provider } from 'react-redux';
 import i18n from '../../../i18n';
 import { AmountFormat } from '../../../shared/enums/amountFormat';
 import { DateFormat } from '../../../shared/enums/dateFormat';
+import { DeliveryProvider } from '../../../shared/enums/deliveryProvider';
 import { Language } from '../../../shared/enums/language';
 import { MenuItemSettings } from '../../../shared/enums/menuItemSettings';
 import type { Settings } from '../../../shared/types/settings';
@@ -110,6 +111,7 @@ const settings = {
   shouldIncludeMonth: true,
   shouldIncludeBusinessName: true,
   quotesON: true,
+  deliveryProvider: DeliveryProvider.smtp,
   styleProfilesON: true,
   ublON: true,
   xrechnungON: true,

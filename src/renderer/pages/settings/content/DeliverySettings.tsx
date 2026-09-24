@@ -5,19 +5,31 @@ import {
   Divider,
   FormControlLabel,
   Grid,
+  InputLabel,
+  MenuItem,
+  Select,
   Stack,
   Switch,
   TextField,
   Typography
 } from '@mui/material';
-import { useEffect, useState, type FC } from 'react';
+import { useCallback, useEffect, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getApi, isWebMode } from '../../../shared/api/restApi';
+import i18n from '../../../i18n';
+import { isWebMode } from '../../../shared/api/restApi';
+import {
+  useDeleteSmtpPasswordMutation,
+  useGetSmtpPasswordStatusQuery,
+  useSetSmtpPasswordMutation,
+  useTestSmtpDeliveryMutation
+} from '../../../shared/api/settingsApi';
 import { PageHeader } from '../../../shared/components/layout/pageHeader/PageHeader';
-import { useAppSelector } from '../../../state/configureStore';
-import { selectSettings } from '../../../state/pageSlice';
+import { DeliveryProvider } from '../../../shared/enums/deliveryProvider';
+import { useAppDispatch, useAppSelector } from '../../../state/configureStore';
+import { addToast, disableLoadingCursor, enableLoadingCursor, selectSettings } from '../../../state/pageSlice';
 
 interface DeliverySettingsData {
+  deliveryProvider: DeliveryProvider;
   smtpHost?: string;
   smtpPort?: number;
   smtpSecure: boolean;
@@ -25,8 +37,6 @@ interface DeliverySettingsData {
   smtpFromEmail?: string;
   smtpFromName?: string;
 }
-
-type SmtpPasswordStatus = { configured: boolean; source: 'keychain' | 'env' };
 
 interface Props {
   showBack: boolean;
@@ -36,10 +46,21 @@ interface Props {
 
 export const DeliverySettings: FC<Props> = ({ showBack, onBack = () => {}, onDeliverySettings = () => {} }) => {
   const { t } = useTranslation();
+  const dispatch = useAppDispatch();
   const storeSettings = useAppSelector(selectSettings);
   const [smtpPassword, setSmtpPassword] = useState('');
-  const [passwordStatus, setPasswordStatus] = useState<SmtpPasswordStatus | undefined>();
+  const [testRecipient, setTestRecipient] = useState('');
+  const [testResult, setTestResult] = useState<{ severity: 'success' | 'error'; message: string } | undefined>();
+  const {
+    data: passwordStatus,
+    isFetching: isPasswordStatusFetching,
+    error: passwordStatusError
+  } = useGetSmtpPasswordStatusQuery();
+  const [setSmtpPasswordMutation, { isLoading: isSavingPassword }] = useSetSmtpPasswordMutation();
+  const [deleteSmtpPasswordMutation, { isLoading: isDeletingPassword }] = useDeleteSmtpPasswordMutation();
+  const [testSmtpDelivery, { isLoading: isTestingDelivery }] = useTestSmtpDeliveryMutation();
   const [form, setForm] = useState<DeliverySettingsData>({
+    deliveryProvider: storeSettings?.deliveryProvider ?? DeliveryProvider.smtp,
     smtpHost: storeSettings?.smtpHost ?? '',
     smtpPort: storeSettings?.smtpPort,
     smtpSecure: storeSettings?.smtpSecure ?? true,
@@ -48,26 +69,61 @@ export const DeliverySettings: FC<Props> = ({ showBack, onBack = () => {}, onDel
     smtpFromName: storeSettings?.smtpFromName ?? ''
   });
 
-  const refreshPasswordStatus = async () => {
-    const result = await getApi().getSmtpPasswordStatus();
-    setPasswordStatus(result.data);
-  };
+  const getApiErrorMessage = useCallback(
+    (error: unknown) => {
+      if (error && typeof error === 'object') {
+        const message = 'message' in error ? error.message : undefined;
+        const key = 'key' in error ? error.key : undefined;
+        if (typeof message === 'string') return i18n.exists(message) ? t(message) : message;
+        if (typeof key === 'string') return t(key);
+      }
+      return t('error.unknownError');
+    },
+    [t]
+  );
 
   useEffect(() => {
-    void refreshPasswordStatus();
-  }, []);
+    if (!passwordStatusError) return;
+    dispatch(addToast({ message: getApiErrorMessage(passwordStatusError), severity: 'error' }));
+  }, [dispatch, getApiErrorMessage, passwordStatusError]);
+
+  const isBusy = isPasswordStatusFetching || isSavingPassword || isDeletingPassword || isTestingDelivery;
+  useEffect(() => {
+    if (!isBusy) return;
+    dispatch(enableLoadingCursor());
+    return () => {
+      dispatch(disableLoadingCursor());
+    };
+  }, [dispatch, isBusy]);
 
   const savePassword = async () => {
     if (!smtpPassword) return;
-    await getApi().setSmtpPassword(smtpPassword);
-    setSmtpPassword('');
-    await refreshPasswordStatus();
+    try {
+      await setSmtpPasswordMutation(smtpPassword).unwrap();
+      setSmtpPassword('');
+    } catch (error) {
+      dispatch(addToast({ message: getApiErrorMessage(error), severity: 'error' }));
+    }
   };
 
   const deletePassword = async () => {
-    await getApi().deleteSmtpPassword();
-    setSmtpPassword('');
-    await refreshPasswordStatus();
+    try {
+      await deleteSmtpPasswordMutation().unwrap();
+      setSmtpPassword('');
+    } catch (error) {
+      dispatch(addToast({ message: getApiErrorMessage(error), severity: 'error' }));
+    }
+  };
+
+  const sendTestEmail = async () => {
+    const result = await testSmtpDelivery({ recipient: testRecipient });
+    const error = 'error' in result ? result.error : undefined;
+    const message = error && 'message' in error ? error.message : undefined;
+    const key = error && 'key' in error ? error.key : undefined;
+    setTestResult({
+      severity: 'data' in result ? 'success' : 'error',
+      message: 'data' in result ? t('deliverySettings.smtpTestSent') : message || t(key ?? 'error.unknownError')
+    });
   };
 
   const update = <K extends keyof DeliverySettingsData>(key: K, value: DeliverySettingsData[K]) => {
@@ -81,6 +137,17 @@ export const DeliverySettings: FC<Props> = ({ showBack, onBack = () => {}, onDel
       <PageHeader title={t('settingsMenuItems.titles.deliverySettings')} showBack={showBack} onBack={onBack} />
 
       <Grid container spacing={2}>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <InputLabel>{t('deliverySettings.provider')}</InputLabel>
+          <Select
+            fullWidth
+            label={t('deliverySettings.provider')}
+            value={form.deliveryProvider}
+            onChange={event => update('deliveryProvider', event.target.value as DeliveryProvider)}
+          >
+            <MenuItem value={DeliveryProvider.smtp}>{t('deliverySettings.providerSmtp')}</MenuItem>
+          </Select>
+        </Grid>
         <Grid size={{ xs: 12 }}>
           <Typography variant="subtitle2">{t('deliverySettings.smtpSettings')}</Typography>
         </Grid>
@@ -148,7 +215,9 @@ export const DeliverySettings: FC<Props> = ({ showBack, onBack = () => {}, onDel
             <Alert severity={passwordStatus?.configured ? 'success' : 'warning'}>
               {passwordStatus?.configured
                 ? t('deliverySettings.smtpPasswordConfiguredEnv')
-                : t('deliverySettings.smtpPasswordMissingEnv')}
+                : isPasswordStatusFetching
+                  ? t('common.checking')
+                  : t('deliverySettings.smtpPasswordMissingEnv')}
             </Alert>
           ) : (
             <Stack spacing={1}>
@@ -159,27 +228,58 @@ export const DeliverySettings: FC<Props> = ({ showBack, onBack = () => {}, onDel
                 value={smtpPassword}
                 onChange={event => setSmtpPassword(event.target.value)}
                 helperText={
-                  passwordStatus?.configured
-                    ? t('deliverySettings.smtpPasswordConfiguredKeychain')
-                    : t('deliverySettings.smtpPasswordMissingKeychain')
+                  isPasswordStatusFetching
+                    ? t('common.checking')
+                    : passwordStatus?.configured
+                      ? t('deliverySettings.smtpPasswordConfiguredKeychain')
+                      : t('deliverySettings.smtpPasswordMissingKeychain')
                 }
               />
               <Stack direction="row" spacing={1}>
-                <Button variant="outlined" onClick={savePassword} disabled={!smtpPassword}>
-                  {t('common.save')}
+                <Button variant="outlined" onClick={savePassword} disabled={!smtpPassword || isSavingPassword}>
+                  {isSavingPassword ? t('common.saving') : t('common.save')}
                 </Button>
                 <Button
                   variant="outlined"
                   color="error"
                   onClick={deletePassword}
-                  disabled={!passwordStatus?.configured}
+                  disabled={!passwordStatus?.configured || isDeletingPassword}
                 >
-                  {t('common.remove')}
+                  {isDeletingPassword ? t('common.removing') : t('common.remove')}
                 </Button>
               </Stack>
             </Stack>
           )}
         </Grid>
+        <Grid size={{ xs: 12 }}>
+          <Divider />
+        </Grid>
+        <Grid size={{ xs: 12 }}>
+          <Typography variant="subtitle2">{t('deliverySettings.smtpTestSection')}</Typography>
+          <Typography variant="body2" color="text.secondary">
+            {t('deliverySettings.smtpTestHelp')}
+          </Typography>
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <Stack spacing={1}>
+            <TextField
+              fullWidth
+              label={t('deliverySettings.smtpTestRecipient')}
+              value={testRecipient}
+              onChange={event => setTestRecipient(event.target.value)}
+            />
+            <Stack direction="row" spacing={1}>
+              <Button variant="outlined" onClick={sendTestEmail} disabled={!testRecipient || isTestingDelivery}>
+                {isTestingDelivery ? t('common.sending') : t('deliverySettings.smtpTestSend')}
+              </Button>
+            </Stack>
+          </Stack>
+        </Grid>
+        {testResult && (
+          <Grid size={{ xs: 12 }}>
+            <Alert severity={testResult.severity}>{testResult.message}</Alert>
+          </Grid>
+        )}
       </Grid>
     </Box>
   );

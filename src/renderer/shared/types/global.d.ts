@@ -53,6 +53,7 @@ declare global {
       getSmtpPasswordStatus: () => Promise<Response<{ configured: boolean; source: 'keychain' | 'env' }>>;
       setSmtpPassword: (password: string) => Promise<Response<unknown>>;
       deleteSmtpPassword: () => Promise<Response<unknown>>;
+      testSmtpDelivery: (data: { recipient: string }) => Promise<Response<unknown>>;
 
       getAllBusinesses: (filter?: FilterData[]) => Promise<Response<Business[]>>;
       updateBusiness: (data: BusinessUpdate) => Promise<Response<Business>>;

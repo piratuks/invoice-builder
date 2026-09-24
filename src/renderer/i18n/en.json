@@ -248,9 +248,12 @@
     "routingNumber": "Routing number",
     "routingNumberInvalid": "Routing number must be 9 digits",
     "remove": "Remove",
+    "removing": "Removing...",
     "save": "Save",
     "saveAsProfile": "Save as Profile",
     "search": "Search...",
+    "saving": "Saving...",
+    "sending": "Sending...",
     "selectFilterType": "Select filter type",
     "selectImage": "Select an image file",
     "setLabel": "Customize label",
@@ -342,6 +345,8 @@
     "titleWeb": "Create a database"
   },
   "deliverySettings": {
+    "provider": "Delivery provider",
+    "providerSmtp": "SMTP",
     "smtpFromEmail": "From email",
     "smtpFromName": "From name",
     "smtpHost": "SMTP host",
@@ -356,6 +361,11 @@
     "smtpPort": "SMTP port",
     "smtpSecure": "Use secure SMTP connection",
     "smtpSettings": "SMTP settings",
+    "smtpTestHelp": "Send a simple message to verify the current SMTP configuration and password source.",
+    "smtpTestRecipient": "Test recipient email",
+    "smtpTestSection": "Test delivery",
+    "smtpTestSend": "Send test email",
+    "smtpTestSent": "Test email sent",
     "smtpUser": "SMTP username"
   },
   "error": {
@@ -422,6 +432,7 @@
     "smtpNotConfigured": "SMTP delivery settings are not configured",
     "smtpPasswordEnvOnly": "SMTP password must be configured through environment variables in web mode",
     "smtpPasswordRequired": "SMTP password is required",
+    "smtpTestRecipientRequired": "Test recipient email is required",
     "unknownError": "Unknown database error",
     "unsupportedImage": "Unsupported image type",
     "unsupportedValue": "Unsupported value type for key",

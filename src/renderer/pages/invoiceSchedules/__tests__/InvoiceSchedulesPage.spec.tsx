@@ -77,9 +77,19 @@ vi.mock('../../../shared/api/invoicesApi', () => ({
   useGetInvoicesQuery: () => ({ data: invoiceApiMocks.invoices })
 }));
 
+vi.mock('../../../shared/api/settingsApi', () => ({
+  useGetSmtpPasswordStatusQuery: () => ({ data: { configured: true, source: 'env' }, isError: false })
+}));
+
 vi.mock('../../../state/configureStore', () => ({
   useAppDispatch: () => vi.fn(),
-  useAppSelector: () => ({ dateFormat: 'MM/dd/yyyy', quotesON: true })
+  useAppSelector: () => ({
+    dateFormat: 'MM/dd/yyyy',
+    quotesON: true,
+    smtpHost: 'smtp.example.com',
+    smtpPort: 587,
+    smtpFromEmail: 'billing@example.com'
+  })
 }));
 
 const withProviders = ({ children }: { children: ReactNode }) => (

@@ -5,7 +5,15 @@ import { Provider } from 'react-redux';
 import i18n from '../../../i18n';
 import { store } from '../../../state/configureStore';
 import { getApi } from '../restApi';
-import { settingsApi, useGetSettingsQuery, useUpdateSettingsMutation } from '../settingsApi';
+import {
+  settingsApi,
+  useDeleteSmtpPasswordMutation,
+  useGetSettingsQuery,
+  useGetSmtpPasswordStatusQuery,
+  useSetSmtpPasswordMutation,
+  useTestSmtpDeliveryMutation,
+  useUpdateSettingsMutation
+} from '../settingsApi';
 import { runApiTrigger } from './testUtils';
 
 vi.mock('../restApi', () => ({ getApi: vi.fn(), isWebMode: () => true }));
@@ -19,7 +27,11 @@ const wrapper = ({ children }: { children: ReactNode }) => (
 describe('settingsApi', () => {
   const mockApi = {
     getAllSettings: vi.fn(),
-    updateSettings: vi.fn()
+    updateSettings: vi.fn(),
+    getSmtpPasswordStatus: vi.fn(),
+    setSmtpPassword: vi.fn(),
+    deleteSmtpPassword: vi.fn(),
+    testSmtpDelivery: vi.fn()
   };
 
   beforeEach(() => {
@@ -86,5 +98,28 @@ describe('settingsApi', () => {
 
       expect(response).toEqual({ error: { kind: 'response', message: undefined, key: 'error.updateFailed' } });
     });
+  });
+
+  it('routes SMTP password and test delivery actions', async () => {
+    mockApi.getSmtpPasswordStatus.mockResolvedValue({ success: true, data: { configured: true, source: 'env' } });
+    mockApi.setSmtpPassword.mockResolvedValue({ success: true });
+    mockApi.deleteSmtpPassword.mockResolvedValue({ success: true });
+    mockApi.testSmtpDelivery.mockResolvedValue({ success: true });
+
+    const status = renderHook(() => useGetSmtpPasswordStatusQuery(), { wrapper });
+    await waitFor(() => expect(status.result.current.isSuccess).toBe(true));
+    expect(mockApi.getSmtpPasswordStatus).toHaveBeenCalledTimes(1);
+
+    const setPassword = renderHook(() => useSetSmtpPasswordMutation(), { wrapper });
+    await runApiTrigger(() => setPassword.result.current[0]('secret'));
+    expect(mockApi.setSmtpPassword).toHaveBeenCalledWith('secret');
+
+    const deletePassword = renderHook(() => useDeleteSmtpPasswordMutation(), { wrapper });
+    await runApiTrigger(() => deletePassword.result.current[0]());
+    expect(mockApi.deleteSmtpPassword).toHaveBeenCalledTimes(1);
+
+    const testDelivery = renderHook(() => useTestSmtpDeliveryMutation(), { wrapper });
+    await runApiTrigger(() => testDelivery.result.current[0]({ recipient: 'billing@example.com' }));
+    expect(mockApi.testSmtpDelivery).toHaveBeenCalledWith({ recipient: 'billing@example.com' });
   });
 });

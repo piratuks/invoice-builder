@@ -248,9 +248,12 @@
     "routingNumber": "Número de roteamento",
     "routingNumberInvalid": "O número de roteamento deve ter 9 dígitos",
     "remove": "Remover",
+    "removing": "Removendo...",
     "save": "Salvar",
     "saveAsProfile": "Salvar como perfil",
     "search": "Pesquisar...",
+    "saving": "Salvando...",
+    "sending": "Enviando...",
     "selectFilterType": "Selecionar tipo de filtro",
     "selectImage": "Selecionar um arquivo de imagem",
     "setLabel": "Personalizar rótulo",
@@ -342,6 +345,8 @@
     "titleWeb": "Criar um banco de dados"
   },
   "deliverySettings": {
+    "provider": "Provedor de entrega",
+    "providerSmtp": "SMTP",
     "smtpFromEmail": "E-mail do remetente",
     "smtpFromName": "Nome do remetente",
     "smtpHost": "Host SMTP",
@@ -356,6 +361,11 @@
     "smtpPort": "Porta SMTP",
     "smtpSecure": "Usar conexão SMTP segura",
     "smtpSettings": "Configurações SMTP",
+    "smtpTestHelp": "Envie uma mensagem simples para verificar a configuração SMTP atual e a origem da senha.",
+    "smtpTestRecipient": "E-mail do destinatário de teste",
+    "smtpTestSection": "Testar entrega",
+    "smtpTestSend": "Enviar e-mail de teste",
+    "smtpTestSent": "E-mail de teste enviado",
     "smtpUser": "Usuário SMTP"
   },
   "error": {
@@ -422,6 +432,7 @@
     "smtpNotConfigured": "As configurações de entrega SMTP não estão configuradas",
     "smtpPasswordEnvOnly": "A senha SMTP deve ser configurada por variáveis de ambiente no modo web",
     "smtpPasswordRequired": "A senha SMTP é obrigatória",
+    "smtpTestRecipientRequired": "O e-mail do destinatário de teste é obrigatório",
     "unknownError": "Erro desconhecido do banco de dados",
     "unsupportedImage": "Tipo de imagem não suportado",
     "unsupportedValue": "Tipo de valor não suportado para a chave",

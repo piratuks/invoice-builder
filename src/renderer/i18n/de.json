@@ -248,9 +248,12 @@
     "routingNumber": "Routingnummer",
     "routingNumberInvalid": "Die Routingnummer muss 9 Ziffern enthalten",
     "remove": "Entfernen",
+    "removing": "Wird entfernt...",
     "save": "Speichern",
     "saveAsProfile": "Als Profil speichern",
     "search": "Suchen...",
+    "saving": "Wird gespeichert...",
+    "sending": "Wird gesendet...",
     "selectFilterType": "Filtertyp auswählen",
     "selectImage": "Bilddatei auswählen",
     "setLabel": "Bezeichnung anpassen",
@@ -342,6 +345,8 @@
     "titleWeb": "Datenbank erstellen"
   },
   "deliverySettings": {
+    "provider": "Zustellanbieter",
+    "providerSmtp": "SMTP",
     "smtpFromEmail": "Absender-E-Mail",
     "smtpFromName": "Absendername",
     "smtpHost": "SMTP-Host",
@@ -356,6 +361,11 @@
     "smtpPort": "SMTP-Port",
     "smtpSecure": "Sichere SMTP-Verbindung verwenden",
     "smtpSettings": "SMTP-Einstellungen",
+    "smtpTestHelp": "Senden Sie eine einfache Nachricht, um die aktuelle SMTP-Konfiguration und Passwortquelle zu prüfen.",
+    "smtpTestRecipient": "Testempfänger-E-Mail",
+    "smtpTestSection": "Zustellung testen",
+    "smtpTestSend": "Test-E-Mail senden",
+    "smtpTestSent": "Test-E-Mail gesendet",
     "smtpUser": "SMTP-Benutzername"
   },
   "error": {
@@ -422,6 +432,7 @@
     "smtpNotConfigured": "SMTP-Zustelleinstellungen sind nicht konfiguriert",
     "smtpPasswordEnvOnly": "Das SMTP-Passwort muss im Webmodus über Umgebungsvariablen konfiguriert werden",
     "smtpPasswordRequired": "SMTP-Passwort ist erforderlich",
+    "smtpTestRecipientRequired": "Testempfänger-E-Mail ist erforderlich",
     "unknownError": "Unbekannter Datenbankfehler",
     "unsupportedImage": "Nicht unterstützter Bildtyp",
     "unsupportedValue": "Nicht unterstützter Werttyp für den Schlüssel",

@@ -319,6 +319,7 @@ export const webApi = () => {
       apiGet<Response<{ configured: boolean; source: 'keychain' | 'env' }>>('/api/settings/smtp-password-status'),
     setSmtpPassword: (password: string) => apiPut<Response<unknown>>('/api/settings/smtp-password', { password }),
     deleteSmtpPassword: () => apiDelete<Response<unknown>>('/api/settings/smtp-password'),
+    testSmtpDelivery: (data: { recipient: string }) => apiPost<Response<unknown>>('/api/settings/smtp-test', data),
 
     getAllBusinesses: async (filter?: FilterData[]) => {
       const response = await apiGet<Response<BusinessWeb[]>>(

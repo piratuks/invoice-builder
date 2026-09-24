@@ -1,4 +1,3 @@
-import nodemailer from 'nodemailer';
 import {
   InvoiceScheduleCadence,
   InvoiceScheduleDeliveryMethod,
@@ -17,10 +16,10 @@ import type {
   InvoiceScheduleUpdate
 } from '../types/invoiceSchedule';
 import type { Response } from '../types/response';
-import type { Settings } from '../types/settings';
 import { getDefaultValue, prepareUpdate } from '../utils/dbHelper';
 import { mapDatabaseError } from '../utils/errorFunctions';
 import { getWhereClauseFromFilters } from '../utils/filterFunctions';
+import { getDeliverySettings, isDeliveryConfigured, sendDelivery } from './deliveryProviders';
 import { duplicateInvoice } from './invoices';
 
 export type CalculateNextRunAtData = Pick<
@@ -41,11 +40,6 @@ export type ProcessDueInvoiceSchedulesOptions = {
   maxRunsPerSchedule?: number;
   smtpPassword?: string;
 };
-
-type SmtpSettings = Pick<
-  Settings,
-  'smtpHost' | 'smtpPort' | 'smtpSecure' | 'smtpUser' | 'smtpFromEmail' | 'smtpFromName'
->;
 
 const invoiceScheduleFields: (keyof InvoiceScheduleAdd)[] = [
   'sourceInvoiceId',
@@ -358,14 +352,6 @@ const generateInvoiceForScheduleRun = async (
   }
 };
 
-const getSmtpSettings = async (db: DatabaseAdapter) => db.get<SmtpSettings>('SELECT * FROM settings LIMIT 1');
-
-const isSmtpConfigured = (settings: SmtpSettings | null | undefined, smtpPassword?: string) => {
-  return Boolean(
-    settings?.smtpHost && settings.smtpPort && settings.smtpFromEmail && (!settings.smtpUser || smtpPassword)
-  );
-};
-
 const recordDeliveryAttempt = async (
   db: DatabaseAdapter,
   data: {
@@ -435,35 +421,24 @@ const deliverGeneratedInvoiceEmail = async (
     return;
   }
 
-  const settings = await getSmtpSettings(db);
-  if (!isSmtpConfigured(settings, smtpPassword)) {
+  const settings = await getDeliverySettings(db);
+  if (!isDeliveryConfigured(settings, { smtpPassword })) {
     await fail('error.smtpNotConfigured');
     return;
   }
 
   try {
-    const transporter = nodemailer.createTransport({
-      host: settings!.smtpHost,
-      port: settings!.smtpPort,
-      secure: settings!.smtpSecure,
-      auth: settings!.smtpUser
-        ? {
-            user: settings!.smtpUser,
-            pass: smtpPassword
-          }
-        : undefined
-    });
-    const from = settings!.smtpFromName
-      ? `"${settings!.smtpFromName.replace(/"/g, '\\"')}" <${settings!.smtpFromEmail}>`
-      : settings!.smtpFromEmail;
     const invoiceNumber = generatedInvoice.invoiceFullNumber ?? generatedInvoice.invoiceNumber;
 
-    await transporter.sendMail({
-      from,
-      to: recipient,
-      subject: `Invoice ${invoiceNumber}`,
-      text: `Invoice ${invoiceNumber} has been generated.`
-    });
+    await sendDelivery(
+      settings!,
+      { smtpPassword },
+      {
+        recipient,
+        subject: `Invoice ${invoiceNumber}`,
+        text: `Invoice ${invoiceNumber} has been generated.`
+      }
+    );
 
     await recordDeliveryAttempt(db, {
       scheduleRunId: runId,

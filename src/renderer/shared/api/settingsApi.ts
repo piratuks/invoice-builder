@@ -9,7 +9,13 @@ export interface SettingsApiError {
   key?: string;
 }
 
-type SettingsBaseQueryArgs = { type: 'getSettings' } | { type: 'updateSettings'; body: SettingsUpdate };
+type SettingsBaseQueryArgs =
+  | { type: 'getSettings' }
+  | { type: 'updateSettings'; body: SettingsUpdate }
+  | { type: 'getSmtpPasswordStatus' }
+  | { type: 'setSmtpPassword'; password: string }
+  | { type: 'deleteSmtpPassword' }
+  | { type: 'testSmtpDelivery'; recipient: string };
 
 const settingsBaseQuery: BaseQueryFn<SettingsBaseQueryArgs, unknown, SettingsApiError> = async args => {
   try {
@@ -20,6 +26,18 @@ const settingsBaseQuery: BaseQueryFn<SettingsBaseQueryArgs, unknown, SettingsApi
         break;
       case 'updateSettings':
         response = await getApi().updateSettings(args.body);
+        break;
+      case 'getSmtpPasswordStatus':
+        response = await getApi().getSmtpPasswordStatus();
+        break;
+      case 'setSmtpPassword':
+        response = await getApi().setSmtpPassword(args.password);
+        break;
+      case 'deleteSmtpPassword':
+        response = await getApi().deleteSmtpPassword();
+        break;
+      case 'testSmtpDelivery':
+        response = await getApi().testSmtpDelivery({ recipient: args.recipient });
         break;
     }
 
@@ -46,8 +64,30 @@ export const settingsApi = createApi({
     // since local Redux state (pageSlice.settings) is already the source of truth for the UI.
     updateSettings: builder.mutation<Settings, SettingsUpdate>({
       query: body => ({ type: 'updateSettings', body })
+    }),
+    getSmtpPasswordStatus: builder.query<{ configured: boolean; source: 'keychain' | 'env' }, void>({
+      query: () => ({ type: 'getSmtpPasswordStatus' }),
+      providesTags: [{ type: 'Settings', id: 'SMTP_PASSWORD' }]
+    }),
+    setSmtpPassword: builder.mutation<unknown, string>({
+      query: password => ({ type: 'setSmtpPassword', password }),
+      invalidatesTags: [{ type: 'Settings', id: 'SMTP_PASSWORD' }]
+    }),
+    deleteSmtpPassword: builder.mutation<unknown, void>({
+      query: () => ({ type: 'deleteSmtpPassword' }),
+      invalidatesTags: [{ type: 'Settings', id: 'SMTP_PASSWORD' }]
+    }),
+    testSmtpDelivery: builder.mutation<unknown, { recipient: string }>({
+      query: ({ recipient }) => ({ type: 'testSmtpDelivery', recipient })
     })
   })
 });
 
-export const { useGetSettingsQuery, useUpdateSettingsMutation } = settingsApi;
+export const {
+  useGetSettingsQuery,
+  useUpdateSettingsMutation,
+  useGetSmtpPasswordStatusQuery,
+  useSetSmtpPasswordMutation,
+  useDeleteSmtpPasswordMutation,
+  useTestSmtpDeliveryMutation
+} = settingsApi;

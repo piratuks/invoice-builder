@@ -1,5 +1,6 @@
 import { AmountFormat } from '../../shared/enums/amountFormat';
 import { DateFormat } from '../../shared/enums/dateFormat';
+import { DeliveryProvider } from '../../shared/enums/deliveryProvider';
 import { Language } from '../../shared/enums/language';
 import type { Settings } from '../../shared/types/settings';
 import {
@@ -53,6 +54,7 @@ const makeSettings = (overrides: Partial<Settings> = {}): Settings => ({
   shouldIncludeBusinessName: true,
   quotesON: false,
   invoiceSchedulesON: false,
+  deliveryProvider: DeliveryProvider.smtp,
   styleProfilesON: false,
   ublON: false,
   xrechnungON: false,
@@ -61,7 +63,8 @@ const makeSettings = (overrides: Partial<Settings> = {}): Settings => ({
   receiptPrintingOn: false,
   createdAt: '2024-01-01',
   updatedAt: '2024-01-01',
-  ...overrides
+  ...overrides,
+  smtpSecure: overrides.smtpSecure ?? true
 });
 
 const initialState = pageReducer(undefined, { type: '@@INIT' });

@@ -4,6 +4,7 @@ import { I18nextProvider } from 'react-i18next';
 import { Provider } from 'react-redux';
 import i18n from '../../../../i18n';
 import { ThemeContext } from '../../../../shared/components/layout/theme/ThemeProviderWrapper';
+import { DeliveryProvider } from '../../../../shared/enums/deliveryProvider';
 import { MenuItemSettings } from '../../../../shared/enums/menuItemSettings';
 import { Themes } from '../../../../shared/enums/themes';
 import type { MenuItem, MenuItemMetadata } from '../../../../shared/types/menuItem';
@@ -34,6 +35,7 @@ vi.mock('../../../../shared/components/lists/menuList/MenuList', () => ({
 const settings = {
   quotesON: true,
   invoiceSchedulesON: true,
+  deliveryProvider: DeliveryProvider.smtp,
   reportsON: false,
   styleProfilesON: true,
   presetsON: false,

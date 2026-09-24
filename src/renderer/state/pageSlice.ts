@@ -153,6 +153,7 @@ export const pageSlice = createSlice({
         smtpUser?: string;
         smtpFromEmail?: string;
         smtpFromName?: string;
+        deliveryProvider?: Settings['deliveryProvider'];
       }>
     ) => {
       if (!state.settings) return;

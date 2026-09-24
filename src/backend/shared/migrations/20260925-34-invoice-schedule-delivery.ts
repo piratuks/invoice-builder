@@ -6,6 +6,11 @@ export const up = async (db: DatabaseAdapter) => {
   try {
     const cols = await getTableColumns(db, 'settings');
 
+    if (!cols.some(c => c.name === 'deliveryProvider')) {
+      await db.run(
+        'ALTER TABLE settings ADD COLUMN "deliveryProvider" TEXT NOT NULL DEFAULT \'smtp\' CHECK ("deliveryProvider" IN (\'smtp\'))'
+      );
+    }
     if (!cols.some(c => c.name === 'smtpHost')) await db.run('ALTER TABLE settings ADD COLUMN "smtpHost" TEXT');
     if (!cols.some(c => c.name === 'smtpPort')) await db.run('ALTER TABLE settings ADD COLUMN "smtpPort" INTEGER');
     if (!cols.some(c => c.name === 'smtpSecure')) {
