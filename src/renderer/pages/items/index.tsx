@@ -1,16 +1,17 @@
 import { type FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CRUDPage } from '../../shared/components/layout/crudPage/CRUDPage';
+import {
+  useAddItemMutation,
+  useAddItemsBatchMutation,
+  useDeleteItemMutation,
+  useGetItemsQuery,
+  useUpdateItemMutation
+} from '../../shared/api/itemsApi';
+import { CRUDPageRTK } from '../../shared/components/layout/crudPage/CRUDPageRTK';
 import { FilterType } from '../../shared/enums/filterType';
-import { useItemAdd } from '../../shared/hooks/items/useItemAdd';
-import { useItemAddBatch } from '../../shared/hooks/items/useItemAddBatch';
-import { useItemDelete } from '../../shared/hooks/items/useItemDelete';
-import { useItemsRetrieve } from '../../shared/hooks/items/useItemsRetrieve';
-import { useItemUpdate } from '../../shared/hooks/items/useItemUpdate';
 import type { Rows } from '../../shared/types/excel';
-import type { Filter, FilterData } from '../../shared/types/filter';
+import type { Filter } from '../../shared/types/filter';
 import type { Item, ItemAdd, ItemUpdate } from '../../shared/types/item';
-import type { Response } from '../../shared/types/response';
 import { createCommonFilters, createInvoiceFilters } from '../../shared/utils/filterSortFunctions';
 import { isItemFromData } from '../../shared/utils/typeGuardFunctions';
 import { Form } from './Form';
@@ -43,51 +44,17 @@ export const ItemsPage: FC = () => {
     ...createCommonFilters({ t, namespace: 'items', initial: FilterType.active }),
     ...createInvoiceFilters({ t, namespace: 'items' })
   ];
-  const useItemsCRUDRetrieve = (args: { filter?: FilterData[]; onDone?: (data: Response<Item[]>) => void }) => {
-    const { items, execute } = useItemsRetrieve({ filter: args.filter, onDone: args.onDone });
-    return { items: items, execute };
-  };
-  const useItemCRUDAdd = (args: { item?: ItemAdd; immediate?: boolean; onDone?: (data: Response<Item>) => void }) => {
-    return useItemAdd({
-      item: args.item,
-      immediate: args.immediate,
-      onDone: args.onDone
-    });
-  };
-  const useItemsCRUDAddBatch = (args: {
-    item?: ItemAdd[];
-    immediate?: boolean;
-    onDone?: (data: Response<ItemAdd[]>) => void;
-  }) => {
-    return useItemAddBatch({
-      items: args.item,
-      immediate: args.immediate,
-      onDone: args.onDone
-    });
-  };
-  const useItemCRUDUpdate = (args: {
-    item?: ItemUpdate;
-    immediate?: boolean;
-    onDone?: (data: Response<Item>) => void;
-  }) => {
-    return useItemUpdate({
-      item: args.item,
-      immediate: args.immediate,
-      onDone: args.onDone
-    });
-  };
-
   return (
-    <CRUDPage<Item, ItemAdd, ItemUpdate>
+    <CRUDPageRTK<Item, ItemAdd, ItemUpdate>
       componentId="items"
       title={t('items.title')}
       filters={filters}
       excelData={{ excelColumns, excelFileName, excelFormat: 'xlsx', excelTemplateData }}
-      useRetrieve={useItemsCRUDRetrieve}
-      useAdd={useItemCRUDAdd}
-      useAddBatch={useItemsCRUDAddBatch}
-      useUpdate={useItemCRUDUpdate}
-      useDelete={useItemDelete}
+      useRetrieve={useGetItemsQuery}
+      useAdd={useAddItemMutation}
+      useAddBatch={useAddItemsBatchMutation}
+      useUpdate={useUpdateItemMutation}
+      useDelete={useDeleteItemMutation}
       searchField={'name'}
       sortOptions={[
         { label: t('common.name'), value: 'name' },

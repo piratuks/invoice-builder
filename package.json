@@ -1,7 +1,7 @@
 {
   "name": "invoice-builder",
   "private": true,
-  "version": "2.10.0",
+  "version": "2.11.0",
   "type": "module",
   "description": "Invoice and quotation builder desktop app with PDF export, designed for small businesses and freelancers. Create, manage, and export invoices and quotes easily using a local database in an Electron-based app.",
   "author": "piratuks",
@@ -77,6 +77,15 @@
     "release:mac": "npm run build && electron-builder --mac --publish always",
     "postinstall": "electron-builder install-app-deps"
   },
+  "electronmon": {
+    "patterns": [
+      "!data/**",
+      "!**/*.db",
+      "!**/*.db-journal",
+      "!**/*.db-wal",
+      "!**/*.db-shm"
+    ]
+  },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/modifiers": "^9.0.0",
@@ -117,8 +126,7 @@
     "recharts": "^3.8.0",
     "sqlite3": "^6.0.1",
     "tsx": "^4.23.13",
-    "uuid": "^14.0.0",
-    "web-vitals": "^6.1.0"
+    "uuid": "^14.0.0"
   },
   "devDependencies": {
     "@electron/rebuild": "^4.0.4",
@@ -162,8 +170,8 @@
     "sort-json": "^2.0.1",
     "ts-node": "^10.9.2",
     "typescript": "~5.9.3",
-    "vite": "^8.3.0",
     "typescript-eslint": "^8.69.0",
+    "vite": "^8.3.0",
     "vite-plugin-static-copy": "^4.1.0",
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^5.0.0",

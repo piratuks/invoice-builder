@@ -5,6 +5,7 @@ import { I18nextProvider } from 'react-i18next';
 import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router-dom';
 import i18n from '../../../i18n';
+import { invoicesApi } from '../../../shared/api/invoicesApi';
 import { getApi } from '../../../shared/api/restApi';
 import { InvoiceType } from '../../../shared/enums/invoiceType';
 import type { Invoice } from '../../../shared/types/invoice';
@@ -13,6 +14,7 @@ import { InvoicesPage } from '../index';
 
 vi.mock('../../../shared/api/restApi', () => ({ getApi: vi.fn(), isWebMode: () => true }));
 vi.mock('react-signature-canvas', () => ({ default: () => <div data-testid="signature-canvas-stub" /> }));
+vi.mock('../Form', () => ({ Form: () => <div data-testid="invoice-edit-form" /> }));
 
 beforeAll(() => {
   window.matchMedia =
@@ -70,6 +72,7 @@ describe('InvoicesPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    store.dispatch(invoicesApi.util.resetApiState());
     Object.values(mockApi).forEach(fn => fn.mockResolvedValue({ success: true, data: [] }));
     vi.mocked(getApi).mockReturnValue(mockApi as never);
   });
@@ -79,6 +82,7 @@ describe('InvoicesPage', () => {
     render(<InvoicesPage type={InvoiceType.invoice} />, { wrapper });
 
     await waitFor(() => expect(mockApi.getAllInvoices).toHaveBeenCalled());
+    expect(mockApi.getAllInvoices).toHaveBeenCalledTimes(2);
     expect(await screen.findByText(i18n.t('invoices.noItemInvoice'))).toBeInTheDocument();
   });
 
@@ -129,6 +133,6 @@ describe('InvoicesPage', () => {
 
     await user.click(await screen.findByText('INV-0001'));
 
-    expect(await screen.findByText(new RegExp(i18n.t('invoices.addItem'), 'i'))).toBeInTheDocument();
+    expect(await screen.findByTestId('invoice-edit-form')).toBeInTheDocument();
   });
 });

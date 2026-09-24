@@ -1,19 +1,16 @@
 import { Autocomplete, FormControlLabel, Grid, Switch, TextField } from '@mui/material';
-import { useEffect, useRef, useState, type FC } from 'react';
+import { useEffect, useMemo, useRef, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n';
+import { useGetCategoriesQuery } from '../../shared/api/categoriesApi';
+import { useGetUnitsQuery } from '../../shared/api/unitsApi';
 import { AmountInput } from '../../shared/components/inputs/amountInput/AmountInput';
-import { useCategoriesRetrieve } from '../../shared/hooks/categories/useCategoriesRetrieve';
 import { useForm } from '../../shared/hooks/form/useForm';
 import { useFormDirtyCheck } from '../../shared/hooks/form/useFormDirtyCheck';
-import { useUnitsRetrieve } from '../../shared/hooks/units/useUnitsRetrieve';
-import type { Category } from '../../shared/types/category';
 import type { Item, ItemFromData } from '../../shared/types/item';
-import type { Response } from '../../shared/types/response';
-import type { Unit } from '../../shared/types/unit';
 import { validators } from '../../shared/utils/validatorFunctions';
 import { useAppDispatch, useAppSelector } from '../../state/configureStore';
-import { addToast, selectCategoriesOptions, selectSettings, selectUnitsOptions } from '../../state/pageSlice';
+import { addToast, disableLoadingCursor, enableLoadingCursor, selectSettings } from '../../state/pageSlice';
 
 interface Props {
   item?: Item;
@@ -24,31 +21,57 @@ export const Form: FC<Props> = ({ handleChange = () => {}, item }) => {
   const dispatch = useAppDispatch();
   const initialFormRef = useRef<ItemFromData | undefined>(undefined);
 
-  useUnitsRetrieve({
-    onDone: (data: Response<Unit[]>) => {
-      if (!data.success) {
-        if (data.message) {
-          const message = i18n.exists(data.message) ? t(data.message) : data.message;
-          dispatch(addToast({ message: message, severity: 'error' }));
-        } else if (data.key) dispatch(addToast({ message: t(data.key), severity: 'error' }));
-      }
-    }
-  });
+  const {
+    data: unitsData,
+    isLoading: isUnitsLoading,
+    isFetching: isUnitsFetching,
+    isError: isUnitsError,
+    error: unitsError
+  } = useGetUnitsQuery();
 
-  useCategoriesRetrieve({
-    onDone: (data: Response<Category[]>) => {
-      if (!data.success) {
-        if (data.message) {
-          const message = i18n.exists(data.message) ? t(data.message) : data.message;
-          dispatch(addToast({ message: message, severity: 'error' }));
-        } else if (data.key) dispatch(addToast({ message: t(data.key), severity: 'error' }));
-      }
+  useEffect(() => {
+    if (!isUnitsError) return;
+    const { message, key } = (unitsError as { message?: string; key?: string }) ?? {};
+    if (message) {
+      dispatch(addToast({ message: i18n.exists(message) ? t(message) : message, severity: 'error' }));
+    } else if (key) {
+      dispatch(addToast({ message: t(key), severity: 'error' }));
     }
-  });
+  }, [isUnitsError, unitsError, dispatch, t]);
+
+  const {
+    data: categoriesData,
+    isLoading: isCategoriesLoading,
+    isFetching: isCategoriesFetching,
+    isError: isCategoriesError,
+    error: categoriesError
+  } = useGetCategoriesQuery();
+
+  useEffect(() => {
+    if (!isCategoriesError) return;
+    const { message, key } = (categoriesError as { message?: string; key?: string }) ?? {};
+    if (message) {
+      dispatch(addToast({ message: i18n.exists(message) ? t(message) : message, severity: 'error' }));
+    } else if (key) {
+      dispatch(addToast({ message: t(key), severity: 'error' }));
+    }
+  }, [isCategoriesError, categoriesError, dispatch, t]);
+
+  const isBusy = isCategoriesLoading || isCategoriesFetching || isUnitsLoading || isUnitsFetching;
+  useEffect(() => {
+    if (!isBusy) return;
+    dispatch(enableLoadingCursor());
+    return () => {
+      dispatch(disableLoadingCursor());
+    };
+  }, [isBusy, dispatch]);
 
   const settings = useAppSelector(selectSettings);
-  const unitsOptions = useAppSelector(selectUnitsOptions);
-  const categoriesOptions = useAppSelector(selectCategoriesOptions);
+  const unitsOptions = useMemo(() => (unitsData ?? []).map(u => ({ label: u.name, value: u.id })), [unitsData]);
+  const categoriesOptions = useMemo(
+    () => (categoriesData ?? []).map(c => ({ label: c.name, value: c.id })),
+    [categoriesData]
+  );
 
   const { form, setForm, update } = useForm<ItemFromData>({
     id: item?.id,

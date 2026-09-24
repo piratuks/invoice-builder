@@ -5,7 +5,9 @@ import { I18nextProvider } from 'react-i18next';
 import { Provider } from 'react-redux';
 import i18n from '../../../i18n';
 import { getApi } from '../../../shared/api/restApi';
+import type { Settings } from '../../../shared/types/settings';
 import { store } from '../../../state/configureStore';
+import { setSettings } from '../../../state/pageSlice';
 import { SettingsPage } from '../index';
 
 vi.mock('../../../shared/api/restApi', () => ({ getApi: vi.fn(), isWebMode: () => true }));
@@ -54,8 +56,29 @@ describe('SettingsPage', () => {
     checkForUpdates: vi.fn()
   };
 
+  const baseSettings = {
+    id: 1,
+    language: 'en',
+    amountFormat: 'en-US',
+    dateFormat: 'MM/dd/yyyy',
+    isDarkMode: false,
+    shouldIncludeYear: true,
+    shouldIncludeMonth: true,
+    shouldIncludeBusinessName: true,
+    quotesON: true,
+    styleProfilesON: true,
+    ublON: true,
+    xrechnungON: true,
+    receiptPrintingOn: true,
+    presetsON: true,
+    reportsON: true,
+    createdAt: '',
+    updatedAt: ''
+  } as Settings;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    store.dispatch(setSettings(baseSettings));
     mockApi.getAllSettings.mockResolvedValue({ success: true, data: {} });
     mockApi.updateSettings.mockResolvedValue({ success: true, data: {} });
     mockApi.exportAllData.mockResolvedValue({ success: true, data: { filePath: '/tmp/export.json' } });

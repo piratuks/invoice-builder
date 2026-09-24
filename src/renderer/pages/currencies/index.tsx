@@ -1,16 +1,17 @@
 import { type FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CRUDPage } from '../../shared/components/layout/crudPage/CRUDPage';
+import {
+  useAddCurrenciesBatchMutation,
+  useAddCurrencyMutation,
+  useDeleteCurrencyMutation,
+  useGetCurrenciesQuery,
+  useUpdateCurrencyMutation
+} from '../../shared/api/currenciesApi';
+import { CRUDPageRTK } from '../../shared/components/layout/crudPage/CRUDPageRTK';
 import { FilterType } from '../../shared/enums/filterType';
-import { useCurrenciesRetrieve } from '../../shared/hooks/currencies/useCurrenciesRetrieve';
-import { useCurrencyAdd } from '../../shared/hooks/currencies/useCurrencyAdd';
-import { useCurrencyAddBatch } from '../../shared/hooks/currencies/useCurrencyAddBatch';
-import { useCurrencyDelete } from '../../shared/hooks/currencies/useCurrencyDelete';
-import { useCurrencyUpdate } from '../../shared/hooks/currencies/useCurrencyUpdate';
 import type { Currency, CurrencyAdd, CurrencyUpdate } from '../../shared/types/currency';
 import type { Rows } from '../../shared/types/excel';
-import type { Filter, FilterData } from '../../shared/types/filter';
-import type { Response } from '../../shared/types/response';
+import type { Filter } from '../../shared/types/filter';
 import { createCommonFilters, createInvoiceFilters } from '../../shared/utils/filterSortFunctions';
 import { isCurrencyFromData } from '../../shared/utils/typeGuardFunctions';
 import { Form } from './Form';
@@ -42,58 +43,18 @@ export const CurrenciesPage: FC = () => {
     ...createCommonFilters({ t, namespace: 'currencies', initial: FilterType.active }),
     ...createInvoiceFilters({ t, namespace: 'currencies' })
   ];
-  const useCurrenciesCRUDRetrieve = (args: {
-    filter?: FilterData[];
-    onDone?: (data: Response<Currency[]>) => void;
-  }) => {
-    const { currencies, execute } = useCurrenciesRetrieve({ filter: args.filter, onDone: args.onDone });
-    return { items: currencies, execute };
-  };
-  const useCurrencyCRUDAdd = (args: {
-    item?: CurrencyAdd;
-    immediate?: boolean;
-    onDone?: (data: Response<Currency>) => void;
-  }) => {
-    return useCurrencyAdd({
-      currency: args.item,
-      immediate: args.immediate,
-      onDone: args.onDone
-    });
-  };
-  const useCurrenciesCRUDAddBatch = (args: {
-    item?: CurrencyAdd[];
-    immediate?: boolean;
-    onDone?: (data: Response<CurrencyAdd[]>) => void;
-  }) => {
-    return useCurrencyAddBatch({
-      currencies: args.item,
-      immediate: args.immediate,
-      onDone: args.onDone
-    });
-  };
-  const useCurrencyCRUDUpdate = (args: {
-    item?: CurrencyUpdate;
-    immediate?: boolean;
-    onDone?: (data: Response<Currency>) => void;
-  }) => {
-    return useCurrencyUpdate({
-      currency: args.item,
-      immediate: args.immediate,
-      onDone: args.onDone
-    });
-  };
 
   return (
-    <CRUDPage<Currency, CurrencyAdd, CurrencyUpdate>
+    <CRUDPageRTK<Currency, CurrencyAdd, CurrencyUpdate>
       componentId="currencies"
       title={t('common.currency')}
       filters={filters}
       excelData={{ excelColumns, excelFileName, excelFormat: 'xlsx', excelTemplateData }}
-      useRetrieve={useCurrenciesCRUDRetrieve}
-      useAdd={useCurrencyCRUDAdd}
-      useAddBatch={useCurrenciesCRUDAddBatch}
-      useUpdate={useCurrencyCRUDUpdate}
-      useDelete={useCurrencyDelete}
+      useRetrieve={useGetCurrenciesQuery}
+      useAdd={useAddCurrencyMutation}
+      useAddBatch={useAddCurrenciesBatchMutation}
+      useUpdate={useUpdateCurrencyMutation}
+      useDelete={useDeleteCurrencyMutation}
       searchField={'text'}
       sortOptions={[
         { label: t('common.text'), value: 'text' },

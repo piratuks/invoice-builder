@@ -2,12 +2,11 @@ import AddIcon from '@mui/icons-material/Add';
 import { IconButton, SwipeableDrawer, Tooltip, useMediaQuery, useTheme } from '@mui/material';
 import { memo, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CRUDPage } from '../../../../shared/components/layout/crudPage/CRUDPage';
+import { useGetClientsQuery } from '../../../../shared/api/clientsApi';
+import { CRUDPageRTK } from '../../../../shared/components/layout/crudPage/CRUDPageRTK';
 import { FilterType } from '../../../../shared/enums/filterType';
-import { useClientsRetrieve } from '../../../../shared/hooks/clients/useClientsRetrieve';
 import type { Client, ClientAdd, ClientUpdate } from '../../../../shared/types/client';
-import type { Filter, FilterData } from '../../../../shared/types/filter';
-import type { Response } from '../../../../shared/types/response';
+import type { Filter } from '../../../../shared/types/filter';
 import { createCommonFilters, createInvoiceFilters } from '../../../../shared/utils/filterSortFunctions';
 import { List as ClientsList } from '../../../clients/List';
 import { ClientQuickAddModal } from '../Modals/ClientQuickAddModal';
@@ -29,10 +28,6 @@ const ClientsDropdownComponent: FC<Props> = ({ isOpen, onClose, onOpen, onClick 
   ];
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
-  const useClientsCRUDRetrieve = (args: { filter?: FilterData[]; onDone?: (data: Response<Client[]>) => void }) => {
-    const { clients, execute } = useClientsRetrieve({ filter: args.filter, onDone: args.onDone });
-    return { items: clients, execute };
-  };
 
   return (
     <>
@@ -71,11 +66,12 @@ const ClientsDropdownComponent: FC<Props> = ({ isOpen, onClose, onOpen, onClick 
           }
         }}
       >
-        <CRUDPage<Client, ClientAdd, ClientUpdate>
+        <CRUDPageRTK<Client, ClientAdd, ClientUpdate>
           componentId="invoices:clients"
           filters={filters}
           showRightSide={false}
           showAddButton={false}
+          useRetrieve={useGetClientsQuery}
           renderListToolbarActions={() => (
             <Tooltip title={t('invoices.addBillTo')}>
               <IconButton
@@ -93,7 +89,6 @@ const ClientsDropdownComponent: FC<Props> = ({ isOpen, onClose, onOpen, onClick 
               </IconButton>
             </Tooltip>
           )}
-          useRetrieve={useClientsCRUDRetrieve}
           searchField={'name'}
           sortOptions={[
             { label: t('common.name'), value: 'name' },

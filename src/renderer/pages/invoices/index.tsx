@@ -1,25 +1,36 @@
-import { useCallback, useMemo, useState, type FC } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CRUDPage } from '../../shared/components/layout/crudPage/CRUDPage';
+import i18n from '../../i18n';
+import {
+  useAddInvoiceMutation,
+  useDeleteInvoiceMutation,
+  useDuplicateInvoiceMutation,
+  useGetInvoicesQuery,
+  useUpdateInvoiceMutation
+} from '../../shared/api/invoicesApi';
+import { CRUDPageRTK } from '../../shared/components/layout/crudPage/CRUDPageRTK';
 import { FilterType } from '../../shared/enums/filterType';
 import { InvoiceFormMode } from '../../shared/enums/invoiceFormMode';
 import { InvoiceStatus } from '../../shared/enums/invoiceStatus';
 import { InvoiceType } from '../../shared/enums/invoiceType';
-import { useInvoiceAdd } from '../../shared/hooks/invoices/useInvoiceAdd';
-import { useInvoiceDelete } from '../../shared/hooks/invoices/useInvoiceDelete';
-import { useInvoiceDuplicate } from '../../shared/hooks/invoices/useInvoiceDuplicate';
-import { useInvoicesRetrieve } from '../../shared/hooks/invoices/useInvoicesRetrieve';
-import { useInvoiceUpdate } from '../../shared/hooks/invoices/useInvoiceUpdate';
 import type { Row } from '../../shared/types/excel';
 import type { Filter, FilterData } from '../../shared/types/filter';
 import type { Invoice, InvoiceAdd, InvoiceItem, InvoiceUpdate } from '../../shared/types/invoice';
 import type { Preset } from '../../shared/types/preset';
-import type { Response } from '../../shared/types/response';
 import { exportExcel } from '../../shared/utils/fileFunctions';
 import { createCommonFilters } from '../../shared/utils/filterSortFunctions';
 import { isInvoiceFromData } from '../../shared/utils/typeGuardFunctions';
-import { useAppSelector } from '../../state/configureStore';
-import { selectBusinessesSnapshotsOptions, selectClientsSnapshotsOptions, selectSettings } from '../../state/pageSlice';
+import { useAppDispatch, useAppSelector } from '../../state/configureStore';
+import {
+  addToast,
+  disableLoadingCursor,
+  enableLoadingCursor,
+  selectBusinessesSnapshotsOptions,
+  selectClientsSnapshotsOptions,
+  selectSettings,
+  setBusinessSnapshotOptions,
+  setClientSnapshotOptions
+} from '../../state/pageSlice';
 import { NewActionDropdown } from './Dropdowns/NewActionDropdown';
 
 import { Form } from './Form';
@@ -29,11 +40,51 @@ import { List } from './List';
 interface Props {
   type: InvoiceType;
 }
+const EMPTY_INVOICES: Invoice[] = [];
+
 export const InvoicesPage: FC<Props> = ({ type }) => {
   const { t } = useTranslation();
   const clientsOptions = useAppSelector(selectClientsSnapshotsOptions);
   const businessesOptions = useAppSelector(selectBusinessesSnapshotsOptions);
   const settings = useAppSelector(selectSettings);
+  const dispatch = useAppDispatch();
+  const {
+    data: snapshotInvoiceData,
+    isLoading: isSnapshotLoading,
+    isFetching: isSnapshotFetching,
+    isError: isSnapshotError,
+    error: snapshotError
+  } = useGetInvoicesQuery({ invoiceType: type });
+  const snapshotInvoices = snapshotInvoiceData ?? EMPTY_INVOICES;
+
+  useEffect(() => {
+    if (!isSnapshotError) return;
+    const { message, key } = (snapshotError as { message?: string; key?: string }) ?? {};
+    if (message) {
+      dispatch(addToast({ message: i18n.exists(message) ? t(message) : message, severity: 'error' }));
+    } else if (key) {
+      dispatch(addToast({ message: t(key), severity: 'error' }));
+    }
+  }, [dispatch, isSnapshotError, snapshotError, t]);
+
+  useEffect(() => {
+    if (!isSnapshotLoading && !isSnapshotFetching) return;
+    dispatch(enableLoadingCursor());
+    return () => {
+      dispatch(disableLoadingCursor());
+    };
+  }, [dispatch, isSnapshotFetching, isSnapshotLoading]);
+
+  useEffect(() => {
+    const businessNames = [
+      ...new Set(snapshotInvoices.map(invoice => invoice.invoiceBusinessSnapshot?.businessName ?? 'N/A'))
+    ];
+    const clientNames = [
+      ...new Set(snapshotInvoices.map(invoice => invoice.invoiceClientSnapshot?.clientName ?? 'N/A'))
+    ];
+    dispatch(setBusinessSnapshotOptions(businessNames.map(label => ({ label, value: label }))));
+    dispatch(setClientSnapshotOptions(clientNames.map(label => ({ label, value: label }))));
+  }, [dispatch, snapshotInvoices]);
   const filters: Filter[] = [
     ...createCommonFilters({
       t,
@@ -73,45 +124,12 @@ export const InvoicesPage: FC<Props> = ({ type }) => {
             ]
     }
   ];
-  const useInvoicesCRUDRetrieve = (args: { filter?: FilterData[]; onDone?: (data: Response<Invoice[]>) => void }) => {
-    const { invoices, execute } = useInvoicesRetrieve({ type, filter: args.filter, onDone: args.onDone });
-    return { items: invoices, execute };
-  };
-  const useInvoiceCRUDAdd = (args: {
-    item?: InvoiceAdd;
-    immediate?: boolean;
-    onDone?: (data: Response<Invoice>) => void;
-  }) => {
-    return useInvoiceAdd({
-      invoice: args.item,
-      immediate: args.immediate,
-      onDone: args.onDone
-    });
-  };
-  const useInvoiceCRUDUpdate = (args: {
-    item?: InvoiceUpdate;
-    immediate?: boolean;
-    onDone?: (data: Response<Invoice>) => void;
-  }) => {
-    return useInvoiceUpdate({
-      invoice: args.item,
-      immediate: args.immediate,
-      onDone: args.onDone
-    });
-  };
-
-  const [currType, setCurrType] = useState<InvoiceType>(type);
-  const useInvoiceCRUDDuplicate = (args: {
-    id: number;
-    immediate?: boolean;
-    onDone?: (data: Response<unknown>) => void;
-  }) => {
-    return useInvoiceDuplicate({
-      id: args.id,
-      invoiceType: currType,
-      immediate: args.immediate,
-      onDone: args.onDone
-    });
+  const currTypeRef = useRef(type);
+  const useInvoicesCRUDRetrieve = (filter?: FilterData[] | void) =>
+    useGetInvoicesQuery({ invoiceType: type, filter: filter ?? undefined });
+  const useInvoiceCRUDDuplicate = () => {
+    const [duplicate, state] = useDuplicateInvoiceMutation();
+    return [(id: number) => duplicate({ id, invoiceType: currTypeRef.current }), state] as const;
   };
   const exportInvoices = useCallback(
     async (invoices: Invoice[]) => {
@@ -227,7 +245,7 @@ export const InvoicesPage: FC<Props> = ({ type }) => {
 
   return (
     <>
-      <CRUDPage<Invoice, InvoiceAdd, InvoiceUpdate>
+      <CRUDPageRTK<Invoice, InvoiceAdd, InvoiceUpdate>
         componentId="invoices"
         renderCustomButtons={() => {
           return <EditPreviewToggle mode={mode} setMode={setMode} />;
@@ -237,10 +255,10 @@ export const InvoicesPage: FC<Props> = ({ type }) => {
         showOnlyExport={true}
         inlineOnAdd={true}
         useRetrieve={useInvoicesCRUDRetrieve}
-        useAdd={useInvoiceCRUDAdd}
-        useUpdate={useInvoiceCRUDUpdate}
+        useAdd={useAddInvoiceMutation}
+        useUpdate={useUpdateInvoiceMutation}
         useDuplicate={useInvoiceCRUDDuplicate}
-        useDelete={useInvoiceDelete}
+        useDelete={useDeleteInvoiceMutation}
         searchField={'invoiceNumber'}
         sortOptions={[
           { label: t('common.status'), value: 'status' },
@@ -286,7 +304,7 @@ export const InvoicesPage: FC<Props> = ({ type }) => {
             mode={mode}
             preset={selectedPreset}
             handleDuplicate={(id, invoiceType) => {
-              setCurrType(invoiceType);
+              currTypeRef.current = invoiceType;
               if (onDuplicate) onDuplicate(id);
             }}
             handleChange={d => {

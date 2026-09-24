@@ -8,21 +8,30 @@ import { AmountFormat } from '../../../../../shared/enums/amountFormat';
 import { DateFormat } from '../../../../../shared/enums/dateFormat';
 import { InvoiceType } from '../../../../../shared/enums/invoiceType';
 import { Language } from '../../../../../shared/enums/language';
-import type { NextSequenceData } from '../../../../../shared/types/invoice';
-import type { Response } from '../../../../../shared/types/response';
 import { store } from '../../../../../state/configureStore';
 import { setSettings } from '../../../../../state/pageSlice';
 import { InvoiceInformationDropdown } from '../InvoiceInformationDropdown';
 
 const execute = vi.fn();
-let onSequenceDone: ((data: Response<NextSequenceData | undefined>) => void) | undefined;
+let resolveSequence: ((value: unknown) => void) | undefined;
+let rejectSequence: ((reason: unknown) => void) | undefined;
 
-vi.mock('../../../../../shared/hooks/invoices/useGetNextSequence', () => ({
-  useGetNextSequence: (options: { onDone: (data: Response<NextSequenceData | undefined>) => void }) => {
-    onSequenceDone = options.onDone;
-    return { execute };
-  }
-}));
+vi.mock('../../../../../shared/api/invoicesApi', async importOriginal => {
+  const actual = await importOriginal<typeof import('../../../../../shared/api/invoicesApi')>();
+  return {
+    ...actual,
+    useLazyGetNextSequenceQuery: () => {
+      execute.mockImplementation(() => ({
+        unwrap: () =>
+          new Promise((resolve, reject) => {
+            resolveSequence = resolve;
+            rejectSequence = reject;
+          })
+      }));
+      return [execute, { isFetching: false }];
+    }
+  };
+});
 
 const wrapper = ({ children }: { children: ReactNode }) => (
   <Provider store={store}>
@@ -42,6 +51,8 @@ const information = {
 describe('InvoiceInformationDropdown', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    resolveSequence = undefined;
+    rejectSequence = undefined;
     store.dispatch(
       setSettings({
         id: 1,
@@ -74,7 +85,9 @@ describe('InvoiceInformationDropdown', () => {
     render(<InvoiceInformationDropdown isOpen={true} information={information} onClick={onClick} />, { wrapper });
 
     await waitFor(() => expect(execute).toHaveBeenCalled());
-    act(() => onSequenceDone?.({ success: true, data: { formattedSequence: '000042' } } as never));
+    await act(async () => {
+      resolveSequence?.({ formattedSequence: '000042' });
+    });
 
     const numberInput = screen.getByRole('textbox', { name: /invoice number/i });
     await waitFor(() => expect(numberInput).toHaveValue('000042'));
@@ -93,23 +106,25 @@ describe('InvoiceInformationDropdown', () => {
 
     const numberInput = screen.getByRole('textbox', { name: /invoice number/i });
     await user.type(numberInput, 'MANUAL-7');
-    act(() => onSequenceDone?.({ success: true, data: { formattedSequence: '000043' } } as never));
+    await act(async () => {
+      resolveSequence?.({ formattedSequence: '000043' });
+    });
 
-    expect(numberInput).toHaveValue('MANUAL-7');
+    await waitFor(() => expect(numberInput).toHaveValue('MANUAL-7'));
   });
 
   it('handles sequence failures with a message or translation key', async () => {
     render(<InvoiceInformationDropdown isOpen={true} information={information} />, { wrapper });
 
     await waitFor(() => expect(execute).toHaveBeenCalled());
-    act(() => {
-      onSequenceDone?.({ success: false, message: 'Sequence unavailable' } as never);
+    await act(async () => {
+      rejectSequence?.({ message: 'Sequence unavailable' });
     });
-    act(() => {
-      onSequenceDone?.({ success: false, key: 'common.error' } as never);
+    await act(async () => {
+      rejectSequence?.({ key: 'common.error' });
     });
 
-    expect(typeof onSequenceDone).toBe('function');
+    expect(typeof rejectSequence).toBe('function');
   });
 
   it('uses quotation labels and existing prefixes and suffixes', () => {

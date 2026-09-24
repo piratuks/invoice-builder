@@ -6,18 +6,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import i18n from '../i18n';
 import { ClientQuickAddModal } from '../pages/invoices/Form/Modals/ClientQuickAddModal';
 import type { Client } from '../shared/types/client';
-import type { Response } from '../shared/types/response';
 import { store } from '../state/configureStore';
 
 const mockExecute = vi.fn();
-let capturedOnDone: ((data: Response<Client>) => void) | undefined;
+const mockUnwrap = vi.fn();
 let mockLoading = false;
 
-vi.mock('../shared/hooks/clients/useClientAdd', () => ({
-  useClientAdd: (params: { onDone?: (data: Response<Client>) => void }) => {
-    capturedOnDone = params.onDone;
-    return { execute: mockExecute, loading: mockLoading, data: undefined };
-  }
+vi.mock('../shared/api/clientsApi', async importOriginal => ({
+  ...(await importOriginal<typeof import('../shared/api/clientsApi')>()),
+  useAddClientMutation: () => [mockExecute, { isLoading: mockLoading }]
 }));
 
 const fakeClient: Client = {
@@ -48,7 +45,9 @@ const renderModal = (props: Partial<ComponentProps<typeof ClientQuickAddModal>> 
 describe('ClientQuickAddModal', () => {
   beforeEach(() => {
     mockExecute.mockReset();
-    capturedOnDone = undefined;
+    mockExecute.mockImplementation(() => ({ unwrap: mockUnwrap }));
+    mockUnwrap.mockReset();
+    mockUnwrap.mockResolvedValue(undefined);
     mockLoading = false;
   });
 
@@ -59,24 +58,24 @@ describe('ClientQuickAddModal', () => {
 
   it('creates a client and calls onCreated on success', async () => {
     const { onCreated } = renderModal();
+    mockUnwrap.mockResolvedValueOnce(fakeClient);
 
     fireEvent.change(screen.getByLabelText(/name/i), { target: { value: 'Acme Corp' } });
     fireEvent.click(screen.getByRole('button', { name: /save/i }));
 
     await waitFor(() => expect(mockExecute).toHaveBeenCalledTimes(1));
-    capturedOnDone?.({ success: true, data: fakeClient });
 
     await waitFor(() => expect(onCreated).toHaveBeenCalledWith(fakeClient));
   });
 
   it('does not call onCreated when the API fails', async () => {
     const { onCreated } = renderModal();
+    mockUnwrap.mockRejectedValueOnce({ key: 'error.failed' });
 
     fireEvent.change(screen.getByLabelText(/name/i), { target: { value: 'Acme Corp' } });
     fireEvent.click(screen.getByRole('button', { name: /save/i }));
 
     await waitFor(() => expect(mockExecute).toHaveBeenCalledTimes(1));
-    capturedOnDone?.({ success: false, key: 'error.failed' });
 
     expect(onCreated).not.toHaveBeenCalled();
   });

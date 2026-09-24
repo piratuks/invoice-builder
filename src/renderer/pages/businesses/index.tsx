@@ -1,15 +1,16 @@
 import { useTranslation } from 'react-i18next';
-import { CRUDPage } from '../../shared/components/layout/crudPage/CRUDPage';
+import {
+  useAddBusinessesBatchMutation,
+  useAddBusinessMutation,
+  useDeleteBusinessMutation,
+  useGetBusinessesQuery,
+  useUpdateBusinessMutation
+} from '../../shared/api/businessesApi';
+import { CRUDPageRTK } from '../../shared/components/layout/crudPage/CRUDPageRTK';
 import { FilterType } from '../../shared/enums/filterType';
-import { useBusinessAdd } from '../../shared/hooks/businesses/useBusinessAdd';
-import { useBusinessAddBatch } from '../../shared/hooks/businesses/useBusinessAddBatch';
-import { useBusinessDelete } from '../../shared/hooks/businesses/useBusinessDelete';
-import { useBusinessesRetrieve } from '../../shared/hooks/businesses/useBusinessesRetrieve';
-import { useBusinessUpdate } from '../../shared/hooks/businesses/useBusinessUpdate';
 import type { Business, BusinessAdd, BusinessUpdate } from '../../shared/types/business';
 import type { Rows } from '../../shared/types/excel';
-import type { Filter, FilterData } from '../../shared/types/filter';
-import type { Response } from '../../shared/types/response';
+import type { Filter } from '../../shared/types/filter';
 import { createCommonFilters, createInvoiceFilters } from '../../shared/utils/filterSortFunctions';
 import { isBusinessFromData } from '../../shared/utils/typeGuardFunctions';
 import { Form } from './Form';
@@ -78,58 +79,18 @@ export const BusinessesPage = () => {
     ...createCommonFilters({ t, namespace: 'businesses', initial: FilterType.active }),
     ...createInvoiceFilters({ t, namespace: 'businesses' })
   ];
-  const useBusinessesCRUDRetrieve = (args: {
-    filter?: FilterData[];
-    onDone?: (data: Response<Business[]>) => void;
-  }) => {
-    const { businesses, execute } = useBusinessesRetrieve({ filter: args.filter, onDone: args.onDone });
-    return { items: businesses, execute };
-  };
-  const useBusinessCRUDAdd = (args: {
-    item?: BusinessAdd;
-    immediate?: boolean;
-    onDone?: (data: Response<Business>) => void;
-  }) => {
-    return useBusinessAdd({
-      business: args.item,
-      immediate: args.immediate,
-      onDone: args.onDone
-    });
-  };
-  const useBusinessesCRUDAddBatch = (args: {
-    item?: BusinessAdd[];
-    immediate?: boolean;
-    onDone?: (data: Response<BusinessAdd[]>) => void;
-  }) => {
-    return useBusinessAddBatch({
-      businesses: args.item,
-      immediate: args.immediate,
-      onDone: args.onDone
-    });
-  };
-  const useBusinessCRUDUpdate = (args: {
-    item?: BusinessUpdate;
-    immediate?: boolean;
-    onDone?: (data: Response<Business>) => void;
-  }) => {
-    return useBusinessUpdate({
-      business: args.item,
-      immediate: args.immediate,
-      onDone: args.onDone
-    });
-  };
 
   return (
-    <CRUDPage<Business, BusinessAdd, BusinessUpdate>
+    <CRUDPageRTK<Business, BusinessAdd, BusinessUpdate>
       componentId="businesses"
       title={t('businesses.title')}
       filters={filters}
       excelData={{ excelColumns, excelFileName, excelFormat: 'xlsx', excelTemplateData }}
-      useRetrieve={useBusinessesCRUDRetrieve}
-      useAdd={useBusinessCRUDAdd}
-      useAddBatch={useBusinessesCRUDAddBatch}
-      useUpdate={useBusinessCRUDUpdate}
-      useDelete={useBusinessDelete}
+      useRetrieve={useGetBusinessesQuery}
+      useAdd={useAddBusinessMutation}
+      useAddBatch={useAddBusinessesBatchMutation}
+      useUpdate={useUpdateBusinessMutation}
+      useDelete={useDeleteBusinessMutation}
       searchField={'name'}
       sortOptions={[
         { label: t('common.name'), value: 'name' },

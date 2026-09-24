@@ -13,19 +13,16 @@ import {
   removeToast,
   selectAllowed,
   selectBusinessesSnapshotsOptions,
-  selectCategoriesOptions,
   selectClientsSnapshotsOptions,
   selectDbReady,
   selectIsLoading,
   selectNewVersion,
   selectSettings,
   selectToasts,
-  selectUnitsOptions,
   selectUpdateMessage,
   selectVersion,
   setAllowed,
   setBusinessSnapshotOptions,
-  setCategoryOptions,
   setClientSnapshotOptions,
   setCustomInvoiseSettings,
   setDbReady,
@@ -40,7 +37,6 @@ import {
   setReports,
   setSettings,
   setStyleProfiles,
-  setUnitOptions,
   setUpdateMessage,
   setVersion
 } from '../pageSlice';
@@ -75,11 +71,40 @@ describe('pageSlice reducer', () => {
     expect(pageReducer(loading, disableLoading()).isLoading).toBe(false);
   });
 
+  it('keeps the loading flag set while any concurrent loading source is still active', () => {
+    let state = pageReducer(initialState, enableLoading());
+    state = pageReducer(state, enableLoading());
+    expect(state.isLoading).toBe(true);
+
+    state = pageReducer(state, disableLoading());
+    expect(state.isLoading).toBe(true);
+
+    expect(pageReducer(state, disableLoading())).toMatchObject({ isLoading: false, loadingCount: 0 });
+  });
+
   it('sets the document cursor for loading indicators', () => {
     pageReducer(initialState, enableLoadingCursor());
     expect(document.body.style.cursor).toBe('wait');
 
     pageReducer(initialState, disableLoadingCursor());
+    expect(document.body.style.cursor).toBe('default');
+  });
+
+  it('keeps the cursor waiting while any concurrent loading source is still active', () => {
+    let state = pageReducer(initialState, enableLoadingCursor());
+    state = pageReducer(state, enableLoadingCursor());
+    expect(document.body.style.cursor).toBe('wait');
+
+    state = pageReducer(state, disableLoadingCursor());
+    expect(document.body.style.cursor).toBe('wait');
+
+    expect(pageReducer(state, disableLoadingCursor())).toMatchObject({ loadingCursorCount: 0 });
+    expect(document.body.style.cursor).toBe('default');
+  });
+
+  it('never lets the cursor counter go negative on an unbalanced disable', () => {
+    const state = pageReducer(initialState, disableLoadingCursor());
+    expect(state.loadingCursorCount).toBe(0);
     expect(document.body.style.cursor).toBe('default');
   });
 
@@ -121,8 +146,6 @@ describe('pageSlice reducer', () => {
       ...initialState,
       dbReady: true,
       settings: makeSettings(),
-      categoryOptions: [{ label: 'A', value: 1 }],
-      unitOptions: [{ label: 'B', value: 2 }],
       clientSnapshotOptions: [{ label: 'C', value: 'c' }],
       businessSnapshotOptions: [{ label: 'D', value: 'd' }]
     };
@@ -130,20 +153,25 @@ describe('pageSlice reducer', () => {
     const result = pageReducer(populated, logout());
     expect(result.dbReady).toBe(false);
     expect(result.settings).toBeUndefined();
-    expect(result.categoryOptions).toEqual([]);
-    expect(result.unitOptions).toEqual([]);
     expect(result.clientSnapshotOptions).toEqual([]);
     expect(result.businessSnapshotOptions).toEqual([]);
   });
 
-  it('sets category/unit/client/business options', () => {
-    let state = pageReducer(initialState, setCategoryOptions([{ label: 'Cat', value: 1 }]));
-    expect(state.categoryOptions).toEqual([{ label: 'Cat', value: 1 }]);
+  it('clears any stuck loading counters and cursor on logout', () => {
+    let state = pageReducer(initialState, enableLoading());
+    state = pageReducer(state, enableLoadingCursor());
+    expect(state.isLoading).toBe(true);
+    expect(document.body.style.cursor).toBe('wait');
 
-    state = pageReducer(state, setUnitOptions([{ label: 'Unit', value: 2 }]));
-    expect(state.unitOptions).toEqual([{ label: 'Unit', value: 2 }]);
+    const result = pageReducer(state, logout());
+    expect(result.isLoading).toBe(false);
+    expect(result.loadingCount).toBe(0);
+    expect(result.loadingCursorCount).toBe(0);
+    expect(document.body.style.cursor).toBe('default');
+  });
 
-    state = pageReducer(state, setClientSnapshotOptions([{ label: 'Client', value: 'c1' }]));
+  it('sets client/business options', () => {
+    let state = pageReducer(initialState, setClientSnapshotOptions([{ label: 'Client', value: 'c1' }]));
     expect(state.clientSnapshotOptions).toEqual([{ label: 'Client', value: 'c1' }]);
 
     state = pageReducer(state, setBusinessSnapshotOptions([{ label: 'Biz', value: 'b1' }]));
@@ -247,8 +275,6 @@ describe('pageSlice selectors', () => {
       newVersion: '1.1.0',
       updateMessage: 'msg',
       isAllowedToLeave: false,
-      categoryOptions: [{ label: 'a', value: 1 }],
-      unitOptions: [{ label: 'b', value: 2 }],
       clientSnapshotOptions: [{ label: 'c', value: 'c' }],
       businessSnapshotOptions: [{ label: 'd', value: 'd' }],
       settings: makeSettings()
@@ -261,8 +287,6 @@ describe('pageSlice selectors', () => {
     expect(selectNewVersion(rootState)).toBe('1.1.0');
     expect(selectUpdateMessage(rootState)).toBe('msg');
     expect(selectAllowed(rootState)).toBe(false);
-    expect(selectCategoriesOptions(rootState)).toEqual([{ label: 'a', value: 1 }]);
-    expect(selectUnitsOptions(rootState)).toEqual([{ label: 'b', value: 2 }]);
     expect(selectClientsSnapshotsOptions(rootState)).toEqual([{ label: 'c', value: 'c' }]);
     expect(selectBusinessesSnapshotsOptions(rootState)).toEqual([{ label: 'd', value: 'd' }]);
     expect(selectSettings(rootState)).toEqual(makeSettings());
@@ -270,14 +294,10 @@ describe('pageSlice selectors', () => {
 
   it('falls back to empty arrays when option lists are undefined', () => {
     const rootState = buildRootState({
-      categoryOptions: undefined as never,
-      unitOptions: undefined as never,
       clientSnapshotOptions: undefined as never,
       businessSnapshotOptions: undefined as never
     });
 
-    expect(selectCategoriesOptions(rootState)).toEqual([]);
-    expect(selectUnitsOptions(rootState)).toEqual([]);
     expect(selectClientsSnapshotsOptions(rootState)).toEqual([]);
     expect(selectBusinessesSnapshotsOptions(rootState)).toEqual([]);
   });

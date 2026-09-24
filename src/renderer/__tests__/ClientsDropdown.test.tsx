@@ -17,14 +17,15 @@ const fakeClient: Client = {
   isArchived: false
 };
 
-vi.mock('../shared/components/layout/crudPage/CRUDPage', () => ({
-  CRUDPage: ({ renderListToolbarActions }: { renderListToolbarActions?: () => React.ReactNode }) => (
+vi.mock('../shared/components/layout/crudPage/CRUDPageRTK', () => ({
+  CRUDPageRTK: ({ renderListToolbarActions }: { renderListToolbarActions?: () => React.ReactNode }) => (
     <div data-testid="crud-page">{renderListToolbarActions?.()}</div>
   )
 }));
 
-vi.mock('../shared/hooks/clients/useClientsRetrieve', () => ({
-  useClientsRetrieve: () => ({ clients: [], execute: vi.fn() })
+vi.mock('../shared/api/clientsApi', async importOriginal => ({
+  ...(await importOriginal<typeof import('../shared/api/clientsApi')>()),
+  useGetClientsQuery: () => ({ data: [], isLoading: false, isFetching: false })
 }));
 
 vi.mock('../pages/invoices/Form/Modals/ClientQuickAddModal', () => ({

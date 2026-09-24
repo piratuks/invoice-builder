@@ -1,5 +1,10 @@
 # Invoice Builder
 
+## [DATE], version 2.11.0
+
+- Migrated the renderer data layer to Redux Toolkit Query for shared caching, loading states, error handling, and cache invalidation.
+- Added quick client creation directly from the invoice and quote client selector, with automatic selection of the newly created client.
+
 ## 2026-09-22, version 2.10.0
 
 New features & improvements

@@ -1,12 +1,11 @@
 import { SwipeableDrawer, useMediaQuery, useTheme } from '@mui/material';
 import { memo, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CRUDPage } from '../../../../shared/components/layout/crudPage/CRUDPage';
+import { useGetBusinessesQuery } from '../../../../shared/api/businessesApi';
+import { CRUDPageRTK } from '../../../../shared/components/layout/crudPage/CRUDPageRTK';
 import { FilterType } from '../../../../shared/enums/filterType';
-import { useBusinessesRetrieve } from '../../../../shared/hooks/businesses/useBusinessesRetrieve';
 import type { Business, BusinessAdd, BusinessUpdate } from '../../../../shared/types/business';
-import type { Filter, FilterData } from '../../../../shared/types/filter';
-import type { Response } from '../../../../shared/types/response';
+import type { Filter } from '../../../../shared/types/filter';
 import { createCommonFilters, createInvoiceFilters } from '../../../../shared/utils/filterSortFunctions';
 import { List as BusinessList } from '../../../businesses/List';
 
@@ -25,13 +24,6 @@ const BusinessesDropdownComponent: FC<Props> = ({ isOpen, onClose, onOpen, onCli
   ];
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
-  const useBusinessesCRUDRetrieve = (args: {
-    filter?: FilterData[];
-    onDone?: (data: Response<Business[]>) => void;
-  }) => {
-    const { businesses, execute } = useBusinessesRetrieve({ filter: args.filter, onDone: args.onDone });
-    return { items: businesses, execute };
-  };
   return (
     <>
       <SwipeableDrawer
@@ -54,12 +46,12 @@ const BusinessesDropdownComponent: FC<Props> = ({ isOpen, onClose, onOpen, onCli
           }
         }}
       >
-        <CRUDPage<Business, BusinessAdd, BusinessUpdate>
+        <CRUDPageRTK<Business, BusinessAdd, BusinessUpdate>
           componentId="invoices:businesses"
           filters={filters}
           showRightSide={false}
           showAddButton={false}
-          useRetrieve={useBusinessesCRUDRetrieve}
+          useRetrieve={useGetBusinessesQuery}
           searchField={'name'}
           sortOptions={[
             { label: t('common.name'), value: 'name' },
