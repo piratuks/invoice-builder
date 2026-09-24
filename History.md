@@ -5,6 +5,7 @@
 New features & improvements
 
 - Migrated the renderer data layer to Redux Toolkit Query for shared caching, loading states, error handling, and cache invalidation.
+- Added quick client creation directly from the invoice and quote client selector, with automatic selection of the newly created client.
 
 Bug fixes
 

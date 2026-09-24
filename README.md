@@ -64,6 +64,7 @@ If you value **privacy, portability, and control**, this app is built for you.
 ### Business Data Management
 
 - Banks, Businesses, Clients, Items, Categories, Units, Currencies
+- Quickly add a client while creating an invoice or quote, without leaving the document form
 - Persistent search, persistent sort, persistent filter, archive (non-destructive)
 - XLSX import/export for most entities
 - Automatic creation of missing units/categories on item import
