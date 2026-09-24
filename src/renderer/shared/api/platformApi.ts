@@ -566,7 +566,11 @@ export const webApi = () => {
     },
     deleteInvoice: (id: number) => apiDelete<Response<unknown>>(`/api/invoices/${id}`),
 
-    getAllInvoiceSchedules: () => apiGet<Response<InvoiceSchedule[]>>('/api/invoice-schedules'),
+    getAllInvoiceSchedules: (filter?: FilterData[]) =>
+      apiGet<Response<InvoiceSchedule[]>>(
+        '/api/invoice-schedules',
+        filter?.length ? { filter: JSON.stringify(filter) } : undefined
+      ),
     getInvoiceScheduleRuns: (scheduleId: number) =>
       apiGet<Response<InvoiceScheduleRun[]>>(`/api/invoice-schedules/${scheduleId}/runs`),
     addInvoiceSchedule: (data: InvoiceScheduleAdd) =>

@@ -4,6 +4,7 @@ import { I18nextProvider } from 'react-i18next';
 import { Provider } from 'react-redux';
 import i18n from '../../../i18n';
 import { store } from '../../../state/configureStore';
+import { FilterType } from '../../enums/filterType';
 import {
   InvoiceScheduleCadence,
   InvoiceScheduleDeliveryMethod,
@@ -44,16 +45,17 @@ describe('invoiceSchedulesApi', () => {
   });
 
   it('retrieves schedule list and run history', async () => {
+    const filter = [{ type: FilterType.active, value: '' }];
     mockApi.getAllInvoiceSchedules.mockResolvedValue({ success: true, data: [{ id: 1, sourceInvoiceId: 3 }] });
     mockApi.getInvoiceScheduleRuns.mockResolvedValue({ success: true, data: [{ id: 9, scheduleId: 1 }] });
 
-    const schedules = renderHook(() => useGetInvoiceSchedulesQuery(), { wrapper });
+    const schedules = renderHook(() => useGetInvoiceSchedulesQuery(filter), { wrapper });
     const runs = renderHook(() => useGetInvoiceScheduleRunsQuery(1), { wrapper });
 
     await waitFor(() => expect(schedules.result.current.isSuccess).toBe(true));
     await waitFor(() => expect(runs.result.current.isSuccess).toBe(true));
 
-    expect(mockApi.getAllInvoiceSchedules).toHaveBeenCalledWith();
+    expect(mockApi.getAllInvoiceSchedules).toHaveBeenCalledWith(filter);
     expect(mockApi.getInvoiceScheduleRuns).toHaveBeenCalledWith(1);
     expect(schedules.result.current.data).toEqual([{ id: 1, sourceInvoiceId: 3 }]);
     expect(runs.result.current.data).toEqual([{ id: 9, scheduleId: 1 }]);

@@ -36,6 +36,7 @@ describe('invoice schedules migration', () => {
         'lastRunAt',
         'dueDateOffsetDays',
         'status',
+        'isArchived',
         'deliveryMethod',
         'failureReason'
       ])

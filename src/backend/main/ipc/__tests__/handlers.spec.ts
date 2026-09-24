@@ -79,15 +79,16 @@ describe('Electron IPC handlers', () => {
   it('registers and forwards invoice schedule channels', async () => {
     initInvoiceSchedulesHandlers();
     const schedule = { id: 7, sourceInvoiceId: 3 };
+    const filter = [{ type: 'Active', value: '' }];
     const event = { sender: { id: 1 } };
 
-    await ipc.handlers.get('get-all-invoice-schedules')?.(event);
+    await ipc.handlers.get('get-all-invoice-schedules')?.(event, filter);
     await ipc.handlers.get('get-invoice-schedule-runs')?.(event, 7);
     await ipc.handlers.get('add-invoice-schedule')?.(event, schedule);
     await ipc.handlers.get('update-invoice-schedule')?.(event, schedule);
     await ipc.handlers.get('delete-invoice-schedule')?.(event, 7);
 
-    expect(serviceMocks.getAllInvoiceSchedules).toHaveBeenCalledWith(db);
+    expect(serviceMocks.getAllInvoiceSchedules).toHaveBeenCalledWith(db, filter);
     expect(serviceMocks.getInvoiceScheduleRuns).toHaveBeenCalledWith(db, 7);
     expect(serviceMocks.addInvoiceSchedule).toHaveBeenCalledWith(db, schedule);
     expect(serviceMocks.updateInvoiceSchedule).toHaveBeenCalledWith(db, schedule);

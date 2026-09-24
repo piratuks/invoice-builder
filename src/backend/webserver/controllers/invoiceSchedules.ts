@@ -1,10 +1,11 @@
 import { type Express, type Request, type Response } from 'express';
 import * as invoiceSchedulesService from '../../shared/services/invoiceSchedules';
-import { requireDB } from '../utils/functions';
+import { parseFilter, requireDB } from '../utils/functions';
 
 export const initInvoiceSchedulesController = (app: Express) => {
   app.get('/api/invoice-schedules', requireDB, async (req: Request, res: Response) => {
-    const result = await invoiceSchedulesService.getAllInvoiceSchedules(req.db!);
+    const filter = parseFilter(req.query.filter as string);
+    const result = await invoiceSchedulesService.getAllInvoiceSchedules(req.db!, filter);
     res.json(result);
   });
 

@@ -116,7 +116,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   addInvoice: (data: InvoiceAdd) => ipcRenderer.invoke('add-invoice', data),
   duplicateInvoice: (id: number, invoiceType: InvoiceType) => ipcRenderer.invoke('duplicate-invoice', id, invoiceType),
 
-  getAllInvoiceSchedules: () => ipcRenderer.invoke('get-all-invoice-schedules'),
+  getAllInvoiceSchedules: (filter?: FilterData[]) => ipcRenderer.invoke('get-all-invoice-schedules', filter),
   getInvoiceScheduleRuns: (scheduleId: number) => ipcRenderer.invoke('get-invoice-schedule-runs', scheduleId),
   updateInvoiceSchedule: (data: InvoiceScheduleUpdate) => ipcRenderer.invoke('update-invoice-schedule', data),
   addInvoiceSchedule: (data: InvoiceScheduleAdd) => ipcRenderer.invoke('add-invoice-schedule', data),

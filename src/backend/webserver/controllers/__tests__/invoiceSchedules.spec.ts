@@ -13,6 +13,7 @@ const services = vi.hoisted(() => ({
 
 vi.mock('../../../shared/services/invoiceSchedules', () => services);
 vi.mock('../../utils/functions', () => ({
+  parseFilter: vi.fn((value?: string) => (value ? JSON.parse(value) : undefined)),
   requireDB: (req: { db?: unknown }, _res: unknown, next: () => void) => {
     req.db = { type: 'sqlite' };
     next();
@@ -48,13 +49,14 @@ describe('invoice schedule webserver controller', () => {
   });
 
   it('forwards schedule CRUD and run-history requests', async () => {
-    await invoke('GET', '/api/invoice-schedules', {});
+    const filter = [{ type: 'Active', value: '' }];
+    await invoke('GET', '/api/invoice-schedules', { query: { filter: JSON.stringify(filter) } });
     await invoke('GET', '/api/invoice-schedules/:id/runs', { params: { id: '7' } });
     await invoke('POST', '/api/invoice-schedules', { body: { sourceInvoiceId: 1 } });
     await invoke('PUT', '/api/invoice-schedules', { body: { id: 7, status: 'paused' } });
     await invoke('DELETE', '/api/invoice-schedules/:id', { params: { id: '7' } });
 
-    expect(services.getAllInvoiceSchedules).toHaveBeenCalledWith(expect.anything());
+    expect(services.getAllInvoiceSchedules).toHaveBeenCalledWith(expect.anything(), filter);
     expect(services.getInvoiceScheduleRuns).toHaveBeenCalledWith(expect.anything(), 7);
     expect(services.addInvoiceSchedule).toHaveBeenCalledWith(expect.anything(), { sourceInvoiceId: 1 });
     expect(services.updateInvoiceSchedule).toHaveBeenCalledWith(expect.anything(), { id: 7, status: 'paused' });

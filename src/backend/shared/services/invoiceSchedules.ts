@@ -8,6 +8,7 @@ import {
 import { InvoiceType } from '../enums/invoiceType';
 import type { DatabaseAdapter } from '../types/DatabaseAdapter';
 import type { Invoice } from '../types/invoice';
+import type { FilterData } from '../types/invoiceFilter';
 import type {
   InvoiceSchedule,
   InvoiceScheduleAdd,
@@ -17,6 +18,7 @@ import type {
 import type { Response } from '../types/response';
 import { getDefaultValue, prepareUpdate } from '../utils/dbHelper';
 import { mapDatabaseError } from '../utils/errorFunctions';
+import { getWhereClauseFromFilters } from '../utils/filterFunctions';
 import { duplicateInvoice } from './invoices';
 
 export type CalculateNextRunAtData = Pick<
@@ -49,6 +51,7 @@ const invoiceScheduleFields: (keyof InvoiceScheduleAdd)[] = [
   'lastRunAt',
   'dueDateOffsetDays',
   'status',
+  'isArchived',
   'deliveryMethod',
   'failureReason'
 ];
@@ -117,7 +120,7 @@ export const getDueSchedules = async (db: DatabaseAdapter, now = new Date()): Pr
   try {
     const schedules = await db.all<InvoiceSchedule>(
       `SELECT * FROM invoice_schedules
-       WHERE "status" = ? AND "nextRunAt" <= ?
+       WHERE "status" = ? AND "isArchived" = 0 AND "nextRunAt" <= ?
        ORDER BY "nextRunAt" ASC, "id" ASC`,
       [InvoiceScheduleStatus.active, toIso(now)]
     );
@@ -127,10 +130,18 @@ export const getDueSchedules = async (db: DatabaseAdapter, now = new Date()): Pr
   }
 };
 
-export const getAllInvoiceSchedules = async (db: DatabaseAdapter): Promise<Response<InvoiceSchedule[]>> => {
+export const getAllInvoiceSchedules = async (
+  db: DatabaseAdapter,
+  filter?: FilterData[]
+): Promise<Response<InvoiceSchedule[]>> => {
   try {
+    const where = getWhereClauseFromFilters({
+      filters: filter ?? [],
+      archivedColumn: '"isArchived"',
+      statusColumn: '"status"'
+    });
     const schedules = await db.all<InvoiceSchedule>(
-      `SELECT * FROM invoice_schedules ORDER BY "createdAt" DESC, "id" DESC`
+      `SELECT * FROM invoice_schedules WHERE ${where} ORDER BY "createdAt" DESC, "id" DESC`
     );
     return { success: true, data: schedules };
   } catch (error) {
@@ -158,7 +169,12 @@ export const addInvoiceSchedule = async (
   data: InvoiceScheduleAdd
 ): Promise<Response<InvoiceSchedule>> => {
   try {
-    const schedule = { ...data, nextRunAt: data.nextRunAt ?? data.startAt };
+    const isArchived = data.isArchived ?? false;
+    const schedule = {
+      ...data,
+      status: isArchived ? InvoiceScheduleStatus.paused : (data.status ?? InvoiceScheduleStatus.active),
+      nextRunAt: data.nextRunAt ?? data.startAt
+    };
     const params = invoiceScheduleFields.map(key => schedule[key] ?? null);
     const id = await db.run(
       `INSERT INTO invoice_schedules (${invoiceScheduleFields.map(field => `"${String(field)}"`).join(',')})
@@ -181,6 +197,7 @@ export const updateInvoiceSchedule = async (
 ): Promise<Response<InvoiceSchedule>> => {
   try {
     const { id, ...rest } = data;
+    if (rest.isArchived === true) rest.status = InvoiceScheduleStatus.paused;
     const updatedSchedule = await updateScheduleRecord(db, id, rest as Record<string, string | number | null>);
     if (!updatedSchedule) return { success: false, key: 'error.scheduleNotFound' };
     return { success: true, data: updatedSchedule };

@@ -1,4 +1,5 @@
 import { createApi, type BaseQueryFn } from '@reduxjs/toolkit/query/react';
+import type { FilterData } from '../types/filter';
 import type {
   InvoiceSchedule,
   InvoiceScheduleAdd,
@@ -15,7 +16,7 @@ export interface InvoiceSchedulesApiError {
 }
 
 type InvoiceSchedulesBaseQueryArgs =
-  | { type: 'getInvoiceSchedules' }
+  | { type: 'getInvoiceSchedules'; filter?: FilterData[] }
   | { type: 'getInvoiceScheduleRuns'; scheduleId: number }
   | { type: 'addInvoiceSchedule'; body: InvoiceScheduleAdd }
   | { type: 'updateInvoiceSchedule'; body: InvoiceScheduleUpdate }
@@ -30,7 +31,7 @@ const invoiceSchedulesBaseQuery: BaseQueryFn<
     let response: Response<unknown>;
     switch (args.type) {
       case 'getInvoiceSchedules':
-        response = await getApi().getAllInvoiceSchedules();
+        response = await getApi().getAllInvoiceSchedules(args.filter);
         break;
       case 'getInvoiceScheduleRuns':
         response = await getApi().getInvoiceScheduleRuns(args.scheduleId);
@@ -61,8 +62,11 @@ export const invoiceSchedulesApi = createApi({
   baseQuery: invoiceSchedulesBaseQuery,
   tagTypes: ['InvoiceSchedule', 'InvoiceScheduleRun'],
   endpoints: builder => ({
-    getInvoiceSchedules: builder.query<InvoiceSchedule[], void>({
-      query: () => ({ type: 'getInvoiceSchedules' }),
+    getInvoiceSchedules: builder.query<InvoiceSchedule[], FilterData[] | void>({
+      query: filter => {
+        if (!filter) return { type: 'getInvoiceSchedules' };
+        return { type: 'getInvoiceSchedules', filter };
+      },
       providesTags: result =>
         result
           ? [

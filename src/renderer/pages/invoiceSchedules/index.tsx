@@ -11,7 +11,7 @@ import { CRUDPageRTK } from '../../shared/components/layout/crudPage/CRUDPageRTK
 import { FilterType } from '../../shared/enums/filterType';
 import { InvoiceScheduleStatus } from '../../shared/enums/invoiceSchedule';
 import { InvoiceType } from '../../shared/enums/invoiceType';
-import type { Filter, FilterData } from '../../shared/types/filter';
+import type { Filter } from '../../shared/types/filter';
 import type { InvoiceSchedule, InvoiceScheduleAdd, InvoiceScheduleUpdate } from '../../shared/types/invoiceSchedule';
 import { exportExcel } from '../../shared/utils/fileFunctions';
 import { createCommonFilters } from '../../shared/utils/filterSortFunctions';
@@ -39,6 +39,7 @@ export const InvoiceSchedulesPage: FC = () => {
             lastRunAt: schedule.lastRunAt ?? '',
             dueDateOffsetDays: schedule.dueDateOffsetDays,
             status: schedule.status,
+            isArchived: schedule.isArchived,
             deliveryMethod: schedule.deliveryMethod,
             failureReason: schedule.failureReason ?? ''
           }))
@@ -67,24 +68,11 @@ export const InvoiceSchedulesPage: FC = () => {
     }
   ];
 
-  const useInvoiceScheduleRetrieve = (filter?: FilterData[] | void) => {
-    const query = useGetInvoiceSchedulesQuery();
-    const statusFilter =
-      filter?.find(item => item.type === FilterType.status)?.value ??
-      (filter?.some(item => item.type === FilterType.active) ? InvoiceScheduleStatus.active : undefined) ??
-      (filter?.some(item => item.type === FilterType.archived) ? InvoiceScheduleStatus.archived : undefined);
-
-    return {
-      ...query,
-      data: statusFilter ? query.data?.filter(schedule => schedule.status === statusFilter) : query.data
-    };
-  };
-
   return (
     <CRUDPageRTK<InvoiceSchedule, InvoiceScheduleAdd, InvoiceScheduleUpdate>
       componentId="invoiceSchedules"
       title={t('invoiceSchedules.title')}
-      useRetrieve={useInvoiceScheduleRetrieve}
+      useRetrieve={useGetInvoiceSchedulesQuery}
       useAdd={useAddInvoiceScheduleMutation}
       useUpdate={useUpdateInvoiceScheduleMutation}
       useDelete={useDeleteInvoiceScheduleMutation}
@@ -127,12 +115,12 @@ export const InvoiceSchedulesPage: FC = () => {
         <Form
           item={item}
           handleChange={data => {
-            if (!isInvoiceScheduleData(data.schedule)) return;
-            onChange({
-              changedData: data.schedule,
-              isFormValid: data.isFormValid,
-              description: data.description
-            });
+            if (isInvoiceScheduleData(data.schedule))
+              onChange({
+                changedData: data.schedule,
+                isFormValid: data.isFormValid,
+                description: data.description
+              });
           }}
         />
       )}

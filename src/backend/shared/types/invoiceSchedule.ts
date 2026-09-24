@@ -19,13 +19,18 @@ export interface InvoiceSchedule {
   lastRunAt?: string;
   dueDateOffsetDays: number;
   status: InvoiceScheduleStatus;
+  isArchived: boolean;
   deliveryMethod: InvoiceScheduleDeliveryMethod;
   failureReason?: string;
   createdAt?: string;
   updatedAt?: string;
 }
 
-export type InvoiceScheduleAdd = Omit<InvoiceSchedule, 'id' | 'createdAt' | 'updatedAt' | 'lastRunAt' | 'nextRunAt'> & {
+export type InvoiceScheduleAdd = Omit<
+  InvoiceSchedule,
+  'id' | 'createdAt' | 'updatedAt' | 'isArchived' | 'lastRunAt' | 'nextRunAt'
+> & {
+  isArchived?: boolean;
   nextRunAt?: string;
   lastRunAt?: string;
 };

@@ -9,8 +9,7 @@ export enum InvoiceScheduleStatus {
   active = 'active',
   paused = 'paused',
   completed = 'completed',
-  failed = 'failed',
-  archived = 'archived'
+  failed = 'failed'
 }
 
 export enum InvoiceScheduleDeliveryMethod {

@@ -140,7 +140,15 @@ describe('all migrations applied sequentially against a fresh schema', () => {
 
     const invoiceScheduleCols = (await getTableColumns(db, 'invoice_schedules')).map(c => c.name);
     expect(invoiceScheduleCols).toEqual(
-      expect.arrayContaining(['sourceInvoiceId', 'cadence', 'timezone', 'nextRunAt', 'status', 'deliveryMethod'])
+      expect.arrayContaining([
+        'sourceInvoiceId',
+        'cadence',
+        'timezone',
+        'nextRunAt',
+        'status',
+        'isArchived',
+        'deliveryMethod'
+      ])
     );
 
     const invoiceScheduleRunCols = (await getTableColumns(db, 'invoice_schedule_runs')).map(c => c.name);

@@ -112,7 +112,7 @@ declare global {
       updateInvoice: (data: InvoiceUpdate) => Promise<Response<Invoice>>;
       duplicateInvoice: (id: number, invoiceType: InvoiceType) => Promise<Response<Invoice>>;
 
-      getAllInvoiceSchedules: () => Promise<Response<InvoiceSchedule[]>>;
+      getAllInvoiceSchedules: (filter?: FilterData[]) => Promise<Response<InvoiceSchedule[]>>;
       getInvoiceScheduleRuns: (scheduleId: number) => Promise<Response<InvoiceScheduleRun[]>>;
       addInvoiceSchedule: (data: InvoiceScheduleAdd) => Promise<Response<InvoiceSchedule>>;
       updateInvoiceSchedule: (data: InvoiceScheduleUpdate) => Promise<Response<InvoiceSchedule>>;

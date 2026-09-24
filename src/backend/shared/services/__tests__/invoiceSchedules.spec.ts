@@ -89,6 +89,7 @@ const insertSchedule = async (db: DatabaseAdapter, overrides: Partial<InvoiceSch
     lastRunAt: null,
     dueDateOffsetDays: 14,
     status: InvoiceScheduleStatus.active,
+    isArchived: false,
     deliveryMethod: InvoiceScheduleDeliveryMethod.none,
     failureReason: null,
     ...overrides
@@ -98,8 +99,8 @@ const insertSchedule = async (db: DatabaseAdapter, overrides: Partial<InvoiceSch
     `INSERT INTO invoice_schedules (
       "sourceInvoiceId", "cadence", "intervalCount", "timezone", "startAt", "endAt",
       "maxOccurrences", "nextRunAt", "lastRunAt", "dueDateOffsetDays", "status",
-      "deliveryMethod", "failureReason"
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      "isArchived", "deliveryMethod", "failureReason"
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       schedule.sourceInvoiceId,
       schedule.cadence,
@@ -112,6 +113,7 @@ const insertSchedule = async (db: DatabaseAdapter, overrides: Partial<InvoiceSch
       schedule.lastRunAt,
       schedule.dueDateOffsetDays,
       schedule.status,
+      schedule.isArchived,
       schedule.deliveryMethod,
       schedule.failureReason
     ],
@@ -310,6 +312,7 @@ describe('invoice schedule service', () => {
       startAt: '2026-02-01T09:00:00.000Z',
       dueDateOffsetDays: 14,
       status: InvoiceScheduleStatus.active,
+      isArchived: false,
       deliveryMethod: InvoiceScheduleDeliveryMethod.none
     });
 
@@ -327,6 +330,15 @@ describe('invoice schedule service', () => {
     expect(updateResult.success).toBe(true);
     expect(updateResult.data?.status).toBe(InvoiceScheduleStatus.paused);
     expect(updateResult.data?.failureReason).toBe('Waiting for review');
+
+    const archivedResult = await updateInvoiceSchedule(db, {
+      id: addResult.data!.id!,
+      isArchived: true,
+      status: InvoiceScheduleStatus.active
+    });
+    expect(archivedResult.success).toBe(true);
+    expect(archivedResult.data?.isArchived).toBe(true);
+    expect(archivedResult.data?.status).toBe(InvoiceScheduleStatus.paused);
 
     await claimScheduleRun(db, updateResult.data!, updateResult.data!.nextRunAt);
     const runsResult = await getInvoiceScheduleRuns(db, updateResult.data!.id!);
@@ -397,6 +409,7 @@ describe('invoice schedule generation worker', () => {
       maxOccurrences: 2,
       dueDateOffsetDays: 10,
       status: InvoiceScheduleStatus.active,
+      isArchived: false,
       deliveryMethod: InvoiceScheduleDeliveryMethod.none
     });
 

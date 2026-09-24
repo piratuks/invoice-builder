@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { I18nextProvider } from 'react-i18next';
 import { MemoryRouter } from 'react-router-dom';
@@ -22,6 +22,7 @@ const scheduleApiMocks = vi.hoisted(() => ({
       lastRunAt: '2026-01-01T09:00:00.000Z',
       dueDateOffsetDays: 14,
       status: 'active',
+      isArchived: false,
       deliveryMethod: 'none'
     }
   ],
@@ -93,19 +94,34 @@ describe('InvoiceSchedulesPage', () => {
     scheduleApiMocks.addSchedule.mockResolvedValue({ data: {} });
   });
 
-  it('uses the CRUD shell and shows schedule cards, run history, and status actions', async () => {
+  it('uses the CRUD shell and exposes form-level history and status actions', async () => {
     render(<InvoiceSchedulesPage />, { wrapper: withProviders });
 
     expect(screen.getByText('Recurring invoices')).toBeInTheDocument();
     expect(screen.getByText('INV-1 - Acme')).toBeInTheDocument();
     expect(screen.getByText('Active')).toBeInTheDocument();
+    expect(screen.getByLabelText('Delete')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByLabelText('Pause schedule'));
-    expect(scheduleApiMocks.updateSchedule).toHaveBeenCalledWith({ id: 11, status: InvoiceScheduleStatus.paused });
+    fireEvent.click(screen.getByText('INV-1 - Acme'));
+
+    fireEvent.click(screen.getByRole('button', { name: /pause/i }));
+    expect(scheduleApiMocks.updateSchedule).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 11, status: InvoiceScheduleStatus.paused })
+    );
+    await waitFor(() => expect(screen.getByRole('button', { name: /resume/i })).toBeInTheDocument());
 
     fireEvent.click(screen.getByRole('button', { name: /history/i }));
     expect(await screen.findByText('Run history')).toBeInTheDocument();
     expect(screen.getByText('INV-2')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /cancel/i }));
+
+    fireEvent.click(screen.getByLabelText('Archived'));
+    fireEvent.click(await screen.findByRole('button', { name: /save/i }));
+    await waitFor(() =>
+      expect(scheduleApiMocks.updateSchedule).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 11, isArchived: true, status: InvoiceScheduleStatus.paused })
+      )
+    );
   });
 
   it('opens the create form with generate-only delivery selected', () => {
