@@ -1,14 +1,13 @@
 import { SwipeableDrawer, useMediaQuery, useTheme } from '@mui/material';
 import { memo, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CRUDPage } from '../../../../shared/components/layout/crudPage/CRUDPage';
+import { useGetItemsQuery } from '../../../../shared/api/itemsApi';
+import { CRUDPageRTK } from '../../../../shared/components/layout/crudPage/CRUDPageRTK';
 import { FilterType } from '../../../../shared/enums/filterType';
 import type { InvoiceType } from '../../../../shared/enums/invoiceType';
-import { useItemsRetrieve } from '../../../../shared/hooks/items/useItemsRetrieve';
-import type { Filter, FilterData } from '../../../../shared/types/filter';
+import type { Filter } from '../../../../shared/types/filter';
 import type { CustomFieldMeta, ItemForm } from '../../../../shared/types/invoice';
 import type { Item, ItemAdd, ItemUpdate } from '../../../../shared/types/item';
-import type { Response } from '../../../../shared/types/response';
 import { createCommonFilters, createInvoiceFilters } from '../../../../shared/utils/filterSortFunctions';
 import { List as ItemsList } from '../../../items/List';
 import { ItemMetadataSetter } from '../Modals/ItemMetadataSetter';
@@ -31,10 +30,6 @@ const ItemsDropdownComponent: FC<Props> = ({ isOpen, type, headerOptions, onClos
     ...createCommonFilters({ t, namespace: 'items', initial: FilterType.active }),
     ...createInvoiceFilters({ t, namespace: 'items' })
   ];
-  const useItemsCRUDRetrieve = (args: { filter?: FilterData[]; onDone?: (data: Response<Item[]>) => void }) => {
-    const { items, execute } = useItemsRetrieve({ filter: args.filter, onDone: args.onDone });
-    return { items: items, execute };
-  };
   const [selectedItem, setSelectedItem] = useState<Item | undefined>(undefined);
 
   return (
@@ -74,12 +69,12 @@ const ItemsDropdownComponent: FC<Props> = ({ isOpen, type, headerOptions, onClos
             }
           }}
         >
-          <CRUDPage<Item, ItemAdd, ItemUpdate>
+          <CRUDPageRTK<Item, ItemAdd, ItemUpdate>
             componentId="invoices:items"
             filters={filters}
             showRightSide={false}
             showAddButton={false}
-            useRetrieve={useItemsCRUDRetrieve}
+            useRetrieve={useGetItemsQuery}
             searchField={'name'}
             sortOptions={[
               { label: t('common.name'), value: 'name' },

@@ -1,16 +1,17 @@
 import { type FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CRUDPage } from '../../shared/components/layout/crudPage/CRUDPage';
+import {
+  useAddCategoriesBatchMutation,
+  useAddCategoryMutation,
+  useDeleteCategoryMutation,
+  useGetCategoriesQuery,
+  useUpdateCategoryMutation
+} from '../../shared/api/categoriesApi';
+import { CRUDPageRTK } from '../../shared/components/layout/crudPage/CRUDPageRTK';
 import { FilterType } from '../../shared/enums/filterType';
-import { useCategoriesRetrieve } from '../../shared/hooks/categories/useCategoriesRetrieve';
-import { useCategoryAdd } from '../../shared/hooks/categories/useCategoryAdd';
-import { useCategoryAddBatch } from '../../shared/hooks/categories/useCategoryAddBatch';
-import { useCategoryDelete } from '../../shared/hooks/categories/useCategoryDelete';
-import { useCategoryUpdate } from '../../shared/hooks/categories/useCategoryUpdate';
 import type { Category, CategoryAdd, CategoryUpdate } from '../../shared/types/category';
 import type { Rows } from '../../shared/types/excel';
-import type { Filter, FilterData } from '../../shared/types/filter';
-import type { Response } from '../../shared/types/response';
+import type { Filter } from '../../shared/types/filter';
 import { createCommonFilters, createInvoiceFilters } from '../../shared/utils/filterSortFunctions';
 import { isCategoryFromData } from '../../shared/utils/typeGuardFunctions';
 import { Form } from './Form';
@@ -34,58 +35,18 @@ export const CategoriesPage: FC = () => {
     ...createCommonFilters({ t, namespace: 'categories', initial: FilterType.active }),
     ...createInvoiceFilters({ t, namespace: 'categories' })
   ];
-  const useCategoriesCRUDRetrieve = (args: {
-    filter?: FilterData[];
-    onDone?: (data: Response<Category[]>) => void;
-  }) => {
-    const { categories, execute } = useCategoriesRetrieve({ filter: args.filter, onDone: args.onDone });
-    return { items: categories, execute };
-  };
-  const useCategoryCRUDAdd = (args: {
-    item?: CategoryAdd;
-    immediate?: boolean;
-    onDone?: (data: Response<Category>) => void;
-  }) => {
-    return useCategoryAdd({
-      category: args.item,
-      immediate: args.immediate,
-      onDone: args.onDone
-    });
-  };
-  const useCategoriesCRUDAddBatch = (args: {
-    item?: CategoryAdd[];
-    immediate?: boolean;
-    onDone?: (data: Response<CategoryAdd[]>) => void;
-  }) => {
-    return useCategoryAddBatch({
-      categories: args.item,
-      immediate: args.immediate,
-      onDone: args.onDone
-    });
-  };
-  const useCategoryCRUDUpdate = (args: {
-    item?: CategoryUpdate;
-    immediate?: boolean;
-    onDone?: (data: Response<Category>) => void;
-  }) => {
-    return useCategoryUpdate({
-      category: args.item,
-      immediate: args.immediate,
-      onDone: args.onDone
-    });
-  };
 
   return (
-    <CRUDPage<Category, CategoryAdd, CategoryUpdate>
+    <CRUDPageRTK<Category, CategoryAdd, CategoryUpdate>
       componentId="categories"
       title={t('common.category')}
       filters={filters}
       excelData={{ excelColumns, excelFileName, excelFormat: 'xlsx', excelTemplateData }}
-      useRetrieve={useCategoriesCRUDRetrieve}
-      useAdd={useCategoryCRUDAdd}
-      useAddBatch={useCategoriesCRUDAddBatch}
-      useUpdate={useCategoryCRUDUpdate}
-      useDelete={useCategoryDelete}
+      useRetrieve={useGetCategoriesQuery}
+      useAdd={useAddCategoryMutation}
+      useAddBatch={useAddCategoriesBatchMutation}
+      useUpdate={useUpdateCategoryMutation}
+      useDelete={useDeleteCategoryMutation}
       searchField={'name'}
       sortOptions={[
         { label: t('common.name'), value: 'name' },

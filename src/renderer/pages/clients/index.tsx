@@ -1,16 +1,17 @@
 import { type FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CRUDPage } from '../../shared/components/layout/crudPage/CRUDPage';
+import {
+  useAddClientMutation,
+  useAddClientsBatchMutation,
+  useDeleteClientMutation,
+  useGetClientsQuery,
+  useUpdateClientMutation
+} from '../../shared/api/clientsApi';
+import { CRUDPageRTK } from '../../shared/components/layout/crudPage/CRUDPageRTK';
 import { FilterType } from '../../shared/enums/filterType';
-import { useClientAdd } from '../../shared/hooks/clients/useClientAdd';
-import { useClientAddBatch } from '../../shared/hooks/clients/useClientAddBatch';
-import { useClientDelete } from '../../shared/hooks/clients/useClientDelete';
-import { useClientsRetrieve } from '../../shared/hooks/clients/useClientsRetrieve';
-import { useClientUpdate } from '../../shared/hooks/clients/useClientUpdate';
 import type { Client, ClientAdd, ClientUpdate } from '../../shared/types/client';
 import type { Rows } from '../../shared/types/excel';
-import type { Filter, FilterData } from '../../shared/types/filter';
-import type { Response } from '../../shared/types/response';
+import type { Filter } from '../../shared/types/filter';
 import { createCommonFilters, createInvoiceFilters } from '../../shared/utils/filterSortFunctions';
 import { isClientFromData } from '../../shared/utils/typeGuardFunctions';
 import { Form } from './Form';
@@ -69,55 +70,18 @@ export const ClientsPage: FC = () => {
     ...createCommonFilters({ t, namespace: 'clients', initial: FilterType.active }),
     ...createInvoiceFilters({ t, namespace: 'clients' })
   ];
-  const useClientsCRUDRetrieve = (args: { filter?: FilterData[]; onDone?: (data: Response<Client[]>) => void }) => {
-    const { clients, execute } = useClientsRetrieve({ filter: args.filter, onDone: args.onDone });
-    return { items: clients, execute };
-  };
-  const useClientCRUDAdd = (args: {
-    item?: ClientAdd;
-    immediate?: boolean;
-    onDone?: (data: Response<Client>) => void;
-  }) => {
-    return useClientAdd({
-      client: args.item,
-      immediate: args.immediate,
-      onDone: args.onDone
-    });
-  };
-  const useClientsCRUDAddBatch = (args: {
-    item?: ClientAdd[];
-    immediate?: boolean;
-    onDone?: (data: Response<ClientAdd[]>) => void;
-  }) => {
-    return useClientAddBatch({
-      clients: args.item,
-      immediate: args.immediate,
-      onDone: args.onDone
-    });
-  };
-  const useClientCRUDUpdate = (args: {
-    item?: ClientUpdate;
-    immediate?: boolean;
-    onDone?: (data: Response<Client>) => void;
-  }) => {
-    return useClientUpdate({
-      client: args.item,
-      immediate: args.immediate,
-      onDone: args.onDone
-    });
-  };
 
   return (
-    <CRUDPage<Client, ClientAdd, ClientUpdate>
+    <CRUDPageRTK<Client, ClientAdd, ClientUpdate>
       componentId="clients"
       title={t('common.client')}
       filters={filters}
       excelData={{ excelColumns, excelFileName, excelFormat: 'xlsx', excelTemplateData }}
-      useRetrieve={useClientsCRUDRetrieve}
-      useAdd={useClientCRUDAdd}
-      useAddBatch={useClientsCRUDAddBatch}
-      useUpdate={useClientCRUDUpdate}
-      useDelete={useClientDelete}
+      useRetrieve={useGetClientsQuery}
+      useAdd={useAddClientMutation}
+      useAddBatch={useAddClientsBatchMutation}
+      useUpdate={useUpdateClientMutation}
+      useDelete={useDeleteClientMutation}
       searchField={'name'}
       sortOptions={[
         { label: t('common.name'), value: 'name' },

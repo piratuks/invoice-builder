@@ -12,6 +12,7 @@ import type { DBSelector } from './dbSelector';
 import type { ExportMeta } from './exportMeta';
 import type { FilterData } from './filter';
 import type { CustomFieldMeta, Invoice, InvoiceAdd, InvoiceUpdate, NextSequenceData } from './invoice';
+import type { InvoiceSchedule, InvoiceScheduleAdd, InvoiceScheduleRun, InvoiceScheduleUpdate } from './invoiceSchedule';
 import type { Item, ItemAdd, ItemUpdate } from './item';
 import type { Layout, LayoutAdd, LayoutUpdate } from './layouts';
 import type { PostgresConfig } from './postgresConfig';
@@ -49,6 +50,10 @@ declare global {
 
       getAllSettings: () => Promise<Response<Settings>>;
       updateSettings: (data: SettingsUpdate) => Promise<Response<SettingsUpdate>>;
+      getSmtpPasswordStatus: () => Promise<Response<{ configured: boolean; source: 'keychain' | 'env' }>>;
+      setSmtpPassword: (password: string) => Promise<Response<unknown>>;
+      deleteSmtpPassword: () => Promise<Response<unknown>>;
+      testSmtpDelivery: (data: { recipient: string }) => Promise<Response<unknown>>;
 
       getAllBusinesses: (filter?: FilterData[]) => Promise<Response<Business[]>>;
       updateBusiness: (data: BusinessUpdate) => Promise<Response<Business>>;
@@ -110,6 +115,12 @@ declare global {
       addInvoice: (data: InvoiceAdd) => Promise<Response<Invoice>>;
       updateInvoice: (data: InvoiceUpdate) => Promise<Response<Invoice>>;
       duplicateInvoice: (id: number, invoiceType: InvoiceType) => Promise<Response<Invoice>>;
+
+      getAllInvoiceSchedules: (filter?: FilterData[]) => Promise<Response<InvoiceSchedule[]>>;
+      getInvoiceScheduleRuns: (scheduleId: number) => Promise<Response<InvoiceScheduleRun[]>>;
+      addInvoiceSchedule: (data: InvoiceScheduleAdd) => Promise<Response<InvoiceSchedule>>;
+      updateInvoiceSchedule: (data: InvoiceScheduleUpdate) => Promise<Response<InvoiceSchedule>>;
+      deleteInvoiceSchedule: (id: number) => Promise<Response<unknown>>;
 
       getAllBanks: (filter?: FilterData[]) => Promise<Response<Bank[]>>;
       updateBank: (data: BankUpdate) => Promise<Response<Bank>>;

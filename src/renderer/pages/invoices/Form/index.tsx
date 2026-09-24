@@ -3,6 +3,7 @@ import { Box, Divider, Fab, Tooltip } from '@mui/material';
 import { memo, useCallback, useEffect, useMemo, useState, useTransition, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../../i18n';
+import { useLazyGetEInvoiceXMLQuery } from '../../../shared/api/invoicesApi';
 import { EInvoice } from '../../../shared/enums/einvoice';
 import { InvoiceStatus } from '../../../shared/enums/invoiceStatus';
 import { InvoiceType } from '../../../shared/enums/invoiceType';
@@ -10,7 +11,6 @@ import type { Language } from '../../../shared/enums/language';
 import { useExportPdf } from '../../../shared/hooks/fileExport/useExportPdf';
 import { useExportPdfWithXml } from '../../../shared/hooks/fileExport/useExportPdfWithXml';
 import { useExportXML } from '../../../shared/hooks/fileExport/useExportXML';
-import { useGetEInvoiceXML } from '../../../shared/hooks/invoices/useGetEInvoiceXML';
 import { usePrintReceipt } from '../../../shared/hooks/print/usePrintReceipt';
 import type { Bank } from '../../../shared/types/bank';
 import type { Business } from '../../../shared/types/business';
@@ -30,11 +30,10 @@ import type {
   TaxForm
 } from '../../../shared/types/invoice';
 import type { Item } from '../../../shared/types/item';
-import type { Response } from '../../../shared/types/response';
 import type { StyleProfile } from '../../../shared/types/styleProfiles';
 import { getInvoiceTotal, getPaidAmount } from '../../../shared/utils/invoiceFunctions';
 import { useAppDispatch, useAppSelector } from '../../../state/configureStore';
-import { addToast, selectSettings } from '../../../state/pageSlice';
+import { addToast, disableLoadingCursor, enableLoadingCursor, selectSettings } from '../../../state/pageSlice';
 import { NotesSelector } from './../Form/NotesSelector';
 import { StatusSelector } from './../Form/StatusSelector';
 import { AttachmentsList } from './AttachmentsList';
@@ -97,24 +96,15 @@ const InvoiceFormComponent: FC<Props> = ({
   const { printReceipt } = usePrintReceipt({ invoiceForm, storeSettings });
 
   const dispatch = useAppDispatch();
-  const { execute: retrieveXML } = useGetEInvoiceXML({
-    params: xmlData,
-    immediate: false,
-    onDone: (data: Response<Uint8Array | undefined>) => {
-      if (!data.success) {
-        if (data.message) {
-          const message = i18n.exists(data.message) ? t(data.message) : data.message;
-          dispatch(addToast({ message: message, severity: 'error' }));
-        } else if (data.key) dispatch(addToast({ message: t(data.key), severity: 'error' }));
-      }
+  const [retrieveXML, { isFetching: isXMLFetching }] = useLazyGetEInvoiceXMLQuery();
 
-      if (xmlData && data.data && xmlData.type === 'singleFile') {
-        exportXML(data.data, xmlData?.einvoice);
-      } else if (xmlData && data.data && xmlData.type === 'embeddedFile') {
-        exportPdfWithXml(data.data);
-      }
-    }
-  });
+  useEffect(() => {
+    if (!isXMLFetching) return;
+    dispatch(enableLoadingCursor());
+    return () => {
+      dispatch(disableLoadingCursor());
+    };
+  }, [dispatch, isXMLFetching]);
 
   const invoiceInformation = useMemo(
     () => ({
@@ -848,10 +838,26 @@ const InvoiceFormComponent: FC<Props> = ({
   );
 
   useEffect(() => {
-    if (xmlData) {
-      retrieveXML();
-    }
-  }, [xmlData, retrieveXML]);
+    if (!xmlData) return;
+    void retrieveXML({ invoiceId: xmlData.invoiceId, einvoice: xmlData.einvoice })
+      .unwrap()
+      .then(data => {
+        if (!data) return;
+        if (xmlData.type === 'singleFile') {
+          exportXML(data, xmlData.einvoice);
+        } else {
+          exportPdfWithXml(data);
+        }
+      })
+      .catch(error => {
+        const { message, key } = (error as { message?: string; key?: string }) ?? {};
+        if (message) {
+          dispatch(addToast({ message: i18n.exists(message) ? t(message) : message, severity: 'error' }));
+        } else if (key) {
+          dispatch(addToast({ message: t(key), severity: 'error' }));
+        }
+      });
+  }, [dispatch, exportPdfWithXml, exportXML, retrieveXML, t, xmlData]);
 
   return (
     <Box

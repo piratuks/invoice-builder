@@ -1,17 +1,17 @@
 import { useCallback, useEffect, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
+import { useGetSettingsQuery } from '../shared/api/settingsApi';
 import { SpinnerOverlay } from '../shared/components/feedback/spinner/SpinnerOverlay';
 import { ToastContainer } from '../shared/components/feedback/toast/toastContainer';
 import { Confirmation } from '../shared/components/modals/confirmation';
 import { BeforeUnloadProvider } from '../shared/context/BeforeUnloadContext';
 import { useBeforeLeave } from '../shared/hooks/other/useBeforeLeave';
-import { useSettingsRetrieve } from '../shared/hooks/settings/useSettingsRetrieve';
-import type { Response } from '../shared/types/response';
-import type { Settings } from '../shared/types/settings';
 import { useAppDispatch, useAppSelector } from '../state/configureStore';
 import {
   addToast,
+  disableLoadingCursor,
+  enableLoadingCursor,
   removeToast,
   selectAllowed,
   selectDbReady,
@@ -33,17 +33,13 @@ export const App: FC = () => {
   const { showPrompt, cancelNavigation, confirmNavigation, attemptNavigation, setBlocked } =
     useBeforeLeave(isAllowedToLeave);
 
-  const { settings, execute: getSettings } = useSettingsRetrieve({
-    immediate: false,
-    onDone: (data: Response<Settings>) => {
-      if (!data.success) {
-        if (data.message) {
-          const message = i18n.exists(data.message) ? t(data.message) : data.message;
-          dispatch(addToast({ message: message, severity: 'error' }));
-        } else if (data.key) dispatch(addToast({ message: t(data.key), severity: 'error' }));
-      }
-    }
-  });
+  const {
+    data: settings,
+    isError: isSettingsError,
+    error: settingsError,
+    isLoading: isSettingsLoading,
+    isFetching: isSettingsFetching
+  } = useGetSettingsQuery(undefined, { skip: !dbReady });
 
   const handleClose = useCallback(
     (id: string) => {
@@ -54,8 +50,7 @@ export const App: FC = () => {
 
   const onDatabaseRead = useCallback(() => {
     dispatch(setDbReady(true));
-    getSettings();
-  }, [dispatch, getSettings]);
+  }, [dispatch]);
 
   const handleConfirmLeave = useCallback(() => {
     confirmNavigation();
@@ -66,12 +61,32 @@ export const App: FC = () => {
   }, [cancelNavigation]);
 
   useEffect(() => {
+    if (isSettingsError) {
+      const message = settingsError && 'message' in settingsError ? settingsError.message : undefined;
+      const key = settingsError && 'key' in settingsError ? settingsError.key : undefined;
+      if (message) {
+        dispatch(addToast({ message: i18n.exists(message) ? t(message) : message, severity: 'error' }));
+      } else if (key) {
+        dispatch(addToast({ message: t(key), severity: 'error' }));
+      }
+    }
+  }, [dispatch, isSettingsError, settingsError, t]);
+
+  useEffect(() => {
     if (settings) {
       dispatch(setSettings(settings));
       i18n.changeLanguage(settings.language);
       localStorage.setItem('lastUsedLanguage', settings.language);
     }
   }, [settings, dispatch]);
+
+  useEffect(() => {
+    if (!isSettingsLoading && !isSettingsFetching) return;
+    dispatch(enableLoadingCursor());
+    return () => {
+      dispatch(disableLoadingCursor());
+    };
+  }, [dispatch, isSettingsFetching, isSettingsLoading]);
 
   return (
     <>

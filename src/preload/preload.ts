@@ -9,6 +9,7 @@ import type { ClientAdd, ClientUpdate } from '../renderer/shared/types/client';
 import type { CurrencyAdd, CurrencyUpdate } from '../renderer/shared/types/currency';
 import type { FilterData } from '../renderer/shared/types/filter';
 import type { InvoiceAdd, InvoiceUpdate } from '../renderer/shared/types/invoice';
+import type { InvoiceScheduleAdd, InvoiceScheduleUpdate } from '../renderer/shared/types/invoiceSchedule';
 import type { ItemAdd, ItemUpdate } from '../renderer/shared/types/item';
 import type { LayoutAdd, LayoutUpdate } from '../renderer/shared/types/layouts';
 import type { PostgresConfig } from '../renderer/shared/types/postgresConfig';
@@ -56,6 +57,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   getAllSettings: () => ipcRenderer.invoke('get-all-settings'),
   updateSettings: (data: SettingsUpdate) => ipcRenderer.invoke('update-settings', data),
+  getSmtpPasswordStatus: () => ipcRenderer.invoke('get-smtp-password-status'),
+  setSmtpPassword: (password: string) => ipcRenderer.invoke('set-smtp-password', password),
+  deleteSmtpPassword: () => ipcRenderer.invoke('delete-smtp-password'),
+  testSmtpDelivery: (data: { recipient: string }) => ipcRenderer.invoke('test-smtp-delivery', data),
 
   getAllBusinesses: (filter?: FilterData[]) => ipcRenderer.invoke('get-all-businesses', filter),
   updateBusiness: (data: BusinessUpdate) => ipcRenderer.invoke('update-business', data),
@@ -114,6 +119,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
   updateInvoice: (data: InvoiceUpdate) => ipcRenderer.invoke('update-invoice', data),
   addInvoice: (data: InvoiceAdd) => ipcRenderer.invoke('add-invoice', data),
   duplicateInvoice: (id: number, invoiceType: InvoiceType) => ipcRenderer.invoke('duplicate-invoice', id, invoiceType),
+
+  getAllInvoiceSchedules: (filter?: FilterData[]) => ipcRenderer.invoke('get-all-invoice-schedules', filter),
+  getInvoiceScheduleRuns: (scheduleId: number) => ipcRenderer.invoke('get-invoice-schedule-runs', scheduleId),
+  updateInvoiceSchedule: (data: InvoiceScheduleUpdate) => ipcRenderer.invoke('update-invoice-schedule', data),
+  addInvoiceSchedule: (data: InvoiceScheduleAdd) => ipcRenderer.invoke('add-invoice-schedule', data),
+  deleteInvoiceSchedule: (id: number) => ipcRenderer.invoke('delete-invoice-schedule', id),
 
   getAllBanks: (filter?: FilterData[]) => ipcRenderer.invoke('get-all-banks', filter),
   updateBank: (data: BankUpdate) => ipcRenderer.invoke('update-bank', data),

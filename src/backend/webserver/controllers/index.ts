@@ -5,6 +5,7 @@ import { initCategoriesController } from './categories';
 import { initClientsController } from './clients';
 import { initCurrenciesController } from './currencies';
 import { initImportExportController } from './importExport';
+import { initInvoiceSchedulesController } from './invoiceSchedules';
 import { initInvoicesController } from './invoices';
 import { initItemsController } from './items';
 import { initLayoutsController } from './layouts';
@@ -20,6 +21,7 @@ export const initControllers = (app: Express) => {
   initCategoriesController(app);
   initClientsController(app);
   initInvoicesController(app);
+  initInvoiceSchedulesController(app);
   initItemsController(app);
   initSettingsController(app);
   initStyleProfilesController(app);

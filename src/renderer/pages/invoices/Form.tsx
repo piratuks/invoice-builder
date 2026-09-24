@@ -1,6 +1,7 @@
 import { memo, useCallback, useDeferredValue, useEffect, useRef, useState, useTransition, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n';
+import { useAddStyleProfileMutation } from '../../shared/api/styleProfilesApi';
 import { FontFamily } from '../../shared/enums/fontFamily';
 import { InvoiceFormMode } from '../../shared/enums/invoiceFormMode';
 import { InvoiceStatus } from '../../shared/enums/invoiceStatus';
@@ -11,14 +12,12 @@ import { SizeType } from '../../shared/enums/sizeType';
 import { TableHeaderStyle } from '../../shared/enums/tableHeaderStyle';
 import { TableRowStyle } from '../../shared/enums/tableRowStyle';
 import { useFormDirtyCheck } from '../../shared/hooks/form/useFormDirtyCheck';
-import { useStyleProfileAdd } from '../../shared/hooks/styleProfiles/useStyleProfileAdd';
 import type { Invoice, InvoiceFromData } from '../../shared/types/invoice';
 import type { Preset } from '../../shared/types/preset';
-import type { Response } from '../../shared/types/response';
 import type { StyleProfileAdd, StyleProfileFromData } from '../../shared/types/styleProfiles';
 import { useAppDispatch } from '../../state/configureStore';
 import { DEFAULT_TABLE_FIELD_SORT_ORDERS } from '../../state/constant';
-import { addToast } from '../../state/pageSlice';
+import { addToast, disableLoadingCursor, enableLoadingCursor } from '../../state/pageSlice';
 import { InvoiceForm } from './Form/index';
 import { InvoicesPreview } from './Preview';
 
@@ -48,21 +47,15 @@ const InvoiceFormComponent: FC<Props> = ({
   const { t } = useTranslation();
   const initialFormRef = useRef<InvoiceFromData | undefined>(undefined);
 
-  const [newStyleProfile, setNewStyleProfile] = useState<StyleProfileAdd | undefined>(undefined);
-  const { execute: addStyleProfile, data: newRowStyleProfile } = useStyleProfileAdd({
-    styleProfile: newStyleProfile,
-    immediate: false,
-    onDone: (data: Response<StyleProfileAdd>) => {
-      setNewStyleProfile(undefined);
+  const [addStyleProfile, { isLoading: isAddingStyleProfile }] = useAddStyleProfileMutation();
 
-      if (!data.success) {
-        if (data.message) {
-          const message = i18n.exists(data.message) ? t(data.message) : data.message;
-          dispatch(addToast({ message: message, severity: 'error' }));
-        } else if (data.key) dispatch(addToast({ message: t(data.key), severity: 'error' }));
-      }
-    }
-  });
+  useEffect(() => {
+    if (!isAddingStyleProfile) return;
+    dispatch(enableLoadingCursor());
+    return () => {
+      dispatch(disableLoadingCursor());
+    };
+  }, [isAddingStyleProfile, dispatch]);
 
   const checkFormValid = useCallback(() => {
     if (
@@ -129,10 +122,34 @@ const InvoiceFormComponent: FC<Props> = ({
   const deferredInvoiceForm = useDeferredValue(invoiceForm);
 
   const handleSaveProfile = useCallback(
-    (data: StyleProfileFromData) => {
-      setNewStyleProfile(data);
+    async (data: StyleProfileFromData) => {
+      const result = await addStyleProfile(data as StyleProfileAdd);
+      if ('error' in result && result.error) {
+        const { message, key } = (result.error as { message?: string; key?: string }) ?? {};
+        if (message) {
+          dispatch(addToast({ message: i18n.exists(message) ? t(message) : message, severity: 'error' }));
+        } else if (key) {
+          dispatch(addToast({ message: t(key), severity: 'error' }));
+        }
+        return;
+      }
+      if ('data' in result && result.data) {
+        const newRowStyleProfile = result.data;
+        setInvoiceForm(current =>
+          current
+            ? {
+                ...current,
+                invoiceStyleProfileSnapshot: {
+                  ...current.invoiceStyleProfileSnapshot,
+                  styleProfileName: newRowStyleProfile.name
+                },
+                styleProfilesId: newRowStyleProfile.id
+              }
+            : current
+        );
+      }
     },
-    [setNewStyleProfile]
+    [addStyleProfile, dispatch, t]
   );
 
   useEffect(() => {
@@ -279,25 +296,8 @@ const InvoiceFormComponent: FC<Props> = ({
   }, [preset, startTransition]);
 
   useEffect(() => {
-    if (newStyleProfile && newRowStyleProfile && invoiceForm) {
-      setInvoiceForm({
-        ...invoiceForm,
-        invoiceStyleProfileSnapshot: {
-          ...invoiceForm.invoiceStyleProfileSnapshot,
-          styleProfileName: newRowStyleProfile.name
-        },
-        styleProfilesId: newRowStyleProfile.id
-      });
-    }
-  }, [newStyleProfile, newRowStyleProfile, invoiceForm]);
-
-  useEffect(() => {
     checkFormValid();
   }, [invoiceForm, checkFormValid]);
-
-  useEffect(() => {
-    if (newStyleProfile !== undefined) addStyleProfile();
-  }, [newStyleProfile, addStyleProfile]);
 
   useEffect(() => {
     if (!invoiceForm) return;

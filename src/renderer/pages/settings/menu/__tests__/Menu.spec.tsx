@@ -4,6 +4,7 @@ import { I18nextProvider } from 'react-i18next';
 import { Provider } from 'react-redux';
 import i18n from '../../../../i18n';
 import { ThemeContext } from '../../../../shared/components/layout/theme/ThemeProviderWrapper';
+import { DeliveryProvider } from '../../../../shared/enums/deliveryProvider';
 import { MenuItemSettings } from '../../../../shared/enums/menuItemSettings';
 import { Themes } from '../../../../shared/enums/themes';
 import type { MenuItem, MenuItemMetadata } from '../../../../shared/types/menuItem';
@@ -33,6 +34,8 @@ vi.mock('../../../../shared/components/lists/menuList/MenuList', () => ({
 
 const settings = {
   quotesON: true,
+  invoiceSchedulesON: true,
+  deliveryProvider: DeliveryProvider.smtp,
   reportsON: false,
   styleProfilesON: true,
   presetsON: false,
@@ -66,12 +69,14 @@ describe('settings Menu', () => {
       onSelected: vi.fn(),
       onModeChange: vi.fn(),
       toggleQuotes: vi.fn(),
+      toggleInvoiceSchedules: vi.fn(),
       toggleReports: vi.fn(),
       toggleStyleProfiles: vi.fn(),
       togglePresets: vi.fn(),
       toggleUBL: vi.fn(),
       toggleXRechnung: vi.fn(),
       toggleReceiptPrinting: vi.fn(),
+      onDeliverySettings: vi.fn(),
       onExportJSON: vi.fn(),
       onImportJSON: vi.fn()
     };
@@ -80,8 +85,12 @@ describe('settings Menu', () => {
 
     item('settingsMenuItems.titles.languageFormat').onClick?.(item('settingsMenuItems.titles.languageFormat'));
     item('settingsMenuItems.titles.customizeInvoice').onClick?.(item('settingsMenuItems.titles.customizeInvoice'));
+    item('settingsMenuItems.titles.deliverySettings').onClick?.(item('settingsMenuItems.titles.deliverySettings'));
     item('settingsMenuItems.titles.darkMode').onChange?.(item('settingsMenuItems.titles.darkMode'));
     item('settingsMenuItems.titles.turnQuotes').onChange?.(item('settingsMenuItems.titles.turnQuotes'));
+    item('settingsMenuItems.titles.turnInvoiceSchedules').onChange?.(
+      item('settingsMenuItems.titles.turnInvoiceSchedules')
+    );
     item('settingsMenuItems.titles.turnReports').onChange?.(item('settingsMenuItems.titles.turnReports'));
     item('settingsMenuItems.titles.turnStyleProfiles').onChange?.(item('settingsMenuItems.titles.turnStyleProfiles'));
     item('settingsMenuItems.titles.turnPresets').onChange?.(item('settingsMenuItems.titles.turnPresets'));
@@ -95,9 +104,11 @@ describe('settings Menu', () => {
 
     expect(callbacks.onSelected).toHaveBeenNthCalledWith(1, MenuItemSettings.LanguageFormat);
     expect(callbacks.onSelected).toHaveBeenNthCalledWith(2, MenuItemSettings.Receipt);
+    expect(callbacks.onDeliverySettings).toHaveBeenCalledTimes(1);
     expect(toggleMode).toHaveBeenCalledTimes(1);
     expect(callbacks.onModeChange).toHaveBeenCalledWith(true);
     expect(callbacks.toggleQuotes).toHaveBeenCalledWith(false);
+    expect(callbacks.toggleInvoiceSchedules).toHaveBeenCalledWith(false);
     expect(callbacks.toggleReports).toHaveBeenCalledWith(true);
     expect(callbacks.toggleStyleProfiles).toHaveBeenCalledWith(false);
     expect(callbacks.togglePresets).toHaveBeenCalledWith(true);

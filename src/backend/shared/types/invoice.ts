@@ -150,6 +150,7 @@ export interface Invoice {
   closedAt?: string;
   dueDate?: string;
   invoiceNumber: string;
+  invoiceFullNumber?: string;
   isArchived: boolean;
   status: InvoiceStatus;
   customerNotes?: string;

@@ -10,6 +10,7 @@ const initializers = vi.hoisted(() => ({
   clients: vi.fn(),
   currencies: vi.fn(),
   importExport: vi.fn(),
+  invoiceSchedules: vi.fn(),
   invoices: vi.fn(),
   items: vi.fn(),
   layouts: vi.fn(),
@@ -28,6 +29,7 @@ vi.mock('../categories', () => ({ initCategoriesHandlers: initializers.categorie
 vi.mock('../clients', () => ({ initClientsHandlers: initializers.clients }));
 vi.mock('../currencies', () => ({ initCurrenciesHandlers: initializers.currencies }));
 vi.mock('../importExport', () => ({ initImportExportHandlers: initializers.importExport }));
+vi.mock('../invoiceSchedules', () => ({ initInvoiceSchedulesHandlers: initializers.invoiceSchedules }));
 vi.mock('../invoices', () => ({ initInvoicesHandlers: initializers.invoices }));
 vi.mock('../items', () => ({ initItemsHandlers: initializers.items }));
 vi.mock('../layouts', () => ({ initLayoutsHandlers: initializers.layouts }));

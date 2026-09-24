@@ -111,10 +111,10 @@ const invoice = (layoutSchema: LayoutSchemaAny): InvoiceFromData => ({
   }
 });
 
-const renderPdfBytes = async (layoutSchema: LayoutSchemaAny) => {
+const renderPdfBytes = async (layoutSchema: LayoutSchemaAny, invoiceOverrides: Partial<InvoiceFromData> = {}) => {
   const blob = await pdf(
     <PDFDocument
-      invoiceForm={invoice(layoutSchema)}
+      invoiceForm={{ ...invoice(layoutSchema), ...invoiceOverrides }}
       storeSettings={settings}
       attachmentUrls={[]}
       pdfTexts={pdfTexts}
@@ -124,8 +124,8 @@ const renderPdfBytes = async (layoutSchema: LayoutSchemaAny) => {
   return new Uint8Array(await blob.arrayBuffer());
 };
 
-const renderPdf = async (layoutSchema: LayoutSchemaAny) => {
-  return PdfLibDocument.load(await renderPdfBytes(layoutSchema));
+const renderPdf = async (layoutSchema: LayoutSchemaAny, invoiceOverrides: Partial<InvoiceFromData> = {}) => {
+  return PdfLibDocument.load(await renderPdfBytes(layoutSchema, invoiceOverrides));
 };
 
 const pageContent = (document: PdfLibDocument, pageIndex: number) => {
@@ -253,21 +253,24 @@ describe('V2 PDF layout rendering', () => {
   });
 
   it('renders V2 landscape pages', async () => {
-    const document = await renderPdf({
-      schemaVersion: 2,
-      meta: { name: 'Landscape sidebar' },
-      orientation: 'landscape',
-      regions: [
-        {
-          id: 'sidebar',
-          width: '20%',
-          direction: 'column',
-          overflow: 'keepTogether',
-          children: [{ type: 'block', block: { type: 'businessInfo' } }]
-        },
-        { id: 'main', width: '80%', direction: 'column', overflow: 'continue', sections: ['itemsTable'] }
-      ]
-    });
+    const document = await renderPdf(
+      {
+        schemaVersion: 2,
+        meta: { name: 'Landscape sidebar' },
+        orientation: 'landscape',
+        regions: [
+          {
+            id: 'sidebar',
+            width: '20%',
+            direction: 'column',
+            overflow: 'keepTogether',
+            children: [{ type: 'block', block: { type: 'businessInfo' } }]
+          },
+          { id: 'main', width: '80%', direction: 'column', overflow: 'continue', sections: ['itemsTable'] }
+        ]
+      },
+      { invoiceItems: items.slice(0, 3) }
+    );
 
     const page = document.getPage(0);
     const { width, height } = page.getSize();

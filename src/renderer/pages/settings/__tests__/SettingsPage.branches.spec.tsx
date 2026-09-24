@@ -1,21 +1,17 @@
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { I18nextProvider } from 'react-i18next';
 import { Provider } from 'react-redux';
 import i18n from '../../../i18n';
 import { AmountFormat } from '../../../shared/enums/amountFormat';
 import { DateFormat } from '../../../shared/enums/dateFormat';
+import { DeliveryProvider } from '../../../shared/enums/deliveryProvider';
 import { Language } from '../../../shared/enums/language';
 import { MenuItemSettings } from '../../../shared/enums/menuItemSettings';
-import type { Response } from '../../../shared/types/response';
 import type { Settings } from '../../../shared/types/settings';
 import { store } from '../../../state/configureStore';
 import { setSettings } from '../../../state/pageSlice';
 import { SettingsPage } from '../index';
-
-interface HookOptions<T> {
-  onDone: (data: Response<T>) => void;
-}
 
 interface MenuProps {
   onSelected: (item: MenuItemSettings | undefined) => void;
@@ -39,12 +35,14 @@ const mocks = vi.hoisted(() => ({
   languageProps: undefined as
     { onLanguageFormat: (data: never) => void; onBack: () => void; showBack: boolean } | undefined,
   confirmation: undefined as { isOpen: boolean; onCancel: () => void; onConfirm: () => void } | undefined,
-  retrieveOptions: undefined as HookOptions<Settings> | undefined,
-  updateOptions: undefined as HookOptions<unknown> | undefined,
-  exportOptions: undefined as HookOptions<{ filePath?: string }> | undefined,
-  importOptions: undefined as HookOptions<unknown> | undefined,
-  getSettings: vi.fn(),
+  exportResult: { filePath: 'C:/backup.json' } as { filePath?: string } | undefined,
+  importResult: undefined as unknown,
+  backupError: undefined as { message?: string; key?: string } | undefined,
+  isUpdating: false,
+  shouldRejectUpdate: false,
+  updateError: undefined as { message?: string; key?: string } | undefined,
   update: vi.fn(),
+  updateTrigger: undefined as ((arg: unknown) => { unwrap: () => Promise<unknown> }) | undefined,
   exportJson: vi.fn(),
   importJson: vi.fn()
 }));
@@ -53,30 +51,31 @@ vi.mock('@mui/material', async importOriginal => {
   const actual = await importOriginal<typeof import('@mui/material')>();
   return { ...actual, useMediaQuery: () => mocks.desktop };
 });
-vi.mock('../../../shared/hooks/settings/useSettingsRetrieve', () => ({
-  useSettingsRetrieve: (options: HookOptions<Settings>) => {
-    mocks.retrieveOptions = options;
-    return { execute: mocks.getSettings };
-  }
-}));
-vi.mock('../../../shared/hooks/settings/useSettingsUpdate', () => ({
-  useSettingsUpdate: (options: HookOptions<unknown>) => {
-    mocks.updateOptions = options;
-    return { execute: mocks.update };
-  }
-}));
-vi.mock('../../../shared/hooks/backup/useExportJson', () => ({
-  useExportJson: (options: HookOptions<{ filePath?: string }>) => {
-    mocks.exportOptions = options;
-    return { execute: mocks.exportJson };
-  }
-}));
-vi.mock('../../../shared/hooks/backup/useImportJson', () => ({
-  useImportJson: (options: HookOptions<unknown>) => {
-    mocks.importOptions = options;
-    return { execute: mocks.importJson };
-  }
-}));
+vi.mock('../../../shared/api/settingsApi', async importOriginal => {
+  const actual = await importOriginal<typeof import('../../../shared/api/settingsApi')>();
+  return {
+    ...actual,
+    useUpdateSettingsMutation: () => [mocks.updateTrigger, { isLoading: mocks.isUpdating }]
+  };
+});
+vi.mock('../../../shared/api/backupApi', async importOriginal => {
+  const actual = await importOriginal<typeof import('../../../shared/api/backupApi')>();
+  return {
+    ...actual,
+    useExportAllDataMutation: () => [
+      mocks.exportJson.mockImplementation(() => ({
+        unwrap: () => (mocks.backupError ? Promise.reject(mocks.backupError) : Promise.resolve(mocks.exportResult))
+      })),
+      { isLoading: false }
+    ],
+    useImportAllDataMutation: () => [
+      mocks.importJson.mockImplementation(() => ({
+        unwrap: () => (mocks.backupError ? Promise.reject(mocks.backupError) : Promise.resolve(mocks.importResult))
+      })),
+      { isLoading: false }
+    ]
+  };
+});
 vi.mock('../menu/Menu', () => ({
   Menu: (props: MenuProps) => {
     mocks.menuProps = props;
@@ -112,6 +111,7 @@ const settings = {
   shouldIncludeMonth: true,
   shouldIncludeBusinessName: true,
   quotesON: true,
+  deliveryProvider: DeliveryProvider.smtp,
   styleProfilesON: true,
   ublON: true,
   xrechnungON: true,
@@ -134,6 +134,18 @@ describe('SettingsPage callback branches', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.desktop = true;
+    mocks.isUpdating = false;
+    mocks.shouldRejectUpdate = false;
+    mocks.updateError = undefined;
+    mocks.exportResult = { filePath: 'C:/backup.json' };
+    mocks.importResult = undefined;
+    mocks.backupError = undefined;
+    mocks.updateTrigger = (arg: unknown) => {
+      mocks.update(arg);
+      return {
+        unwrap: () => (mocks.shouldRejectUpdate ? Promise.reject(mocks.updateError) : Promise.resolve(arg))
+      };
+    };
     store.dispatch(setSettings(settings));
     for (const toast of store.getState().pageSlice.toasts)
       store.dispatch({ type: 'pageSlice/removeToast', payload: toast.id });
@@ -165,7 +177,18 @@ describe('SettingsPage callback branches', () => {
         xrechnungON: false
       })
     );
-    await waitFor(() => expect(mocks.update).toHaveBeenCalled());
+    expect(mocks.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isDarkMode: true,
+        quotesON: false,
+        reportsON: false,
+        receiptPrintingOn: false,
+        styleProfilesON: false,
+        presetsON: false,
+        ublON: false,
+        xrechnungON: false
+      })
+    );
   });
 
   it('updates customization and language content and handles mobile back', () => {
@@ -205,7 +228,7 @@ describe('SettingsPage callback branches', () => {
     expect(localStorage.getItem('lastUsedLanguage')).toBe(Language.fr);
   });
 
-  it('handles import confirmation, cancellation, export success variants, and import success', () => {
+  it('handles import confirmation, cancellation, export success variants, and import success', async () => {
     render(<SettingsPage />, { wrapper });
     act(() => mocks.menuProps?.onImportJSON());
     expect(mocks.confirmation?.isOpen).toBe(true);
@@ -214,28 +237,44 @@ describe('SettingsPage callback branches', () => {
     act(() => mocks.menuProps?.onImportJSON());
     act(() => mocks.confirmation?.onConfirm());
     expect(mocks.importJson).toHaveBeenCalledTimes(1);
+    await act(async () => {});
 
     act(() => mocks.menuProps?.onExportJSON());
     expect(mocks.exportJson).toHaveBeenCalledTimes(1);
-    act(() => mocks.exportOptions?.onDone({ success: true, data: { filePath: 'C:/backup.json' } }));
+    await act(async () => {});
     expect(latestToast()?.severity).toBe('success');
-    act(() => mocks.exportOptions?.onDone({ success: true, data: {} }));
+    mocks.exportResult = undefined;
+    act(() => mocks.menuProps?.onExportJSON());
+    await act(async () => {});
     expect(latestToast()?.message).toBe(i18n.t('common.exported'));
-    act(() => mocks.importOptions?.onDone({ success: true }));
-    expect(mocks.getSettings).toHaveBeenCalledTimes(1);
+    act(() => mocks.menuProps?.onImportJSON());
+    act(() => mocks.confirmation?.onConfirm());
+    await act(async () => {});
     expect(latestToast()?.message).toBe(i18n.t('common.imported'));
   });
 
-  it.each([
-    ['retrieve', () => mocks.retrieveOptions?.onDone, { success: false, message: 'common.error' }],
-    ['update', () => mocks.updateOptions?.onDone, { success: false, message: 'literal failure' }],
-    ['export', () => mocks.exportOptions?.onDone, { success: false, key: 'common.error' }],
-    ['import', () => mocks.importOptions?.onDone, { success: false }]
-  ] as const)('handles %s failure responses', (_name, getOnDone, response) => {
-    render(<SettingsPage />, { wrapper });
-    const onDone = getOnDone();
-    act(() => onDone?.(response));
+  it('rejects the settings update with the configured error contract', async () => {
+    mocks.shouldRejectUpdate = true;
+    mocks.updateError = { message: 'literal failure' };
 
-    if ('message' in response || 'key' in response) expect(latestToast()?.severity).toBe('error');
+    await expect(
+      (async () => {
+        const result = mocks.updateTrigger?.(store.getState().pageSlice.settings as never);
+        await result?.unwrap();
+      })()
+    ).rejects.toMatchObject({ message: 'literal failure' });
+  });
+
+  it.each(['export', 'import'] as const)('handles %s failure responses', async type => {
+    mocks.backupError = type === 'export' ? { key: 'common.error' } : {};
+    render(<SettingsPage />, { wrapper });
+    if (type === 'export') {
+      act(() => mocks.menuProps?.onExportJSON());
+    } else {
+      act(() => mocks.menuProps?.onImportJSON());
+      act(() => mocks.confirmation?.onConfirm());
+    }
+    await act(async () => {});
+    if (type === 'export') expect(latestToast()?.severity).toBe('error');
   });
 });

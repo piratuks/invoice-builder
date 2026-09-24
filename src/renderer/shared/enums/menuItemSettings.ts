@@ -1,4 +1,5 @@
 export enum MenuItemSettings {
   LanguageFormat,
-  Receipt
+  Receipt,
+  Delivery
 }

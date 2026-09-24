@@ -21,6 +21,7 @@ export default defineConfig({
         '@electron-webauthn/native',
         'electron-webauthn',
         'electron',
+        'keytar',
         'sqlite3',
         'fs',
         'path',

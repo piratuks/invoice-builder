@@ -75,6 +75,9 @@ export const getRequestDatabase = (req: Request): DatabaseAdapter | null => {
   return null;
 };
 
+export const getOpenDatabases = () =>
+  [...requestDbRegistry.entries()].map(([databaseKey, db]) => ({ databaseKey, db }));
+
 export const restoreSqliteDatabase = async (databaseKey: string, fullPath: string) => {
   const resolvedKey = normalizeDatabaseKey(databaseKey);
   const resolvedPath = normalizeDatabaseKey(fullPath);

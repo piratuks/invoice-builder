@@ -10,6 +10,7 @@ import {
   isInvoiceCurrencySnapshotFromData,
   isInvoiceCustomizationFromData,
   isInvoiceFromData,
+  isInvoiceScheduleData,
   isItemFromData,
   isLayoutData,
   isLayoutFormData,
@@ -66,6 +67,26 @@ describe('isLayoutData', () => {
 
   it('rejects an invalid v2 schema object', () => {
     expect(isLayoutData({ isArchived: false, schema: { schemaVersion: 2 } })).toBe(false);
+  });
+});
+
+describe('isInvoiceScheduleData', () => {
+  it('accepts partial form state while validating only provided fields', () => {
+    expect(isInvoiceScheduleData({ endAt: null })).toBe(true);
+    expect(isInvoiceScheduleData({ sourceInvoiceId: 0 })).toBe(true);
+    expect(isInvoiceScheduleData({ isArchived: false })).toBe(true);
+    expect(
+      isInvoiceScheduleData({ sourceInvoiceId: 7, intervalCount: 1, startAt: '2026-01-01', timezone: 'UTC' })
+    ).toBe(true);
+    expect(isInvoiceScheduleData({ cadence: 'weekly', intervalCount: 0 })).toBe(true);
+  });
+
+  it('rejects invalid types for present values', () => {
+    expect(isInvoiceScheduleData({ sourceInvoiceId: 'bad' })).toBe(false);
+    expect(isInvoiceScheduleData({ cadence: 'not-real' })).toBe(false);
+    expect(isInvoiceScheduleData({ isArchived: 'no' })).toBe(false);
+    expect(isInvoiceScheduleData({ endAt: 123 })).toBe(false);
+    expect(isInvoiceScheduleData({ deliveryMethod: 'nope' })).toBe(false);
   });
 });
 

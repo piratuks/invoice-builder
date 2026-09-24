@@ -5,6 +5,7 @@ import { APP_CONFIG } from './config';
 import { initControllers } from './controllers';
 import { initDatabaseController } from './controllers/database';
 import { closeAllDatabases, getDatabaseKeyFromRequest, getRequestDatabase, registerSessionDatabase } from './database';
+import { startWebInvoiceScheduleRuntime, stopWebInvoiceScheduleRuntime } from './invoiceScheduleRuntime';
 import { authenticateSession, getSessionTokenFromRequest } from './session';
 import { createSessionAuthorizationLimiter } from './utils/functions';
 
@@ -88,11 +89,13 @@ export const createApp = () => {
 const main = async () => {
   createApp();
   startCleanupScheduler();
+  startWebInvoiceScheduleRuntime();
   const httpServer = app.listen(port, server, () => {
     console.log(`Server listening at http://${host}:${port}`);
   });
   const shutdown = async () => {
     stopCleanupScheduler();
+    stopWebInvoiceScheduleRuntime();
     await closeAllDatabases();
     httpServer.close(() => process.exit(0));
   };

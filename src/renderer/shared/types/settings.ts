@@ -1,5 +1,6 @@
 import type { AmountFormat } from '../enums/amountFormat';
 import type { DateFormat } from '../enums/dateFormat';
+import type { DeliveryProvider } from '../enums/deliveryProvider';
 import type { Language } from '../enums/language';
 
 export interface Settings {
@@ -14,6 +15,14 @@ export interface Settings {
   shouldIncludeMonth: boolean;
   shouldIncludeBusinessName: boolean;
   quotesON: boolean;
+  invoiceSchedulesON: boolean;
+  deliveryProvider: DeliveryProvider;
+  smtpHost?: string;
+  smtpPort?: number;
+  smtpSecure: boolean;
+  smtpUser?: string;
+  smtpFromEmail?: string;
+  smtpFromName?: string;
   styleProfilesON: boolean;
   ublON: boolean;
   xrechnungON: boolean;
@@ -35,6 +44,14 @@ export interface SettingsUpdate {
   shouldIncludeMonth?: boolean;
   shouldIncludeBusinessName?: boolean;
   quotesON?: boolean;
+  invoiceSchedulesON?: boolean;
+  deliveryProvider?: DeliveryProvider;
+  smtpHost?: string;
+  smtpPort?: number;
+  smtpSecure?: boolean;
+  smtpUser?: string;
+  smtpFromEmail?: string;
+  smtpFromName?: string;
   receiptPrintingOn?: boolean;
   styleProfilesON?: boolean;
   ublON?: boolean;

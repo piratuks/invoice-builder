@@ -53,7 +53,13 @@ describe('Sidebar', () => {
     mocks.getAppVersion.mockResolvedValue('9.9.9');
     store.dispatch(setDbReady(true));
     store.dispatch(
-      setSettings({ quotesON: true, presetsON: true, styleProfilesON: true, reportsON: true } as Settings)
+      setSettings({
+        quotesON: true,
+        invoiceSchedulesON: true,
+        presetsON: true,
+        styleProfilesON: true,
+        reportsON: true
+      } as Settings)
     );
   });
 
@@ -64,6 +70,7 @@ describe('Sidebar', () => {
     const invoices = findItem(i18n.t('menuItems.invoices'));
     expect(typeof invoices.isSelected).toBe('function');
     expect((invoices.isSelected as (item: MenuItem) => boolean)(invoices)).toBe(true);
+    expect(findItem(i18n.t('menuItems.invoiceSchedules'))).toBeDefined();
     expect(findItem(i18n.t('menuItems.quotes'))).toBeDefined();
     expect(findItem(i18n.t('menuItems.presets'))).toBeDefined();
     expect(findItem(i18n.t('menuItems.styleProfiles'))).toBeDefined();
@@ -94,11 +101,18 @@ describe('Sidebar', () => {
   it('omits disabled features and starts collapsed on mobile', () => {
     mocks.desktop = false;
     store.dispatch(
-      setSettings({ quotesON: false, presetsON: false, styleProfilesON: false, reportsON: false } as Settings)
+      setSettings({
+        quotesON: false,
+        invoiceSchedulesON: false,
+        presetsON: false,
+        styleProfilesON: false,
+        reportsON: false
+      } as Settings)
     );
     render(<Sidebar />, { wrapper });
 
     expect(screen.getByTestId('menu-state')).toHaveTextContent('false');
+    expect(items().some(item => item.text === i18n.t('menuItems.invoiceSchedules'))).toBe(false);
     expect(items().some(item => item.text === i18n.t('menuItems.quotes'))).toBe(false);
     expect(items().some(item => item.text === i18n.t('menuItems.reports'))).toBe(false);
     expect(screen.queryByRole('button', { name: i18n.t('ariaLabel.menu') })).not.toBeInTheDocument();

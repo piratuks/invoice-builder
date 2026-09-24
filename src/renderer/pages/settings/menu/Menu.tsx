@@ -1,11 +1,13 @@
 import {
   DarkMode,
   Description,
+  Email,
   FavoriteBorderOutlined,
   FileDownload,
   Language,
   LightMode,
-  LocalPrintshopOutlined
+  LocalPrintshopOutlined,
+  Update
 } from '@mui/icons-material';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import AutorenewIcon from '@mui/icons-material/Autorenew';
@@ -36,12 +38,14 @@ interface Props {
   selectedMenu?: MenuItemSettings | undefined;
   onModeChange?: (isDark: boolean) => void;
   toggleQuotes?: (value: boolean) => void;
+  toggleInvoiceSchedules?: (value: boolean) => void;
   toggleReports?: (value: boolean) => void;
   toggleStyleProfiles?: (value: boolean) => void;
   togglePresets?: (value: boolean) => void;
   toggleUBL?: (value: boolean) => void;
   toggleXRechnung?: (value: boolean) => void;
   toggleReceiptPrinting?: (value: boolean) => void;
+  onDeliverySettings?: () => void;
   onExportJSON?: () => void;
   onImportJSON?: () => void;
 }
@@ -49,12 +53,14 @@ export const Menu: FC<Props> = ({
   onSelected = () => {},
   selectedMenu,
   toggleQuotes = () => {},
+  toggleInvoiceSchedules = () => {},
   toggleReports = () => {},
   toggleStyleProfiles = () => {},
   togglePresets = () => {},
   toggleReceiptPrinting = () => {},
   toggleUBL = () => {},
   onModeChange = () => {},
+  onDeliverySettings = () => {},
   onExportJSON = () => {},
   onImportJSON = () => {},
   toggleXRechnung = () => {}
@@ -84,6 +90,14 @@ export const Menu: FC<Props> = ({
           isToggle: false,
           isSelected: MenuItemSettings.Receipt === selectedMenu,
           onClick: () => onSelected(MenuItemSettings.Receipt)
+        },
+        {
+          text: t('settingsMenuItems.titles.deliverySettings'),
+          description: t('settingsMenuItems.descriptions.deliverySettings'),
+          icon: <Email />,
+          isToggle: false,
+          isSelected: MenuItemSettings.Delivery === selectedMenu,
+          onClick: onDeliverySettings
         },
         {
           text: t('settingsMenuItems.titles.darkMode'),
@@ -124,6 +138,17 @@ export const Menu: FC<Props> = ({
           checked: storeSettings?.reportsON ?? true,
           onChange: () => {
             toggleReports(!storeSettings?.reportsON);
+          }
+        },
+        {
+          text: t('settingsMenuItems.titles.turnInvoiceSchedules'),
+          description: t('settingsMenuItems.descriptions.turnInvoiceSchedules'),
+          icon: <Update />,
+          isToggle: true,
+          isSelected: false,
+          checked: storeSettings?.invoiceSchedulesON ?? true,
+          onChange: () => {
+            toggleInvoiceSchedules(!storeSettings?.invoiceSchedulesON);
           }
         },
         {

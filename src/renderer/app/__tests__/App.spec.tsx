@@ -3,16 +3,27 @@ import type { ReactNode } from 'react';
 import { I18nextProvider } from 'react-i18next';
 import { Provider } from 'react-redux';
 import i18n from '../../i18n';
-import type { Response } from '../../shared/types/response';
 import type { Settings } from '../../shared/types/settings';
 import { store } from '../../state/configureStore';
 import { addToast, setAllowed } from '../../state/pageSlice';
 import { App } from '../App';
 
+interface SettingsQueryResult {
+  data?: Settings;
+  isLoading: boolean;
+  isFetching: boolean;
+  isError: boolean;
+  error?: { message?: string; key?: string };
+}
+
 const mocks = vi.hoisted(() => ({
-  settings: undefined as Settings | undefined,
-  settingsOptions: undefined as { onDone: (data: Response<Settings>) => void } | undefined,
-  getSettings: vi.fn(),
+  getSettingsResult: {
+    data: undefined,
+    isLoading: false,
+    isFetching: false,
+    isError: false,
+    error: undefined
+  } as SettingsQueryResult,
   attemptNavigation: vi.fn(),
   setBlocked: vi.fn(),
   cancelNavigation: vi.fn(),
@@ -23,12 +34,13 @@ const mocks = vi.hoisted(() => ({
   confirmation: undefined as { onCancel: () => void; onConfirm: () => void } | undefined
 }));
 
-vi.mock('../../shared/hooks/settings/useSettingsRetrieve', () => ({
-  useSettingsRetrieve: (options: { onDone: (data: Response<Settings>) => void }) => {
-    mocks.settingsOptions = options;
-    return { settings: mocks.settings, execute: mocks.getSettings };
-  }
-}));
+vi.mock('../../shared/api/settingsApi', async importOriginal => {
+  const actual = await importOriginal<typeof import('../../shared/api/settingsApi')>();
+  return {
+    ...actual,
+    useGetSettingsQuery: () => mocks.getSettingsResult
+  };
+});
 vi.mock('../../shared/hooks/other/useBeforeLeave', () => ({
   useBeforeLeave: () => ({
     showPrompt: mocks.showPrompt,
@@ -70,7 +82,13 @@ const wrapper = ({ children }: { children: ReactNode }) => (
 describe('App', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.settings = undefined;
+    mocks.getSettingsResult = {
+      data: undefined,
+      isLoading: false,
+      isFetching: false,
+      isError: false,
+      error: undefined
+    };
     mocks.showPrompt = false;
     store.dispatch({ type: 'pageSlice/logout' });
     for (const toast of store.getState().pageSlice.toasts)
@@ -82,27 +100,29 @@ describe('App', () => {
     expect(screen.getByText('database-chooser')).toBeInTheDocument();
 
     act(() => mocks.databaseRead?.());
-    expect(mocks.getSettings).toHaveBeenCalledTimes(1);
     expect(screen.getByText('app-layout')).toBeInTheDocument();
   });
 
   it.each([
-    [{ success: false, message: 'common.error' }, i18n.t('common.error')],
-    [{ success: false, message: 'server detail' }, 'server detail'],
-    [{ success: false, key: 'common.error' }, i18n.t('common.error')]
-  ] as const)('reports settings retrieval failures', (response, expected) => {
+    [{ message: 'common.error' }, i18n.t('common.error')],
+    [{ message: 'server detail' }, 'server detail'],
+    [{ key: 'common.error' }, i18n.t('common.error')]
+  ] as const)('reports settings retrieval failures', (error, expected) => {
+    mocks.getSettingsResult = { data: undefined, isLoading: false, isFetching: false, isError: true, error };
     render(<App />, { wrapper });
-    act(() => mocks.settingsOptions?.onDone(response as Response<Settings>));
+    act(() => mocks.databaseRead?.());
     expect(store.getState().pageSlice.toasts.at(-1)?.message).toBe(expected);
   });
 
   it('stores retrieved settings, language, and navigation handlers', () => {
-    mocks.settings = { language: 'de' } as Settings;
+    const settings = { language: 'de' } as Settings;
+    mocks.getSettingsResult = { data: settings, isLoading: false, isFetching: false, isError: false, error: undefined };
     mocks.showPrompt = true;
     store.dispatch(setAllowed(false));
     render(<App />, { wrapper });
+    act(() => mocks.databaseRead?.());
 
-    expect(store.getState().pageSlice.settings).toEqual(mocks.settings);
+    expect(store.getState().pageSlice.settings).toEqual(settings);
     expect(localStorage.getItem('lastUsedLanguage')).toBe('de');
     act(() => mocks.confirmation?.onConfirm());
     act(() => mocks.confirmation?.onCancel());

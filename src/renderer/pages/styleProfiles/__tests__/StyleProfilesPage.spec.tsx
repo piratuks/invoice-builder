@@ -5,6 +5,7 @@ import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router-dom';
 import i18n from '../../../i18n';
 import { getApi } from '../../../shared/api/restApi';
+import { styleProfilesApi } from '../../../shared/api/styleProfilesApi';
 import { store } from '../../../state/configureStore';
 import { StyleProfilesPage } from '../index';
 
@@ -58,6 +59,7 @@ describe('StyleProfilesPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    store.dispatch(styleProfilesApi.util.resetApiState());
     vi.mocked(getApi).mockReturnValue(mockApi as never);
   });
 

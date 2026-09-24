@@ -1,5 +1,6 @@
 import { Pool, type PoolClient, type PoolConfig } from 'pg';
 import sqlite3 from 'sqlite3';
+import { SHARED_CONFIG } from '../config';
 import { DatabaseType } from '../enums/databaseType';
 import type { DatabaseAdapter } from '../types/DatabaseAdapter';
 import {
@@ -65,11 +66,13 @@ export type PostgresPoolOptions = Pick<
 >;
 
 const getDefaultPostgresPoolOptions = (): PostgresPoolOptions => ({
-  max: Number(process.env.PG_POOL_MAX) || 10,
-  idleTimeoutMillis: Number(process.env.PG_POOL_IDLE_TIMEOUT_MS) || 30_000,
-  connectionTimeoutMillis: Number(process.env.PG_POOL_CONNECTION_TIMEOUT_MS) || 5_000,
-  maxLifetimeSeconds: Number(process.env.PG_POOL_MAX_LIFETIME_SECONDS) || 0,
-  allowExitOnIdle: process.env.PG_POOL_ALLOW_EXIT_ON_IDLE === 'true'
+  max: Number(process.env.PG_POOL_MAX || SHARED_CONFIG.PG_POOL_MAX),
+  idleTimeoutMillis: Number(process.env.PG_POOL_IDLE_TIMEOUT_MS || SHARED_CONFIG.PG_POOL_IDLE_TIMEOUT_MS),
+  connectionTimeoutMillis: Number(
+    process.env.PG_POOL_CONNECTION_TIMEOUT_MS || SHARED_CONFIG.PG_POOL_CONNECTION_TIMEOUT_MS
+  ),
+  maxLifetimeSeconds: Number(process.env.PG_POOL_MAX_LIFETIME_SECONDS || SHARED_CONFIG.PG_POOL_MAX_LIFETIME_SECONDS),
+  allowExitOnIdle: (process.env.PG_POOL_ALLOW_EXIT_ON_IDLE || SHARED_CONFIG.PG_POOL_ALLOW_EXIT_ON_IDLE) === 'true'
 });
 
 export const createPostgresAdapter = (

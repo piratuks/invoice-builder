@@ -8,6 +8,7 @@ import { ConnectionSetter } from '../ConnectionSetter';
 const mocks = vi.hoisted(() => ({
   dispatch: vi.fn(),
   execute: vi.fn(),
+  pending: undefined as { resolve: (value: unknown) => void; reject: (reason: unknown) => void } | undefined,
   hookOptions: undefined as
     { onDone: (result: { success: boolean; message?: string; key?: string }) => void } | undefined
 }));
@@ -16,10 +17,18 @@ vi.mock('../../../../state/configureStore', () => ({
   useAppDispatch: () => mocks.dispatch
 }));
 
-vi.mock('../../../../shared/hooks/dbSelector/useDBTestConnection', () => ({
-  useTestConnection: (options: typeof mocks.hookOptions) => {
-    mocks.hookOptions = options;
-    return { execute: mocks.execute };
+vi.mock('../../../../shared/api/dbSelectorApi', () => ({
+  useTestConnectionMutation: () => {
+    mocks.hookOptions = {
+      onDone: result => (result.success ? mocks.pending?.resolve(undefined) : mocks.pending?.reject(result))
+    };
+    mocks.execute.mockImplementation(() => ({
+      unwrap: () =>
+        new Promise((resolve, reject) => {
+          mocks.pending = { resolve, reject };
+        })
+    }));
+    return [mocks.execute, { isLoading: false }];
   }
 }));
 
@@ -58,6 +67,7 @@ describe('ConnectionSetter', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.hookOptions = undefined;
+    mocks.pending = undefined;
   });
 
   it('validates required fields and saves the entered connection', async () => {
@@ -127,27 +137,35 @@ describe('ConnectionSetter', () => {
 
     act(() => mocks.hookOptions!.onDone({ success: true }));
     await waitFor(() => expect(testButton).toBeEnabled());
-    expect(mocks.dispatch).toHaveBeenLastCalledWith(
+    expect(mocks.dispatch).toHaveBeenCalledWith(
       expect.objectContaining({ payload: expect.objectContaining({ severity: 'success' }) })
     );
 
+    await user.click(testButton);
     act(() => mocks.hookOptions!.onDone({ success: false, message: 'Server unavailable' }));
-    expect(mocks.dispatch).toHaveBeenLastCalledWith(
+    await waitFor(() => expect(testButton).toBeEnabled());
+    expect(mocks.dispatch).toHaveBeenCalledWith(
       expect.objectContaining({ payload: { message: 'Server unavailable', severity: 'error' } })
     );
 
+    await user.click(testButton);
     act(() => mocks.hookOptions!.onDone({ success: false, message: 'error.failedToLoad' }));
-    expect(mocks.dispatch).toHaveBeenLastCalledWith(
+    await waitFor(() => expect(testButton).toBeEnabled());
+    expect(mocks.dispatch).toHaveBeenCalledWith(
       expect.objectContaining({ payload: { message: i18n.t('error.failedToLoad'), severity: 'error' } })
     );
 
+    await user.click(testButton);
     act(() => mocks.hookOptions!.onDone({ success: false, key: 'error.failedToLoad' }));
-    expect(mocks.dispatch).toHaveBeenLastCalledWith(
+    await waitFor(() => expect(testButton).toBeEnabled());
+    expect(mocks.dispatch).toHaveBeenCalledWith(
       expect.objectContaining({ payload: expect.objectContaining({ severity: 'error' }) })
     );
 
     const dispatchCount = mocks.dispatch.mock.calls.length;
+    await user.click(testButton);
     act(() => mocks.hookOptions!.onDone({ success: false }));
-    expect(mocks.dispatch).toHaveBeenCalledTimes(dispatchCount);
+    await waitFor(() => expect(testButton).toBeEnabled());
+    expect(mocks.dispatch).toHaveBeenCalledTimes(dispatchCount + 2);
   });
 });

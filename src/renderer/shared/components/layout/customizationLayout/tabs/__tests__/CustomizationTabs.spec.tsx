@@ -2,7 +2,9 @@ import { act, fireEvent, render, screen, waitFor, within } from '@testing-librar
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { I18nextProvider } from 'react-i18next';
+import { Provider } from 'react-redux';
 import i18n from '../../../../../../i18n';
+import { store } from '../../../../../../state/configureStore';
 import { Alignment } from '../../../../../enums/alignment';
 import { PageFormat } from '../../../../../enums/pageFormat';
 import { SizeType } from '../../../../../enums/sizeType';
@@ -43,9 +45,19 @@ const layouts = [
   }
 ];
 
-vi.mock('../../../../../hooks/layouts/useLayoutsRetrieve', () => ({
-  useLayoutsRetrieve: () => ({ layouts })
-}));
+vi.mock('../../../../../api/layoutsApi', async importOriginal => {
+  const actual = await importOriginal<typeof import('../../../../../api/layoutsApi')>();
+  return {
+    ...actual,
+    useGetLayoutsQuery: () => ({
+      data: layouts,
+      isLoading: false,
+      isFetching: false,
+      isError: false,
+      error: undefined
+    })
+  };
+});
 
 vi.mock('../../../../../utils/dataUrlFunctions', () => ({
   toDataUrl: vi.fn(),
@@ -132,7 +144,11 @@ vi.mock('../../../../lists/sortableItem/SortableItem', () => ({
   SortableItem: ({ children }: { children: ReactNode }) => <>{children}</>
 }));
 
-const wrapper = ({ children }: { children: ReactNode }) => <I18nextProvider i18n={i18n}>{children}</I18nextProvider>;
+const wrapper = ({ children }: { children: ReactNode }) => (
+  <Provider store={store}>
+    <I18nextProvider i18n={i18n}>{children}</I18nextProvider>
+  </Provider>
+);
 
 describe('customization tabs', () => {
   beforeEach(() => {
@@ -188,9 +204,11 @@ describe('customization tabs', () => {
     expect(screen.queryByRole('radio', { name: 'A4' })).not.toBeInTheDocument();
 
     rerender(
-      <I18nextProvider i18n={i18n}>
-        <PageSetupTab value={0} data={{ pageFormat: PageFormat.letter }} />
-      </I18nextProvider>
+      <Provider store={store}>
+        <I18nextProvider i18n={i18n}>
+          <PageSetupTab value={0} data={{ pageFormat: PageFormat.letter }} />
+        </I18nextProvider>
+      </Provider>
     );
     expect(screen.getByRole('radio', { name: i18n.t('common.letter') })).toBeChecked();
   });

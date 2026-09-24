@@ -30,6 +30,18 @@ services:
       - FE_SERVER_URL=http://localhost:3001
       # Path to migration files in docker volume
       - MIGRATIONS_PATH=/app/dist-be/backend/server/shared/migrations
+      # Optional webserver tuning
+      - WEBSERVER_SESSION_TTL_MS=1800000
+      - WEBSERVER_CLEANUP_INTERVAL_MS=60000
+      - WEBSERVER_INVOICE_SCHEDULER_INTERVAL_MS=60000
+      # Optional PostgreSQL connection pool tuning
+      - PG_POOL_MAX=10
+      - PG_POOL_IDLE_TIMEOUT_MS=30000
+      - PG_POOL_CONNECTION_TIMEOUT_MS=5000
+      - PG_POOL_MAX_LIFETIME_SECONDS=0
+      - PG_POOL_ALLOW_EXIT_ON_IDLE=false
+      # Optional scheduled invoice email delivery password. Keep this secret in real deployments.
+      # - SMTP_PASSWORD=change-me
     volumes:
       - app-data:/data
     healthcheck:

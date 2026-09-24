@@ -2,6 +2,8 @@ import { Grid, useMediaQuery, useTheme } from '@mui/material';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n';
+import { useExportAllDataMutation, useImportAllDataMutation } from '../../shared/api/backupApi';
+import { useUpdateSettingsMutation } from '../../shared/api/settingsApi';
 import { Content } from '../../shared/components/layout/content/Content';
 import { NoItem } from '../../shared/components/lists/noItem/NoItem';
 import { Confirmation } from '../../shared/components/modals/confirmation';
@@ -9,29 +11,27 @@ import type { AmountFormat } from '../../shared/enums/amountFormat';
 import type { DateFormat } from '../../shared/enums/dateFormat';
 import type { Language } from '../../shared/enums/language';
 import { MenuItemSettings } from '../../shared/enums/menuItemSettings';
-import { useExportJson } from '../../shared/hooks/backup/useExportJson';
-import { useImportJson } from '../../shared/hooks/backup/useImportJson';
-import { useSettingsRetrieve } from '../../shared/hooks/settings/useSettingsRetrieve';
-import { useSettingsUpdate } from '../../shared/hooks/settings/useSettingsUpdate';
-import type { ExportMeta } from '../../shared/types/exportMeta';
-import type { Response } from '../../shared/types/response';
-import type { Settings } from '../../shared/types/settings';
 import { useAppDispatch, useAppSelector } from '../../state/configureStore';
 import {
   addToast,
+  disableLoadingCursor,
+  enableLoadingCursor,
   selectSettings,
   setCustomInvoiseSettings,
   setEInvoiceUBL,
   setEInvoiceXRechnung,
+  setInvoiceSchedules,
   setLanguageDate,
   setMode,
   setPresets,
   setQuotes,
   setReceiptPrintingOn,
   setReports,
+  setSmtpSettings,
   setStyleProfiles
 } from '../../state/pageSlice';
 import { CustomizeInvoice } from './content/CustomizeInvoice';
+import { DeliverySettings } from './content/DeliverySettings';
 import { LanguageFormat } from './content/LanguageFormat';
 import { Menu } from './menu/Menu';
 
@@ -45,66 +45,21 @@ export const SettingsPage = () => {
   const hasInitialized = useRef(false);
   const stableSettings = useMemo(() => storeSettings ?? {}, [storeSettings]);
   const [showImportConfirm, setShowImportConfirm] = useState(false);
+  const [updateSettings, { isLoading: isUpdatingSettings }] = useUpdateSettingsMutation();
+  const [exportAllData, { isLoading: isExporting }] = useExportAllDataMutation();
+  const [importAllData, { isLoading: isImporting }] = useImportAllDataMutation();
 
-  const { execute: getSettings } = useSettingsRetrieve({
-    immediate: false,
-    onDone: (data: Response<Settings>) => {
-      if (!data.success) {
-        if (data.message) {
-          const message = i18n.exists(data.message) ? t(data.message) : data.message;
-          dispatch(addToast({ message: message, severity: 'error' }));
-        } else if (data.key) dispatch(addToast({ message: t(data.key), severity: 'error' }));
+  const reportBackupError = useCallback(
+    (error: unknown) => {
+      const { message, key } = (error as { message?: string; key?: string }) ?? {};
+      if (message) {
+        dispatch(addToast({ message: i18n.exists(message) ? t(message) : message, severity: 'error' }));
+      } else if (key) {
+        dispatch(addToast({ message: t(key), severity: 'error' }));
       }
-    }
-  });
-
-  const { execute } = useSettingsUpdate({
-    newSettings: stableSettings ?? {},
-    immediate: false,
-    onDone: (data: Response<unknown>) => {
-      if (!data.success) {
-        if (data.message) {
-          const message = i18n.exists(data.message) ? t(data.message) : data.message;
-          dispatch(addToast({ message: message, severity: 'error' }));
-        } else if (data.key) dispatch(addToast({ message: t(data.key), severity: 'error' }));
-      }
-    }
-  });
-
-  const { execute: exportJSONBackup } = useExportJson({
-    immediate: false,
-    onDone: (data: Response<ExportMeta>) => {
-      if (!data.success) {
-        if (data.message) {
-          const message = i18n.exists(data.message) ? t(data.message) : data.message;
-          dispatch(addToast({ message: message, severity: 'error' }));
-        } else if (data.key) dispatch(addToast({ message: t(data.key), severity: 'error' }));
-      } else if (data?.success) {
-        const path = data.data?.filePath;
-        dispatch(
-          addToast({
-            message: path ? t('common.exportedTo', { path: path }) : t('common.exported'),
-            severity: 'success'
-          })
-        );
-      }
-    }
-  });
-
-  const { execute: importJSON } = useImportJson({
-    immediate: false,
-    onDone: (data: Response<unknown>) => {
-      if (!data.success) {
-        if (data.message) {
-          const message = i18n.exists(data.message) ? t(data.message) : data.message;
-          dispatch(addToast({ message: message, severity: 'error' }));
-        } else if (data.key) dispatch(addToast({ message: t(data.key), severity: 'error' }));
-      } else {
-        dispatch(addToast({ message: t('common.imported'), severity: 'success' }));
-        getSettings();
-      }
-    }
-  });
+    },
+    [dispatch, t]
+  );
 
   const onModeChange = useCallback(
     (isDark: boolean) => {
@@ -116,6 +71,13 @@ export const SettingsPage = () => {
   const toggleQuotes = useCallback(
     (value: boolean) => {
       dispatch(setQuotes(value));
+    },
+    [dispatch]
+  );
+
+  const toggleInvoiceSchedules = useCallback(
+    (value: boolean) => {
+      dispatch(setInvoiceSchedules(value));
     },
     [dispatch]
   );
@@ -163,8 +125,19 @@ export const SettingsPage = () => {
   );
 
   const exportJSON = useCallback(() => {
-    exportJSONBackup();
-  }, [exportJSONBackup]);
+    void exportAllData()
+      .unwrap()
+      .then(result => {
+        const path = result?.filePath;
+        dispatch(
+          addToast({
+            message: path ? t('common.exportedTo', { path }) : t('common.exported'),
+            severity: 'success'
+          })
+        );
+      })
+      .catch(reportBackupError);
+  }, [dispatch, exportAllData, reportBackupError, t]);
 
   const importJSONCallback = useCallback(() => {
     setShowImportConfirm(true);
@@ -176,8 +149,11 @@ export const SettingsPage = () => {
 
   const handleConfirmImport = useCallback(() => {
     handleCancelImport();
-    importJSON();
-  }, [handleCancelImport, importJSON]);
+    void importAllData()
+      .unwrap()
+      .then(() => dispatch(addToast({ message: t('common.imported'), severity: 'success' })))
+      .catch(reportBackupError);
+  }, [dispatch, handleCancelImport, importAllData, reportBackupError, t]);
 
   const onCustomizedInvoice = useCallback(
     (data: {
@@ -216,14 +192,53 @@ export const SettingsPage = () => {
     [dispatch]
   );
 
+  const onDeliverySettings = useCallback(
+    (data: {
+      smtpHost?: string;
+      smtpPort?: number;
+      smtpSecure: boolean;
+      smtpUser?: string;
+      smtpFromEmail?: string;
+      smtpFromName?: string;
+    }) => {
+      dispatch(setSmtpSettings(data));
+    },
+    [dispatch]
+  );
+
+  useEffect(() => {
+    if (!isUpdatingSettings) return;
+    dispatch(enableLoadingCursor());
+    return () => {
+      dispatch(disableLoadingCursor());
+    };
+  }, [dispatch, isUpdatingSettings]);
+
+  useEffect(() => {
+    if (!isExporting && !isImporting) return;
+    dispatch(enableLoadingCursor());
+    return () => {
+      dispatch(disableLoadingCursor());
+    };
+  }, [dispatch, isExporting, isImporting]);
+
   useEffect(() => {
     if (!hasInitialized.current) {
       hasInitialized.current = true;
       return;
     }
 
-    execute();
-  }, [stableSettings, execute]);
+    void updateSettings(stableSettings)
+      .unwrap()
+      .catch(error => {
+        if (error?.message) {
+          const message = i18n.exists(error.message) ? t(error.message) : error.message;
+          dispatch(addToast({ message, severity: 'error' }));
+        } else if (error?.key) {
+          dispatch(addToast({ message: t(error.key), severity: 'error' }));
+        }
+      });
+  }, [dispatch, stableSettings, t, updateSettings]);
 
   const onSelected = useCallback((item: MenuItemSettings | undefined) => {
     setCurrentMenuItem(item);
@@ -246,6 +261,11 @@ export const SettingsPage = () => {
       case MenuItemSettings.LanguageFormat:
         rightColumn = <LanguageFormat onLanguageFormat={onLanguageFormat} showBack={!isDesktop} onBack={onBack} />;
         break;
+      case MenuItemSettings.Delivery:
+        rightColumn = (
+          <DeliverySettings onDeliverySettings={onDeliverySettings} showBack={!isDesktop} onBack={onBack} />
+        );
+        break;
       default:
         rightColumn = <NoItem text={t('app.noItems')} />;
         break;
@@ -258,12 +278,14 @@ export const SettingsPage = () => {
       selectedMenu={currentMenuItem}
       onModeChange={onModeChange}
       toggleQuotes={toggleQuotes}
+      toggleInvoiceSchedules={toggleInvoiceSchedules}
       toggleReports={toggleReports}
       toggleReceiptPrinting={toggleReceiptPrinting}
       toggleStyleProfiles={toggleStyleProfiles}
       togglePresets={togglePresets}
       toggleUBL={toggleUBL}
       toggleXRechnung={toggleXRechnung}
+      onDeliverySettings={() => onSelected(MenuItemSettings.Delivery)}
       onExportJSON={exportJSON}
       onImportJSON={importJSONCallback}
     />

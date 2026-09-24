@@ -7,7 +7,8 @@ import {
   Inventory,
   People,
   Settings,
-  TableChart
+  TableChart,
+  Update
 } from '@mui/icons-material';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
@@ -93,6 +94,19 @@ export const Sidebar: FC = () => {
           isSelected: isSelected,
           onClick: onClickNavigate
         },
+        ...((storeSettings?.invoiceSchedulesON ?? true)
+          ? [
+              {
+                text: t('menuItems.invoiceSchedules'),
+                icon: <Update />,
+                path: '/invoice-schedules',
+                isToggle: false,
+                minHeight: 50,
+                isSelected: isSelected,
+                onClick: onClickNavigate
+              }
+            ]
+          : []),
         ...(storeSettings?.quotesON
           ? [
               {

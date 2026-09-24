@@ -1,4 +1,5 @@
 import { CurrencyFormat } from '../enums/currencyFormat';
+import { InvoiceScheduleCadence, InvoiceScheduleDeliveryMethod, InvoiceScheduleStatus } from '../enums/invoiceSchedule';
 import type { BankFromData } from '../types/bank';
 import type { BusinessFromData } from '../types/business';
 import type { CategoryFromData } from '../types/category';
@@ -11,6 +12,7 @@ import type {
   InvoiceCustomization,
   InvoiceFromData
 } from '../types/invoice';
+import type { InvoiceScheduleAdd, InvoiceScheduleUpdate } from '../types/invoiceSchedule';
 import type { ItemFromData } from '../types/item';
 import {
   parseLayoutSchema,
@@ -107,6 +109,76 @@ export const isLayoutData = (data: unknown): data is LayoutAdd | LayoutUpdate =>
   return (
     (schema.schemaVersion === 2 ? validateLayoutSchemaV2(data.schema) : validateLayoutSchema(data.schema)).length === 0
   );
+};
+
+const invoiceScheduleCadences = new Set(Object.values(InvoiceScheduleCadence));
+const invoiceScheduleStatuses = new Set(Object.values(InvoiceScheduleStatus));
+const invoiceScheduleDeliveryMethods = new Set(Object.values(InvoiceScheduleDeliveryMethod));
+
+export const isInvoiceScheduleData = (data: unknown): data is InvoiceScheduleAdd | InvoiceScheduleUpdate => {
+  if (!isRecord(data)) return false;
+
+  const schedule = data as Record<string, unknown>;
+
+  if (schedule.id !== undefined && schedule.id !== null && typeof schedule.id !== 'number') return false;
+  if (schedule.sourceInvoiceId !== undefined && schedule.sourceInvoiceId !== null) {
+    if (typeof schedule.sourceInvoiceId !== 'number') return false;
+  }
+  if (schedule.cadence !== undefined && schedule.cadence !== null) {
+    if (
+      typeof schedule.cadence !== 'string' ||
+      !invoiceScheduleCadences.has(schedule.cadence as InvoiceScheduleCadence)
+    ) {
+      return false;
+    }
+  }
+  if (schedule.intervalCount !== undefined && schedule.intervalCount !== null) {
+    if (typeof schedule.intervalCount !== 'number') return false;
+  }
+  if (schedule.timezone !== undefined && schedule.timezone !== null && typeof schedule.timezone !== 'string') {
+    return false;
+  }
+  if (schedule.startAt !== undefined && schedule.startAt !== null && typeof schedule.startAt !== 'string') {
+    return false;
+  }
+  if (schedule.endAt !== undefined && schedule.endAt !== null && typeof schedule.endAt !== 'string') return false;
+  if (schedule.maxOccurrences !== undefined && schedule.maxOccurrences !== null) {
+    if (typeof schedule.maxOccurrences !== 'number') return false;
+  }
+  if (schedule.nextRunAt !== undefined && schedule.nextRunAt !== null && typeof schedule.nextRunAt !== 'string') {
+    return false;
+  }
+  if (schedule.lastRunAt !== undefined && schedule.lastRunAt !== null && typeof schedule.lastRunAt !== 'string') {
+    return false;
+  }
+  if (schedule.dueDateOffsetDays !== undefined && schedule.dueDateOffsetDays !== null) {
+    if (typeof schedule.dueDateOffsetDays !== 'number') return false;
+  }
+  if (schedule.status !== undefined && schedule.status !== null) {
+    if (typeof schedule.status !== 'string' || !invoiceScheduleStatuses.has(schedule.status as InvoiceScheduleStatus)) {
+      return false;
+    }
+  }
+  if (schedule.isArchived !== undefined && schedule.isArchived !== null && typeof schedule.isArchived !== 'boolean') {
+    return false;
+  }
+  if (schedule.deliveryMethod !== undefined && schedule.deliveryMethod !== null) {
+    if (
+      typeof schedule.deliveryMethod !== 'string' ||
+      !invoiceScheduleDeliveryMethods.has(schedule.deliveryMethod as InvoiceScheduleDeliveryMethod)
+    ) {
+      return false;
+    }
+  }
+  if (
+    schedule.failureReason !== undefined &&
+    schedule.failureReason !== null &&
+    typeof schedule.failureReason !== 'string'
+  ) {
+    return false;
+  }
+
+  return true;
 };
 const isSortOrder = (value: unknown): value is SortOrder => {
   const SORT_ORDER_KEYS = ['no', 'item', 'unit', 'quantity', 'unitCost', 'total'] as const;

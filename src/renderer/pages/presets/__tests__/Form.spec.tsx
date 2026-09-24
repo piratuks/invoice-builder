@@ -1,11 +1,17 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { I18nextProvider } from 'react-i18next';
 import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router-dom';
 import i18n from '../../../i18n';
+import { banksApi } from '../../../shared/api/banksApi';
+import { businessesApi } from '../../../shared/api/businessesApi';
+import { clientsApi } from '../../../shared/api/clientsApi';
+import { currenciesApi } from '../../../shared/api/currenciesApi';
 import { getApi } from '../../../shared/api/restApi';
+import { styleProfilesApi } from '../../../shared/api/styleProfilesApi';
 import type { Preset } from '../../../shared/types/preset';
 import { store } from '../../../state/configureStore';
 import { Form } from '../Form';
@@ -45,10 +51,22 @@ beforeAll(() => {
 const wrapper = ({ children }: { children: ReactNode }) => (
   <Provider store={store}>
     <I18nextProvider i18n={i18n}>
-      <MemoryRouter initialEntries={['/presets']}>{children}</MemoryRouter>
+      <ThemeProvider theme={testTheme}>
+        <MemoryRouter initialEntries={['/presets']}>{children}</MemoryRouter>
+      </ThemeProvider>
     </I18nextProvider>
   </Provider>
 );
+
+const testTheme = createTheme({
+  components: {
+    MuiButtonBase: {
+      defaultProps: {
+        disableRipple: true
+      }
+    }
+  }
+});
 
 describe('presets Form', () => {
   const mockApi = {
@@ -62,6 +80,11 @@ describe('presets Form', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    store.dispatch(banksApi.util.resetApiState());
+    store.dispatch(businessesApi.util.resetApiState());
+    store.dispatch(clientsApi.util.resetApiState());
+    store.dispatch(currenciesApi.util.resetApiState());
+    store.dispatch(styleProfilesApi.util.resetApiState());
     Object.values(mockApi).forEach(fn => fn.mockResolvedValue({ success: true, data: [] }));
     vi.mocked(getApi).mockReturnValue(mockApi as never);
   });
@@ -74,11 +97,12 @@ describe('presets Form', () => {
   });
 
   it('becomes valid once a name is entered', async () => {
-    const user = userEvent.setup();
     const handleChange = vi.fn();
     render(<Form handleChange={handleChange} />, { wrapper });
 
-    await user.type(screen.getByRole('textbox', { name: i18n.t('common.name') }), 'Core preset');
+    fireEvent.change(screen.getByRole('textbox', { name: i18n.t('common.name') }), {
+      target: { value: 'Core preset' }
+    });
 
     await waitFor(() =>
       expect(handleChange).toHaveBeenCalledWith(

@@ -4,6 +4,7 @@ import { DatabaseType } from '../shared/enums/databaseType';
 import type { DatabaseAdapter } from '../shared/types/DatabaseAdapter';
 import type { PostgresConfig } from '../shared/types/postgresConfig';
 import type { SqLiteConfig } from '../shared/types/sqliteConfig';
+import { startInvoiceScheduleRuntime, stopInvoiceScheduleRuntime } from './invoiceScheduleRuntime';
 import { runMigrations } from './migration';
 
 const databases = new Map<number, DatabaseAdapter>();
@@ -24,6 +25,7 @@ const setupDB = async (opts: {
   const { sqliteConfig, createIfMissing = true, windowId, dbType, postgresConfig } = opts;
   const currentDatabase = databases.get(windowId);
   if (currentDatabase) {
+    stopInvoiceScheduleRuntime(windowId);
     databases.delete(windowId);
     await currentDatabase.close();
   }
@@ -52,11 +54,13 @@ const setupDB = async (opts: {
   }
 
   databases.set(windowId, database);
+  startInvoiceScheduleRuntime(windowId, database);
 };
 
 const cleanupDatabase = async (windowId: number) => {
   const database = databases.get(windowId);
   if (!database) return;
+  stopInvoiceScheduleRuntime(windowId);
   databases.delete(windowId);
   await database.close();
 };

@@ -59,6 +59,7 @@ If you value **privacy, portability, and control**, this app is built for you.
 - Export invoices in XRechnung (UBL 2.1) XML format, fully compliant for automated e-invoicing
 - Native receipt printing for invoices and quotes in desktop Electron mode, including compact 80mm thermal receipt layouts for retail checkout workflows
 - Receipt printing for invoices in web/Docker mode via the browser's own print dialog (e.g. "Save as PDF" as the destination)
+- Recurring invoice schedules can generate invoices automatically while the desktop app or web backend is running, with catch-up processing after downtime and optional SMTP email delivery
 - Log out from the sidebar to return to the database selection screen and switch databases without restarting the app
 
 ### Business Data Management
@@ -124,6 +125,7 @@ If you value **privacy, portability, and control**, this app is built for you.
 - File name customization for exported PDFs
 - Light & dark mode
 - Enable/disable UBL 2.1 Peppol BIS Billing 3.0, receipt printing, reports, style profiles, presets and quotes
+- Configure recurring invoice delivery SMTP settings. SMTP passwords are stored in the OS keychain in Electron desktop mode and supplied through `SMTP_PASSWORD` in web/Docker mode.
 - Check for updates via GitHub releases
 - Presets: Predefine default Invoice/Quote data (e.g., business, client, currency, bank, style profile, notes, language, signature) to streamline document creation
 
@@ -248,6 +250,8 @@ docker run -d \
   -v invoice-builder-data:/data \
   ghcr.io/piratuks/invoice-builder:latest
 ```
+
+To enable scheduled invoice email delivery in web/Docker mode, add `-e SMTP_PASSWORD=...` or set `SMTP_PASSWORD` in your Compose environment. Keep this value secret and out of committed files.
 
 Open `http://localhost:3001` after the container starts. Port `3000` is used internally by nginx and does not need to be published. Add `-p 3000:3000` only when direct access to the backend API is required.
 
@@ -423,6 +427,23 @@ VITE_API_URL={url} Backend webserver URL when running without Electron (Web/Dock
   - Webserver configs (which are used only running locally not via docker) -> backend/webserver/config.ts
   - Electron configs -> backend/main/config.ts
 
+Additional runtime environment variables:
+
+| Variable                                  | Applies to           | Default   | Description                                                                                                                                                                  |
+| ----------------------------------------- | -------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SMTP_PASSWORD`                           | Web/Docker scheduler | unset     | SMTP password for scheduled invoice email delivery. Non-secret SMTP settings are configured in the app UI. Desktop Electron stores this password in the OS keychain instead. |
+| `WEBSERVER_SESSION_TTL_MS`                | Web/Docker backend   | `1800000` | Session lifetime for browser/database workspace sessions.                                                                                                                    |
+| `WEBSERVER_CLEANUP_INTERVAL_MS`           | Web/Docker backend   | `60000`   | Interval for backend cleanup of expired sessions and stale resources.                                                                                                        |
+| `WEBSERVER_INVOICE_SCHEDULER_INTERVAL_MS` | Web/Docker backend   | `60000`   | Interval for the recurring invoice scheduler in web/Docker mode.                                                                                                             |
+| `ELECTRON_INVOICE_SCHEDULER_INTERVAL_MS`  | Electron desktop     | `60000`   | Interval for the recurring invoice scheduler while the desktop app and database are open.                                                                                    |
+| `PG_POOL_MAX`                             | PostgreSQL backend   | `10`      | Maximum number of PostgreSQL clients in the connection pool.                                                                                                                 |
+| `PG_POOL_IDLE_TIMEOUT_MS`                 | PostgreSQL backend   | `30000`   | How long an idle PostgreSQL pool client stays open before being closed.                                                                                                      |
+| `PG_POOL_CONNECTION_TIMEOUT_MS`           | PostgreSQL backend   | `5000`    | How long to wait when opening a PostgreSQL connection before timing out.                                                                                                     |
+| `PG_POOL_MAX_LIFETIME_SECONDS`            | PostgreSQL backend   | `0`       | Maximum lifetime for a PostgreSQL pool client. `0` disables lifetime-based rotation.                                                                                         |
+| `PG_POOL_ALLOW_EXIT_ON_IDLE`              | PostgreSQL backend   | `false`   | Allows the Node.js process to exit while PostgreSQL clients are idle. Usually leave `false` for server/runtime use.                                                          |
+
+For Docker deployments, set these values in `docker-compose.yml` or `docker-compose.standalone.yml`. Keep `SMTP_PASSWORD` out of committed files in real deployments.
+
 ### 📁 Project Structure
 
 ```bash
@@ -495,6 +516,7 @@ Please open an issue before starting major work to ensure alignment.
 
 | Version | Status                |
 | ------- | --------------------- |
+| v2.11.0 | ✅ Actively supported |
 | v2.10.0 | ✅ Actively supported |
 | v2.9.0  | ✅ Actively supported |
 | v2.8.0  | ✅ Actively supported |
