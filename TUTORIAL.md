@@ -758,7 +758,7 @@ Select a business from the dropdown. The dropdown supports **search, filter, and
 
 Select a client from the dropdown. The dropdown supports **search, filter, and sort** (see [Clients screen](#clients-screen) for details).
 
-To create a client without leaving the invoice form, use the **Add** action in the client selector. Enter the required name and, optionally, a phone number; the new client is selected automatically after creation.
+To create a client without leaving the quote form, use the **Add** action in the client selector. Enter the required name and, optionally, a phone number; the new client is selected automatically after creation.
 
 > 💡 **Note:** The selected client is saved as a snapshot. The snapshot is updated only when editing the quote and changing the client.
 
@@ -995,6 +995,8 @@ Select a business from the dropdown. The dropdown supports **search, filter, and
 Select a client from the dropdown. The dropdown supports **search, filter, and sort** (see [Clients screen](#clients-screen) for details).
 
 > 💡 **Note:** The selected client is saved as a snapshot. The snapshot is updated only when editing the invoice and changing the client.
+
+To create a client without leaving the invoice form, use the **Add** action in the client selector. Enter the required name and, optionally, a phone number; the new client is selected automatically after creation.
 
 ![Invoice client creation](tutorial/invoice_page_4.jpg)
 
