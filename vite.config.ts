@@ -43,7 +43,6 @@ export default defineConfig(({ mode }) => {
         exclude: [
           'src/**/vite-env.d.ts',
           'src/**/main.tsx',
-          'src/**/reportWebVitals.ts',
           'src/**/mocks',
           'src/backend/main/assets/**',
           'src/renderer/assets/**',

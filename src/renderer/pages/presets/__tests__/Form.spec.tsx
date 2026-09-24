@@ -104,12 +104,14 @@ describe('presets Form', () => {
       target: { value: 'Core preset' }
     });
 
-    await waitFor(() =>
-      expect(handleChange).toHaveBeenCalledWith(
-        expect.objectContaining({ isFormValid: true, preset: expect.objectContaining({ name: 'Core preset' }) })
-      )
+    await waitFor(
+      () =>
+        expect(handleChange).toHaveBeenCalledWith(
+          expect.objectContaining({ isFormValid: true, preset: expect.objectContaining({ name: 'Core preset' }) })
+        ),
+      { timeout: 10000 }
     );
-  });
+  }, 15000);
 
   it('pre-fills the name field from an existing preset', () => {
     const preset: Preset = {

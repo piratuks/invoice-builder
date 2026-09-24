@@ -1,5 +1,15 @@
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { AppBar, Box, Button, IconButton, Toolbar, Tooltip, Typography, useTheme } from '@mui/material';
+import {
+  AppBar,
+  Box,
+  Button,
+  CircularProgress,
+  IconButton,
+  Toolbar,
+  Tooltip,
+  Typography,
+  useTheme
+} from '@mui/material';
 import { type FC, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -8,6 +18,7 @@ interface Props {
   formData?: unknown;
   description?: string;
   isFormValid: boolean;
+  isSaving?: boolean;
   onClose?: () => void;
   onSave?: (data: unknown) => void;
   renderCustomButtons?: () => ReactNode;
@@ -17,6 +28,7 @@ export const ModalAppBar: FC<Props> = ({
   formData,
   description,
   isFormValid,
+  isSaving = false,
   onClose = () => {},
   onSave = () => {},
   renderCustomButtons = () => null
@@ -59,7 +71,8 @@ export const ModalAppBar: FC<Props> = ({
                 onClick={() => {
                   if (formData !== undefined) onSave(formData);
                 }}
-                disabled={!isFormValid}
+                disabled={!isFormValid || isSaving}
+                startIcon={isSaving ? <CircularProgress size={16} color="inherit" /> : undefined}
               >
                 {t('common.save')}
               </Button>
