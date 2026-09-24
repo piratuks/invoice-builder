@@ -413,6 +413,7 @@
   "invoices": {
     "addDiscount": "Ajouter une remise",
     "addInvoice": "Ajouter une facture",
+    "addBillTo": "Ajouter le destinataire",
     "addItem": "Ajouter un article",
     "addNote": "Ajouter une note",
     "addPayment": "Ajouter un paiement",

@@ -413,6 +413,7 @@
   "invoices": {
     "addDiscount": "Add discount",
     "addInvoice": "Add invoice",
+    "addBillTo": "Add Bill To",
     "addItem": "Add Item",
     "addNote": "Add note",
     "addPayment": "Add payment",

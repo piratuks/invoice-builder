@@ -1,5 +1,6 @@
-import { SwipeableDrawer, useMediaQuery, useTheme } from '@mui/material';
-import { memo, type FC } from 'react';
+import AddIcon from '@mui/icons-material/Add';
+import { IconButton, SwipeableDrawer, Tooltip, useMediaQuery, useTheme } from '@mui/material';
+import { memo, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useGetClientsQuery } from '../../../../shared/api/clientsApi';
 import { CRUDPageRTK } from '../../../../shared/components/layout/crudPage/CRUDPageRTK';
@@ -8,6 +9,7 @@ import type { Client, ClientAdd, ClientUpdate } from '../../../../shared/types/c
 import type { Filter } from '../../../../shared/types/filter';
 import { createCommonFilters, createInvoiceFilters } from '../../../../shared/utils/filterSortFunctions';
 import { List as ClientsList } from '../../../clients/List';
+import { ClientQuickAddModal } from '../Modals/ClientQuickAddModal';
 
 interface Props {
   isOpen: boolean;
@@ -18,6 +20,8 @@ interface Props {
 
 const ClientsDropdownComponent: FC<Props> = ({ isOpen, onClose, onOpen, onClick }) => {
   const { t } = useTranslation();
+  const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
+  const [reopenAfterQuickAdd, setReopenAfterQuickAdd] = useState(false);
   const filters: Filter[] = [
     ...createCommonFilters({ t, namespace: 'clients', initial: FilterType.active }),
     ...createInvoiceFilters({ t, namespace: 'clients' })
@@ -27,6 +31,21 @@ const ClientsDropdownComponent: FC<Props> = ({ isOpen, onClose, onOpen, onClick 
 
   return (
     <>
+      <ClientQuickAddModal
+        isOpen={isQuickAddOpen}
+        onCancel={() => {
+          setIsQuickAddOpen(false);
+          if (reopenAfterQuickAdd) {
+            setReopenAfterQuickAdd(false);
+            onOpen?.();
+          }
+        }}
+        onCreated={client => {
+          setIsQuickAddOpen(false);
+          setReopenAfterQuickAdd(false);
+          onClick?.(client);
+        }}
+      />
       <SwipeableDrawer
         anchor="bottom"
         open={isOpen}
@@ -53,12 +72,29 @@ const ClientsDropdownComponent: FC<Props> = ({ isOpen, onClose, onOpen, onClick 
           showRightSide={false}
           showAddButton={false}
           useRetrieve={useGetClientsQuery}
+          renderListToolbarActions={() => (
+            <Tooltip title={t('invoices.addBillTo')}>
+              <IconButton
+                aria-label={t('invoices.addBillTo')}
+                color="primary"
+                onClick={() => {
+                  setIsQuickAddOpen(true);
+                  if (isOpen) {
+                    setReopenAfterQuickAdd(true);
+                    onClose?.();
+                  }
+                }}
+              >
+                <AddIcon />
+              </IconButton>
+            </Tooltip>
+          )}
           searchField={'name'}
           sortOptions={[
             { label: t('common.name'), value: 'name' },
             { label: t('common.lastUpdate'), value: 'updatedAt' }
           ]}
-          noItemText={t('currencies.noItem')}
+          noItemText={t('clients.noItem')}
           renderListItem={(item, selectedItem) => (
             <ClientsList
               key={item.id}
