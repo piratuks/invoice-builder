@@ -46,6 +46,12 @@ const invoiceApiMocks = vi.hoisted(() => ({
       invoiceNumber: '1',
       invoiceFullNumber: 'INV-1',
       invoiceClientSnapshot: { clientName: 'Acme' }
+    },
+    {
+      id: 15,
+      invoiceType: 'invoice',
+      invoiceNumber: '2',
+      invoiceFullNumber: 'INV-2'
     }
   ]
 }));
@@ -69,7 +75,8 @@ vi.mock('../../../shared/api/invoicesApi', () => ({
 }));
 
 vi.mock('../../../state/configureStore', () => ({
-  useAppDispatch: () => vi.fn()
+  useAppDispatch: () => vi.fn(),
+  useAppSelector: () => ({ dateFormat: 'MM/dd/yyyy', quotesON: true })
 }));
 
 const withProviders = ({ children }: { children: ReactNode }) => (
@@ -91,14 +98,14 @@ describe('InvoiceSchedulesPage', () => {
 
     expect(screen.getByText('Recurring invoices')).toBeInTheDocument();
     expect(screen.getByText('INV-1 - Acme')).toBeInTheDocument();
-    expect(screen.getByText(InvoiceScheduleStatus.active)).toBeInTheDocument();
+    expect(screen.getByText('Active')).toBeInTheDocument();
 
     fireEvent.click(screen.getByLabelText('Pause schedule'));
     expect(scheduleApiMocks.updateSchedule).toHaveBeenCalledWith({ id: 11, status: InvoiceScheduleStatus.paused });
 
     fireEvent.click(screen.getByRole('button', { name: /history/i }));
     expect(await screen.findByText('Run history')).toBeInTheDocument();
-    expect(screen.getByText('15')).toBeInTheDocument();
+    expect(screen.getByText('INV-2')).toBeInTheDocument();
   });
 
   it('opens the create form with generate-only delivery selected', () => {

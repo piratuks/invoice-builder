@@ -367,6 +367,8 @@ describe('importExport service', () => {
     const result = await exportAllData(db);
     expect(result.success).toBe(true);
     expect(result.data?.businesses.length).toBe(1);
+    expect(result.data).toHaveProperty('invoiceSchedules');
+    expect(result.data).toHaveProperty('invoiceScheduleRuns');
   });
 
   it('rejects invalid import payloads', async () => {

@@ -20,6 +20,7 @@ import type {
   InvoicePayment,
   InvoiceStyleProfileSnapshots
 } from '../types/invoice';
+import type { InvoiceSchedule, InvoiceScheduleRun } from '../types/invoiceSchedule';
 import type { Item } from '../types/item';
 import type { Layout } from '../types/layouts';
 import type { StyleProfile } from '../types/styleProfiles';
@@ -75,6 +76,8 @@ export const exportAllData = async (db: DatabaseAdapter) => {
     const invoiceItems = await db.all<InvoiceItem>('SELECT * FROM invoice_items');
     const invoicePayments = await db.all<InvoicePayment>('SELECT * FROM invoice_payments');
     const attachments = await db.all<InvoiceAttachment>('SELECT * FROM attachments');
+    const invoiceSchedules = await db.all<InvoiceSchedule>('SELECT * FROM invoice_schedules');
+    const invoiceScheduleRuns = await db.all<InvoiceScheduleRun>('SELECT * FROM invoice_schedule_runs');
 
     const presetsModified = presets.map(item => encodePreset(item, true));
     const attachmentsModified = attachments.map(encodeInvoiceAttachment);
@@ -110,7 +113,9 @@ export const exportAllData = async (db: DatabaseAdapter) => {
       invoiceItems,
       invoiceItemSnapshots,
       invoicePayments,
-      attachments: attachmentsModified
+      attachments: attachmentsModified,
+      invoiceSchedules,
+      invoiceScheduleRuns
     };
 
     return { success: true, data: payload };
@@ -186,6 +191,8 @@ export const importAllData = async (db: DatabaseAdapter, parsed: Record<string, 
 
     await runInTransaction(async () => {
       const deleteOrder = [
+        'invoice_schedule_runs',
+        'invoice_schedules',
         'presets',
         'invoice_sequences',
         'invoice_style_profile_snapshots',
@@ -237,7 +244,9 @@ export const importAllData = async (db: DatabaseAdapter, parsed: Record<string, 
         invoice_layout_snapshots: 'invoiceLayoutSnapshots',
         invoice_payments: 'invoicePayments',
         attachments: 'attachments',
-        presets: 'presets'
+        presets: 'presets',
+        invoice_schedules: 'invoiceSchedules',
+        invoice_schedule_runs: 'invoiceScheduleRuns'
       };
 
       const parsedMut = { ...parsed };

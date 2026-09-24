@@ -416,6 +416,97 @@
     "xrechnungDueDate": "La date d'échéance est requise pour les factures conformes à XRechnung",
     "xrechnungNotSupported": "La facture n'est pas prise en charge pour l'XML UBL 2.1 conforme à XRechnung 3.0"
   },
+  "invoiceSchedules": {
+    "add": "Add schedule",
+    "cadence": "Cadence",
+    "cadenceSummary": "{{cadence}} recurrence, every {{count}} {{unit}}",
+    "cadenceValue": {
+      "monthly": "Monthly",
+      "quarterly": "Quarterly",
+      "weekly": "Weekly",
+      "yearly": "Yearly"
+    },
+    "deliveryEmailSoon": "Email (configure delivery first)",
+    "deliveryMethod": "Delivery method",
+    "deliveryNone": "Generate invoice only",
+    "deliveryStatus": "Delivery status",
+    "deliveryStatusValue": {
+      "failed": "Failed",
+      "not_applicable": "Not applicable",
+      "pending": "Pending",
+      "sent": "Sent"
+    },
+    "deliveryValue": {
+      "email": "Email",
+      "none": "Generate invoice only"
+    },
+    "dueAt": "Due at",
+    "dueDateOffsetDays": "Due date offset days",
+    "edit": "Edit schedule",
+    "endAt": "End at",
+    "error": "Error",
+    "every": "every",
+    "everyInterval": "Every {{count}} {{unit}}",
+    "filter": {
+      "activeDesc": "Schedules that are currently running",
+      "activeText": "Active schedules",
+      "allText": "All schedules",
+      "archivedDesc": "Schedules that have been archived",
+      "archivedText": "Archived schedules"
+    },
+    "generatedInvoice": "Generated invoice",
+    "history": "History",
+    "intervalCount": "Interval",
+    "lastRun": "Last run",
+    "maxOccurrences": "Max occurrences",
+    "monthly": "Monthly",
+    "nextRun": "Next run",
+    "noInvoices": "Create at least one invoice before adding a recurring schedule.",
+    "noRuns": "No runs recorded for this schedule yet.",
+    "noSchedules": "No recurring invoice schedules yet.",
+    "pause": "Pause schedule",
+    "quarterly": "Quarterly",
+    "repeats": {
+      "monthly": "Repeats monthly",
+      "quarterly": "Repeats quarterly",
+      "weekly": "Repeats weekly",
+      "yearly": "Repeats yearly"
+    },
+    "resume": "Resume schedule",
+    "runHistory": "Run history",
+    "runStatus": {
+      "failed": "Failed",
+      "pending": "Pending",
+      "running": "Running",
+      "skipped": "Skipped",
+      "success": "Successful"
+    },
+    "saved": "Schedule saved",
+    "sourceInvoice": "Source invoice",
+    "startAt": "Start at",
+    "status": {
+      "active": "Active",
+      "archived": "Archived",
+      "completed": "Completed",
+      "failed": "Failed",
+      "paused": "Paused"
+    },
+    "subtitle": "Manage automatic invoice generation while the app or backend is running.",
+    "timezone": "Timezone",
+    "title": "Recurring invoices",
+    "units": {
+      "monthlyPlural": "months",
+      "monthlySingular": "month",
+      "quarterlyPlural": "quarters",
+      "quarterlySingular": "quarter",
+      "weeklyPlural": "weeks",
+      "weeklySingular": "week",
+      "yearlyPlural": "years",
+      "yearlySingular": "year"
+    },
+    "weekly": "Weekly",
+    "yearly": "Yearly"
+  },
   "invoices": {
     "addDiscount": "Ajouter une remise",
     "addInvoice": "Ajouter une facture",
@@ -629,6 +720,7 @@
     "categories": "Catégories",
     "clients": "Clients",
     "currencies": "Devises",
+    "invoiceSchedules": "Recurring invoices",
     "invoices": "Factures",
     "items": "Articles",
     "layouts": "Mises en page",

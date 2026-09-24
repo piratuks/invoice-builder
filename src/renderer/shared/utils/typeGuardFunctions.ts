@@ -11,6 +11,7 @@ import type {
   InvoiceCustomization,
   InvoiceFromData
 } from '../types/invoice';
+import type { InvoiceScheduleAdd, InvoiceScheduleUpdate } from '../types/invoiceSchedule';
 import type { ItemFromData } from '../types/item';
 import {
   parseLayoutSchema,
@@ -106,6 +107,20 @@ export const isLayoutData = (data: unknown): data is LayoutAdd | LayoutUpdate =>
   const schema = data.schema as { schemaVersion?: unknown };
   return (
     (schema.schemaVersion === 2 ? validateLayoutSchemaV2(data.schema) : validateLayoutSchema(data.schema)).length === 0
+  );
+};
+
+export const isInvoiceScheduleData = (data: unknown): data is InvoiceScheduleAdd | InvoiceScheduleUpdate => {
+  if (!isRecord(data)) return false;
+  const schedule = data as Partial<InvoiceScheduleAdd | InvoiceScheduleUpdate>;
+
+  return (
+    typeof schedule.sourceInvoiceId === 'number' &&
+    schedule.sourceInvoiceId > 0 &&
+    typeof schedule.intervalCount === 'number' &&
+    schedule.intervalCount > 0 &&
+    typeof schedule.startAt === 'string' &&
+    schedule.startAt !== ''
   );
 };
 const isSortOrder = (value: unknown): value is SortOrder => {
