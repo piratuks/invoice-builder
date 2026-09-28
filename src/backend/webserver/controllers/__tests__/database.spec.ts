@@ -50,7 +50,7 @@ describe('webserver database controller', () => {
     });
 
     expect(list.json).toHaveBeenCalledWith({ success: true, data: ['one.db', 'three.sqlite'] });
-    expect(mocks.testPostgresConnection).toHaveBeenCalledWith({ host: 'host.docker.internal' });
+    expect(mocks.testPostgresConnection).toHaveBeenCalledWith({ host: 'localhost' });
     expect(mocks.setupDB).toHaveBeenCalled();
     expect(initialize.cookie).toHaveBeenCalledWith(
       'invoice-builder-session',

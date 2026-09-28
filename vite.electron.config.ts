@@ -2,7 +2,6 @@ import { builtinModules } from 'module';
 import path from 'path';
 import { defineConfig } from 'vite';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
-import tsconfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig({
   optimizeDeps: {
@@ -36,13 +35,13 @@ export default defineConfig({
     }
   },
   resolve: {
+    tsconfigPaths: true,
     alias: {
-      '@main': path.resolve(__dirname, 'src/backend/main')
+      '@main': path.resolve(import.meta.dirname, 'src/backend/main')
     }
   },
   publicDir: false,
   plugins: [
-    tsconfigPaths({ projects: ['tsconfig.node.json'] }),
     viteStaticCopy({
       targets: [
         {

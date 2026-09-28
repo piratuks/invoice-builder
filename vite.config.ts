@@ -31,7 +31,7 @@ export default defineConfig(({ mode }) => {
       strictPort: true
     },
     build: {
-      outDir: path.resolve(__dirname, 'dist-fe'),
+      outDir: path.resolve(import.meta.dirname, 'dist-fe'),
       chunkSizeWarningLimit: 1500
     },
     test: {
@@ -61,16 +61,17 @@ export default defineConfig(({ mode }) => {
       include: ['src/**/__tests__/*.{test,spec}.{js,ts,jsx,tsx}']
     },
     resolve: {
+      tsconfigPaths: true,
       alias: {
-        '@': path.resolve(__dirname, 'src'),
+        '@': path.resolve(import.meta.dirname, 'src'),
         // Absolute aliases for monaco worker entry files: Rolldown's worker
         // bundler fails to resolve bare `monaco-editor/...` specifiers.
         '@monaco-editor-worker/editor': path.resolve(
-          __dirname,
+          import.meta.dirname,
           'node_modules/monaco-editor/esm/vs/editor/editor.worker.js'
         ),
         '@monaco-editor-worker/json': path.resolve(
-          __dirname,
+          import.meta.dirname,
           'node_modules/monaco-editor/esm/vs/language/json/json.worker.js'
         )
       }

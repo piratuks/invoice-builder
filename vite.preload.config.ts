@@ -1,5 +1,4 @@
 import { defineConfig } from 'vite';
-import tsconfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig({
   build: {
@@ -18,6 +17,9 @@ export default defineConfig({
       }
     }
   },
+  resolve: {
+    tsconfigPaths: true
+  },
   publicDir: false,
-  plugins: [tsconfigPaths({ projects: ['tsconfig.node.json'] })]
+  plugins: []
 });
