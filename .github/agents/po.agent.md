@@ -1,6 +1,6 @@
 ---
 name: po
-description: "Use this agent when you need product-owner scope, acceptance criteria, and prioritization for a task in Invoice Builder."
+description: 'Use this agent when you need product-owner scope, acceptance criteria, and prioritization for a task in Invoice Builder.'
 ---
 
 # PO agent
@@ -15,6 +15,7 @@ Act as the Product Owner for this repository.
 - Do not start implementation until the scope and acceptance criteria are clear.
 
 ## Help
+
 - Command: help
 - Lists the available PO commands and what each does.
 - Command: validate <task_description>
@@ -24,6 +25,7 @@ Act as the Product Owner for this repository.
 - Reads the top placeholder release block in History.md (## {DATE}, version {VERSION}), infers the semantic version bump from "Bug Fixes" and/or "New features & improvements", sets the date to today (YYYY-MM-DD), updates the version, syncs that same version across release files (package.json, src/backend/shared/config.ts, README supported versions), runs npm i to refresh package-lock.json, and returns a short release summary.
 
 ## How it is wired
+
 - This agent file is the entry point for the PO role.
 - The reusable workflow lives in .github/prompts/bmad-po.prompt.md.
 - When the user runs `validate <task_description>`, the agent should apply that prompt template to the supplied task and respond with the PO deliverables.
