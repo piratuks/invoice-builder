@@ -1,81 +1,21 @@
 import sqlite3 from 'sqlite3';
 import { createSqliteAdapter } from '../../db/client';
-import { initSchema } from '../../db/setup';
+import { initInitialData, initSchema } from '../../db/setup';
 import type { DatabaseAdapter } from '../../types/DatabaseAdapter';
 import { getTableColumns, isTableExists } from '../../utils/dbHelper';
-import { up as quantityToText } from '../20260105-01-invoice_items-quantity-to-text';
-import { up as prefixSuffixLanguage } from '../20260108-02-invoices-prefix-suffix-language';
-import { up as ghostDataCleanup } from '../20260108-03-invoices-ghost-data-cleanup';
-import { up as invoicesSignature } from '../20260122-04-invoices-signature';
-import { up as styleProfiles } from '../20260129-05-style_profiles';
-import { up as styleProfileColumnRenames } from '../20260202-06-style_profile-column-renames';
-import { up as snapshotTables } from '../20260202-07-snapshot-tables';
-import { up as customizeItemsTable } from '../20260203-08-customize-items-table';
-import { up as invoiceItemSnapshotsFixName } from '../20260205-09-invoice_item_snapshots_fix-name';
-import { up as convertingAmountFields } from '../20260206-10-converting-amount-fields';
-import { up as customFieldsOrder } from '../20260209-11-custom-fields-order';
-import { up as banksTable } from '../20260209-12-banks-table';
-import { up as vatCodeFields } from '../20260212-13-vat-code-fields';
-import { up as invoiceSequences } from '../20260218-14-invoice_sequences';
-import { up as customizeFont } from '../20260218-15-customize-font';
-import { up as customLabels } from '../20260218-16-custom-labels';
-import { up as banksFields } from '../20260220-17-banks-fields';
-import { up as templates } from '../20260220-18-templates';
-import { up as styleProfileDefaultFont } from '../20260228-19-style_profile-default-font';
-import { up as peppolFields } from '../20260228-20-peppol-fields';
-import { up as xrechnungFields } from '../20260304-21-xrechnung-fields';
-import { up as paidAtClosedAt } from '../20260612-21-paidAt-closedAt';
-import { up as invoiceUnique22 } from '../20260810-22-invoice-unique';
-import { up as invoiceSurcharge } from '../20260826-23-invoice-surcharge';
-import { up as invoiceUnique24 } from '../20260826-24-invoice-unique';
-import { up as invoiceSequence25 } from '../20260826-25-invoice-sequence';
-import { up as settingsReceipt } from '../20260831-26-settings-receipt';
-import { up as invoiceLayouts } from '../20260902-27-invoice_layouts';
-import { up as layoutSchemaSeeds } from '../20260902-28-layout-schema-seeds';
-import { up as styleProfilesLayoutId } from '../20260903-29-style-profiles-layout-id';
-import { up as layoutSchemaRepair } from '../20260915-30-layout-schema-repair';
 
-describe('all migrations applied sequentially against a fresh schema', () => {
+type LayoutRow = { id: number; schema: string; isArchived: number };
+
+describe('fresh schema setup', () => {
   let db: DatabaseAdapter;
 
   beforeEach(async () => {
     db = createSqliteAdapter(new sqlite3.Database(':memory:'));
     await initSchema(db);
+    await initInitialData(db);
   });
 
-  it('runs every migration in chronological order without throwing and evolves the schema as expected', async () => {
-    await quantityToText(db);
-    await prefixSuffixLanguage(db);
-    await ghostDataCleanup(db);
-    await invoicesSignature(db);
-    await styleProfiles(db);
-    await styleProfileColumnRenames(db);
-    await snapshotTables(db);
-    await customizeItemsTable(db);
-    await invoiceItemSnapshotsFixName(db);
-    await convertingAmountFields(db);
-    await customFieldsOrder(db);
-    await banksTable(db);
-    await vatCodeFields(db);
-    await invoiceSequences(db);
-    await customizeFont(db);
-    await customLabels(db);
-    await banksFields(db);
-    await templates(db);
-    await styleProfileDefaultFont(db);
-    await peppolFields(db);
-    await xrechnungFields(db);
-    await paidAtClosedAt(db);
-    await invoiceUnique22(db);
-    await invoiceSurcharge(db);
-    await invoiceUnique24(db);
-    await invoiceSequence25(db);
-    await settingsReceipt(db);
-    await invoiceLayouts(db);
-    await layoutSchemaSeeds(db);
-    await styleProfilesLayoutId(db);
-    await layoutSchemaRepair(db);
-
+  it('creates the current schema and its initial data', async () => {
     const invoiceCols = (await getTableColumns(db, 'invoices')).map(c => c.name);
     expect(invoiceCols).toEqual(
       expect.arrayContaining([
@@ -91,6 +31,9 @@ describe('all migrations applied sequentially against a fresh schema', () => {
         'styleProfilesId'
       ])
     );
+
+    const invoiceItemColumns = await getTableColumns(db, 'invoice_items');
+    expect(invoiceItemColumns.find(column => column.name === 'quantity')?.type).toBe('TEXT');
 
     const settingsCols = (await getTableColumns(db, 'settings')).map(c => c.name);
     expect(settingsCols).toEqual(
@@ -135,63 +78,111 @@ describe('all migrations applied sequentially against a fresh schema', () => {
     expect(layouts.length).toBeGreaterThan(0);
   });
 
-  it('is idempotent when the migrations are re-applied on an already-migrated schema', async () => {
-    await quantityToText(db);
-    await prefixSuffixLanguage(db);
-    await ghostDataCleanup(db);
-    await invoicesSignature(db);
-    await styleProfiles(db);
-    await styleProfileColumnRenames(db);
-    await snapshotTables(db);
-    await customizeItemsTable(db);
-    await invoiceItemSnapshotsFixName(db);
-    await convertingAmountFields(db);
-    await customFieldsOrder(db);
-    await banksTable(db);
-    await vatCodeFields(db);
-    await invoiceSequences(db);
-    await customizeFont(db);
-    await customLabels(db);
-    await banksFields(db);
-    await templates(db);
-    await styleProfileDefaultFont(db);
-    await peppolFields(db);
-    await xrechnungFields(db);
-    await paidAtClosedAt(db);
-    await invoiceUnique22(db);
-    await invoiceSurcharge(db);
-    await invoiceUnique24(db);
-    await invoiceSequence25(db);
-    await settingsReceipt(db);
-    await invoiceLayouts(db);
-    await layoutSchemaSeeds(db);
-    await styleProfilesLayoutId(db);
-    await layoutSchemaRepair(db);
+  it('seeds active and archived built-in layouts idempotently', async () => {
+    await initInitialData(db);
+    await initInitialData(db);
 
-    // re-applying every migration a second time should hit each early-return guard without error
-    await expect(quantityToText(db)).resolves.not.toThrow();
-    await expect(prefixSuffixLanguage(db)).resolves.not.toThrow();
-    await expect(invoicesSignature(db)).resolves.not.toThrow();
-    await expect(styleProfiles(db)).resolves.not.toThrow();
-    await expect(styleProfileColumnRenames(db)).resolves.not.toThrow();
-    await expect(snapshotTables(db)).resolves.not.toThrow();
-    await expect(customizeItemsTable(db)).resolves.not.toThrow();
-    await expect(invoiceItemSnapshotsFixName(db)).resolves.not.toThrow();
-    await expect(convertingAmountFields(db)).resolves.not.toThrow();
-    await expect(customFieldsOrder(db)).resolves.not.toThrow();
-    await expect(banksTable(db)).resolves.not.toThrow();
-    await expect(vatCodeFields(db)).resolves.not.toThrow();
-    await expect(invoiceSequences(db)).resolves.not.toThrow();
-    await expect(customizeFont(db)).resolves.not.toThrow();
-    await expect(customLabels(db)).resolves.not.toThrow();
-    await expect(banksFields(db)).resolves.not.toThrow();
-    await expect(templates(db)).resolves.not.toThrow();
-    await expect(peppolFields(db)).resolves.not.toThrow();
-    await expect(xrechnungFields(db)).resolves.not.toThrow();
-    await expect(paidAtClosedAt(db)).resolves.not.toThrow();
-    await expect(invoiceSurcharge(db)).resolves.not.toThrow();
-    await expect(settingsReceipt(db)).resolves.not.toThrow();
-    await expect(invoiceLayouts(db)).resolves.not.toThrow();
-    await expect(layoutSchemaSeeds(db)).resolves.not.toThrow();
+    const layouts = await db.all<LayoutRow>('SELECT "id", "schema", "isArchived" FROM layouts ORDER BY "id"');
+    const names = layouts.map(layout => JSON.parse(layout.schema).meta.name);
+
+    expect(names).toEqual(
+      expect.arrayContaining(['Classic', 'Modern', 'Compact', 'Legacy Classic', 'Legacy Modern', 'Legacy Compact'])
+    );
+    expect(layouts).toHaveLength(6);
+
+    const archivedByName = new Map(
+      layouts.map(layout => [JSON.parse(layout.schema).meta.name as string, Boolean(layout.isArchived)])
+    );
+    expect(archivedByName.get('Classic')).toBe(false);
+    expect(archivedByName.get('Modern')).toBe(false);
+    expect(archivedByName.get('Compact')).toBe(false);
+    expect(archivedByName.get('Legacy Classic')).toBe(true);
+    expect(archivedByName.get('Legacy Modern')).toBe(true);
+    expect(archivedByName.get('Legacy Compact')).toBe(true);
+
+    for (const layout of layouts) {
+      expect(JSON.parse(layout.schema)).toMatchObject({ schemaVersion: 1, meta: { name: expect.any(String) } });
+    }
+
+    const classic = layouts.find(layout => JSON.parse(layout.schema).meta.name === 'Classic');
+    const classicHeader = JSON.parse(classic?.schema ?? '{}').sections.find(
+      (section: { type: string }) => section.type === 'header'
+    );
+
+    expect(classicHeader.blocks[0].children).toEqual([
+      expect.objectContaining({ type: 'column', width: '50%' }),
+      expect.objectContaining({ type: 'column', width: '50%' })
+    ]);
+    expect(classicHeader.blocks[0].children[0].children[0]).toMatchObject({ type: 'row', gap: 5 });
+    expect(classicHeader.blocks[1]).toMatchObject({ type: 'row', paddingTop: 20 });
+    expect(JSON.parse(classic?.schema ?? '{}').sections.map((section: { type: string }) => section.type)).toEqual([
+      'watermark',
+      'header',
+      'itemsTable',
+      'financialTotals',
+      'paymentInfo',
+      'notes',
+      'signature',
+      'pageCounter'
+    ]);
+
+    const legacyClassic = layouts.find(layout => JSON.parse(layout.schema).meta.name === 'Legacy Classic');
+    const legacyHeader = JSON.parse(legacyClassic?.schema ?? '{}').sections.find(
+      (section: { type: string }) => section.type === 'header'
+    );
+    expect(legacyHeader.blocks[0].children[0].children[0]).toMatchObject({ type: 'row', gap: 5 });
+    expect(legacyHeader.blocks[1].children[1]).toMatchObject({ type: 'column', width: '50%', align: 'end' });
+    expect(legacyHeader.blocks[1].children[1].children[0]).toMatchObject({
+      type: 'paymentInfo',
+      width: '60%',
+      paymentSource: 'legacyBusiness'
+    });
+    expect(JSON.parse(classic?.schema ?? '{}').meta.description).toContain('bank payment information');
+    expect(JSON.parse(legacyClassic?.schema ?? '{}').meta.description).toContain('Do not use for new invoices');
+  });
+
+  it('keeps existing invoice and quote snapshots isolated from layout edits', async () => {
+    const originalSchema = JSON.stringify({ schemaVersion: 1, meta: { name: 'Snapshot source' }, sections: [] });
+    const editedSchema = JSON.stringify({
+      schemaVersion: 1,
+      meta: { name: 'Snapshot source edited' },
+      sections: [{ type: 'notes', visible: 'auto' }]
+    });
+    await db.run('INSERT INTO layouts ("schema", "isArchived") VALUES (?, ?)', [originalSchema, 0]);
+    const layout = await db.get<{ id: number }>('SELECT "id" FROM layouts ORDER BY "id" DESC LIMIT 1');
+    expect(layout?.id).toEqual(expect.any(Number));
+
+    await db.run('PRAGMA foreign_keys = OFF');
+    await db.run(
+      `INSERT INTO invoices
+        ("invoiceType", "businessId", "clientId", "currencyId", "issuedAt", "invoiceNumber", "layoutId")
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      ['invoice', 1, 1, 1, '2026-01-01', 'INV-1', layout?.id]
+    );
+    await db.run(
+      `INSERT INTO invoices
+        ("invoiceType", "businessId", "clientId", "currencyId", "issuedAt", "invoiceNumber", "layoutId")
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      ['quotation', 1, 1, 1, '2026-01-01', 'QUO-1', layout?.id]
+    );
+    await db.run('PRAGMA foreign_keys = ON');
+    const documents = await db.all<{ id: number; invoiceType: string }>(
+      'SELECT "id", "invoiceType" FROM invoices ORDER BY "id" DESC LIMIT 2'
+    );
+    for (const document of documents) {
+      await db.run('INSERT INTO invoice_layout_snapshots ("parentInvoiceId", "layoutSchema") VALUES (?, ?)', [
+        document.id,
+        originalSchema
+      ]);
+    }
+
+    await db.run('UPDATE layouts SET "schema" = ? WHERE "id" = ?', [editedSchema, layout?.id]);
+
+    const snapshots = await db.all<{ parentInvoiceId: number; layoutSchema: string }>(
+      'SELECT "parentInvoiceId", "layoutSchema" FROM invoice_layout_snapshots ORDER BY "parentInvoiceId"'
+    );
+    expect(snapshots).toHaveLength(2);
+    expect(snapshots.every(snapshot => snapshot.layoutSchema === originalSchema)).toBe(true);
+    expect(documents.map(document => document.invoiceType).sort()).toEqual(['invoice', 'quotation']);
   });
 });

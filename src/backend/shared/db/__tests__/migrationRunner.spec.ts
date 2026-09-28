@@ -5,6 +5,7 @@ import sqlite3 from 'sqlite3';
 import type { DatabaseAdapter } from '../../types/DatabaseAdapter';
 import { createSqliteAdapter } from '../client';
 import { runMigrations } from '../migrationRunner';
+import { initSchema } from '../setup';
 
 const makeTempMigrationsDir = () => fs.mkdtempSync(path.join(os.tmpdir(), 'migrations-test-'));
 
@@ -16,9 +17,10 @@ describe('runMigrations', () => {
   let db: DatabaseAdapter;
   let migrationsDir: string;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     db = createSqliteAdapter(new sqlite3.Database(':memory:'));
     migrationsDir = makeTempMigrationsDir();
+    await initSchema(db);
   });
 
   afterEach(async () => {

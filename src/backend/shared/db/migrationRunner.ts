@@ -2,7 +2,6 @@ import fs from 'fs';
 import path from 'path';
 import { DatabaseType } from '../enums/databaseType';
 import type { DatabaseAdapter } from '../types/DatabaseAdapter';
-import { getColumnType, getDefaultValue } from '../utils/dbHelper';
 import { mapDatabaseError } from '../utils/errorFunctions';
 
 export const runMigrations = async (db: DatabaseAdapter, migrationsPath: string) => {
@@ -21,15 +20,6 @@ export const runMigrations = async (db: DatabaseAdapter, migrationsPath: string)
     }
     await db.run('BEGIN');
     transactionStarted = true;
-
-    await db.run(
-      `
-      CREATE TABLE IF NOT EXISTS migrations (
-        "name" TEXT PRIMARY KEY,
-        "appliedAt" ${getColumnType('DATETIME', db.type)} NOT NULL DEFAULT ${getDefaultValue("(datetime('now'))", db.type)}
-      );
-    `
-    );
 
     for (const file of files) {
       const name = path.basename(file);

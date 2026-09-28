@@ -730,7 +730,8 @@
       "tutorial": "Anleitung",
       "wallOfFame": "Ruhmeshalle"
     },
-    "updateConfirmText": "Eine neue Version ({{newVersion}}) ist verfügbar. Jetzt neu starten, um von {{currentVersion}} zu aktualisieren? Sie können abbrechen und das Update wird beim nächsten Start angewendet."
+    "updateConfirmText": "Eine neue Version ({{newVersion}}) ist verfügbar. Jetzt neu starten, um von {{currentVersion}} zu aktualisieren? Sie können abbrechen und das Update wird beim nächsten Start angewendet.",
+    "updateDatabaseWarning": "Stellen Sie vor der Installation sicher, dass alle vorhandenen Datenbanken vollständig bis Version 2.10.0 migriert wurden, und erstellen Sie eine Sicherungskopie. Version 3.0.0 aktualisiert keine Datenbanken mit unvollständigen Migrationen."
   },
   "styleProfiles": {
     "add": "Stilprofil hinzufügen",

@@ -7,8 +7,9 @@ interface Props {
   onCancel?: () => void;
   onConfirm?: () => void;
   text: string;
+  secondaryText?: string;
 }
-export const Confirmation: FC<Props> = ({ isOpen, text, onCancel = () => {}, onConfirm = () => {} }) => {
+export const Confirmation: FC<Props> = ({ isOpen, text, secondaryText, onCancel = () => {}, onConfirm = () => {} }) => {
   const { t } = useTranslation();
 
   return (
@@ -16,6 +17,7 @@ export const Confirmation: FC<Props> = ({ isOpen, text, onCancel = () => {}, onC
       <DialogTitle id="import-confirm-title">{t('common.confirmation')}</DialogTitle>
       <DialogContent>
         <DialogContentText>{text}</DialogContentText>
+        {secondaryText && <DialogContentText>{secondaryText}</DialogContentText>}
       </DialogContent>
       <DialogActions>
         <Button onClick={onCancel}>{t('common.cancel')}</Button>

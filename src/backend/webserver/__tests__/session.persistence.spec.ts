@@ -1,5 +1,5 @@
+import { initSchema } from '../../shared/db/setup';
 import { DatabaseType } from '../../shared/enums/databaseType';
-import { up as migrateSessionWorkspaces } from '../../shared/migrations/20260922-31-session-workspaces';
 import type { DatabaseAdapter } from '../../shared/types/DatabaseAdapter';
 import { authenticateSession, bindSessionDatabase, clearSessions, issueSession } from '../session';
 
@@ -37,9 +37,9 @@ const makeMemoryDb = (): DatabaseAdapter => {
 describe('selected database session persistence', () => {
   beforeEach(async () => clearSessions());
 
-  it('creates session tables through the shared migration and persists selected database ownership', async () => {
+  it('creates session tables through schema setup and persists selected database ownership', async () => {
     const db = makeMemoryDb();
-    await migrateSessionWorkspaces(db);
+    await initSchema(db);
     const session = await issueSession('workspace-a');
     await bindSessionDatabase(session.token, 'database-a', db);
 

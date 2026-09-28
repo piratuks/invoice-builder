@@ -2,6 +2,10 @@
 
 ## [DATE], version 2.11.0
 
+Upgrade note
+
+- Version 3.0.0 initializes new databases from a consolidated schema and no longer includes the historical migration chain. Existing databases must already have completed migrations through version 2.10.0. Back up databases before upgrading; databases with incomplete migrations are not upgraded by this release.
+
 New features & improvements
 
 - Migrated the renderer data layer to Redux Toolkit Query for shared caching, loading states, error handling, and cache invalidation.

@@ -1,5 +1,4 @@
 import type { DatabaseAdapter } from '../types/DatabaseAdapter';
-import { mapDatabaseError } from '../utils/errorFunctions';
 
 const legacySchema = (name: string) => JSON.stringify({ schemaVersion: 1, meta: { name } });
 
@@ -152,90 +151,24 @@ const seed = async (db: DatabaseAdapter, schema: string, isArchived: boolean, pr
   await db.run('UPDATE layouts SET "isArchived" = ? WHERE "schema" = ?', [isArchived, schema]);
 };
 
-export const up = async (db: DatabaseAdapter) => {
-  try {
-    const currentClassicSchema = declarativeSchema('Classic');
-    const classicSchema = declarativeSchema('Classic', true);
-    const legacyClassicSchema = declarativeSchema('Legacy Classic', false);
+export const seedDefaultLayouts = async (db: DatabaseAdapter): Promise<void> => {
+  const currentClassicSchema = declarativeSchema('Classic');
+  const classicSchema = declarativeSchema('Classic', true);
+  const legacyClassicSchema = declarativeSchema('Legacy Classic', false);
 
-    await seed(db, classicSchema, false, legacySchema('Classic'));
-    await seed(db, classicSchema, false, currentClassicSchema);
-    await seed(db, legacyClassicSchema, true, legacySchema('Legacy Classic'));
+  await seed(db, classicSchema, false, legacySchema('Classic'));
+  await seed(db, classicSchema, false, currentClassicSchema);
+  await seed(db, legacyClassicSchema, true, legacySchema('Legacy Classic'));
 
-    const currentModernSchema = declarativeSchema('Modern');
-    const modernSchema = declarativeSchema('Modern', true);
-    const legacyModernSchema = declarativeSchema('Legacy Modern', false);
-    await seed(db, modernSchema, false, legacySchema('Modern'));
-    await seed(db, modernSchema, false, currentModernSchema);
-    await seed(db, legacyModernSchema, true, legacySchema('Legacy Modern'));
+  const currentModernSchema = declarativeSchema('Modern');
+  const modernSchema = declarativeSchema('Modern', true);
+  const legacyModernSchema = declarativeSchema('Legacy Modern', false);
+  await seed(db, modernSchema, false, legacySchema('Modern'));
+  await seed(db, modernSchema, false, currentModernSchema);
+  await seed(db, legacyModernSchema, true, legacySchema('Legacy Modern'));
 
-    const currentCompactSchema = declarativeSchema('Compact');
-    const legacyCompactSchema = declarativeSchema('Legacy Compact', false);
-    await seed(db, currentCompactSchema, false, legacySchema('Compact'));
-    await seed(db, legacyCompactSchema, true, legacySchema('Legacy Compact'));
-
-    await db.run(
-      `
-      UPDATE invoices
-      SET "layoutId" = (
-        SELECT "id"
-        FROM layouts
-        WHERE "schema" = CASE COALESCE(
-          (SELECT "layout" FROM invoice_customizations WHERE "parentInvoiceId" = invoices."id"),
-          'classic'
-        )
-          WHEN 'modern' THEN CASE
-            WHEN NOT EXISTS (
-              SELECT 1 FROM invoice_bank_snapshots WHERE "parentInvoiceId" = invoices."id"
-            ) AND EXISTS (
-              SELECT 1
-              FROM invoice_business_snapshots
-              WHERE "parentInvoiceId" = invoices."id"
-                AND COALESCE("businessPaymentInformation", '') <> ''
-            ) THEN ?
-            ELSE ?
-          END
-          WHEN 'compact' THEN CASE
-            WHEN NOT EXISTS (
-              SELECT 1 FROM invoice_bank_snapshots WHERE "parentInvoiceId" = invoices."id"
-            ) AND EXISTS (
-              SELECT 1
-              FROM invoice_business_snapshots
-              WHERE "parentInvoiceId" = invoices."id"
-                AND COALESCE("businessPaymentInformation", '') <> ''
-            ) THEN ?
-            ELSE ?
-          END
-          ELSE CASE
-            WHEN NOT EXISTS (
-              SELECT 1 FROM invoice_bank_snapshots WHERE "parentInvoiceId" = invoices."id"
-            ) AND EXISTS (
-              SELECT 1
-              FROM invoice_business_snapshots
-              WHERE "parentInvoiceId" = invoices."id"
-                AND COALESCE("businessPaymentInformation", '') <> ''
-            ) THEN ?
-            ELSE ?
-          END
-        END
-      )
-      WHERE "layoutId" IS NULL
-    `,
-      [legacyModernSchema, modernSchema, legacyCompactSchema, currentCompactSchema, legacyClassicSchema, classicSchema]
-    );
-
-    await db.run(`
-      INSERT INTO invoice_layout_snapshots ("parentInvoiceId", "layoutSchema")
-      SELECT invoices."id", layouts."schema"
-      FROM invoices
-      INNER JOIN layouts ON layouts."id" = invoices."layoutId"
-      WHERE NOT EXISTS (
-        SELECT 1
-        FROM invoice_layout_snapshots
-        WHERE "parentInvoiceId" = invoices."id"
-      )
-    `);
-  } catch (error) {
-    return { success: false, ...mapDatabaseError(error, db.type) };
-  }
+  const currentCompactSchema = declarativeSchema('Compact');
+  const legacyCompactSchema = declarativeSchema('Legacy Compact', false);
+  await seed(db, currentCompactSchema, false, legacySchema('Compact'));
+  await seed(db, legacyCompactSchema, true, legacySchema('Legacy Compact'));
 };

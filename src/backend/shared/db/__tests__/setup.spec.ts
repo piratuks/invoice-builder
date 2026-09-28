@@ -1,7 +1,10 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { openPostgreSql, openSqlLite, testPostgresConnection } from '../setup';
+import sqlite3 from 'sqlite3';
+import { getTableColumns, isTableExists } from '../../utils/dbHelper';
+import { createSqliteAdapter } from '../client';
+import { initSchema, openPostgreSql, openSqlLite, testPostgresConnection } from '../setup';
 
 const activeClient = vi.hoisted(() => ({ current: undefined as unknown }));
 
@@ -22,6 +25,151 @@ const makeMockClient = () => ({
     Promise.resolve({ rowCount: 0, rows: [] })
   ),
   end: vi.fn(() => Promise.resolve())
+});
+
+describe('initSchema invoice item quantity', () => {
+  it('creates a text quantity column with a zero default', async () => {
+    const db = createSqliteAdapter(new sqlite3.Database(':memory:'));
+
+    await initSchema(db);
+    expect(await isTableExists(db, 'migrations')).toBe(true);
+    expect((await getTableColumns(db, 'migrations')).map(column => column.name)).toEqual(
+      expect.arrayContaining(['name', 'appliedAt'])
+    );
+    const quantityColumn = (await getTableColumns(db, 'invoice_items')).find(column => column.name === 'quantity');
+    expect(quantityColumn?.type).toBe('TEXT');
+    const initialQuantityDefault = await db.get<{ dflt_value: string }>(
+      `SELECT dflt_value FROM pragma_table_info('invoice_items') WHERE name = 'quantity'`
+    );
+    expect(initialQuantityDefault?.dflt_value).toBe("'0'");
+    const invoiceColumns = await db.all<{ name: string }>(`SELECT name FROM pragma_table_xinfo('invoices')`);
+    expect(invoiceColumns).toEqual(
+      expect.arrayContaining([
+        { name: 'invoicePrefix' },
+        { name: 'invoiceSuffix' },
+        { name: 'invoiceFullNumber' },
+        { name: 'language' },
+        { name: 'signatureData' },
+        { name: 'signatureName' },
+        { name: 'signatureType' },
+        { name: 'signatureSize' },
+        { name: 'styleProfilesId' },
+        { name: 'paidAt' },
+        { name: 'closedAt' },
+        { name: 'surchargeName' },
+        { name: 'surchargeType' },
+        { name: 'surchargeAmountCents' },
+        { name: 'surchargePercent' },
+        { name: 'bankId' },
+        { name: 'layoutId' }
+      ])
+    );
+    const invoiceTableDefinition = await db.get<{ sql: string }>(
+      `SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'invoices'`
+    );
+    expect(invoiceTableDefinition?.sql).toContain(
+      'UNIQUE ("businessId", "invoiceFullNumber", "clientId", "invoiceType")'
+    );
+    const invoiceColumnNames = (await getTableColumns(db, 'invoices')).map(column => column.name);
+    expect(invoiceColumnNames).not.toContain('businessNameSnapshot');
+    expect(invoiceColumnNames).not.toContain('styleProfileNameSnapshot');
+    const invoiceColumnsMetadata = await getTableColumns(db, 'invoices');
+    expect(invoiceColumnsMetadata.find(column => column.name === 'discountAmountCents')?.type).toBe('TEXT');
+    expect(invoiceColumnsMetadata.find(column => column.name === 'shippingFeeCents')?.type).toBe('TEXT');
+    const paymentAmountColumn = (await getTableColumns(db, 'invoice_payments')).find(
+      column => column.name === 'amountCents'
+    );
+    expect(paymentAmountColumn?.type).toBe('TEXT');
+    expect(
+      (await getTableColumns(db, 'invoice_item_snapshots')).find(column => column.name === 'unitPriceCents')?.type
+    ).toBe('TEXT');
+    const invoiceItemColumnNames = (await getTableColumns(db, 'invoice_items')).map(column => column.name);
+    expect(invoiceItemColumnNames).not.toContain('itemNameSnapshot');
+    expect(await isTableExists(db, 'invoice_business_snapshots')).toBe(true);
+    expect(await isTableExists(db, 'invoice_client_snapshots')).toBe(true);
+    expect(await isTableExists(db, 'invoice_currency_snapshots')).toBe(true);
+    expect(await isTableExists(db, 'invoice_customizations')).toBe(true);
+    expect(await isTableExists(db, 'invoice_style_profile_snapshots')).toBe(true);
+    expect(await isTableExists(db, 'invoice_item_snapshots')).toBe(true);
+    expect(await isTableExists(db, 'banks')).toBe(true);
+    expect(await isTableExists(db, 'invoice_bank_snapshots')).toBe(true);
+    expect(await isTableExists(db, 'layouts')).toBe(true);
+    expect(await isTableExists(db, 'invoice_layout_snapshots')).toBe(true);
+    expect(await isTableExists(db, 'presets')).toBe(true);
+    expect((await getTableColumns(db, 'presets')).map(column => column.name)).toEqual(
+      expect.arrayContaining(['name', 'businessId', 'clientId', 'currencyId', 'bankId', 'styleProfilesId'])
+    );
+    expect(await isTableExists(db, 'invoice_sequences')).toBe(true);
+    expect(await isTableExists(db, 'workspaces')).toBe(true);
+    expect(await isTableExists(db, 'sessions')).toBe(true);
+    expect((await getTableColumns(db, 'workspaces')).map(column => column.name)).toEqual(
+      expect.arrayContaining(['workspaceId', 'databaseKey', 'createdAt', 'updatedAt'])
+    );
+    expect((await getTableColumns(db, 'sessions')).map(column => column.name)).toEqual(
+      expect.arrayContaining(['token', 'workspaceId', 'databaseKey', 'createdAt', 'updatedAt', 'expiresAt'])
+    );
+    expect((await getTableColumns(db, 'invoice_sequences')).map(column => column.name)).toEqual(
+      expect.arrayContaining(['businessId', 'clientId', 'nextSequence', 'invoiceType'])
+    );
+    expect((await getTableColumns(db, 'banks')).map(column => column.name)).toEqual(
+      expect.arrayContaining(['accountHolder', 'sortOrder'])
+    );
+    expect((await getTableColumns(db, 'invoice_bank_snapshots')).map(column => column.name)).toEqual(
+      expect.arrayContaining(['accountHolder', 'sortOrder'])
+    );
+    expect((await getTableColumns(db, 'businesses')).map(column => column.name)).toEqual(
+      expect.arrayContaining(['vatCode', 'code', 'peppolEndpointId', 'countryCode', 'peppolEndpointSchemeId'])
+    );
+    expect((await getTableColumns(db, 'clients')).map(column => column.name)).toEqual(
+      expect.arrayContaining(['vatCode', 'peppolEndpointId', 'countryCode', 'peppolEndpointSchemeId', 'buyerReference'])
+    );
+    expect((await getTableColumns(db, 'invoice_business_snapshots')).map(column => column.name)).toContain(
+      'businessVatCode'
+    );
+    expect((await getTableColumns(db, 'invoice_business_snapshots')).map(column => column.name)).toEqual(
+      expect.arrayContaining([
+        'businessCode',
+        'businessPeppolEndpointId',
+        'businessCountryCode',
+        'businessPeppolEndpointSchemeId'
+      ])
+    );
+    expect((await getTableColumns(db, 'invoice_client_snapshots')).map(column => column.name)).toContain(
+      'clientVatCode'
+    );
+    expect((await getTableColumns(db, 'invoice_client_snapshots')).map(column => column.name)).toEqual(
+      expect.arrayContaining([
+        'clientPeppolEndpointId',
+        'clientCountryCode',
+        'clientPeppolEndpointSchemeId',
+        'clientBuyerReference'
+      ])
+    );
+    const settingsColumns = (await getTableColumns(db, 'settings')).map(column => column.name);
+    expect(settingsColumns).toEqual(
+      expect.arrayContaining(['styleProfilesON', 'presetsON', 'ublON', 'xrechnungON', 'receiptPrintingOn'])
+    );
+    expect((await getTableColumns(db, 'style_profiles')).map(column => column.name)).toEqual(
+      expect.arrayContaining([
+        'name',
+        'color',
+        'fontSize',
+        'fontFamily',
+        'pdfTexts',
+        'layoutId',
+        'showQuantity',
+        'showUnit',
+        'showRowNo',
+        'fieldSortOrders'
+      ])
+    );
+    expect((await getTableColumns(db, 'invoice_customizations')).map(column => column.name)).toEqual(
+      expect.arrayContaining(['showQuantity', 'showUnit', 'showRowNo', 'fieldSortOrders', 'fontFamily', 'pdfTexts'])
+    );
+    expect((await getTableColumns(db, 'invoice_customizations')).map(column => column.name)).not.toContain('layout');
+    expect((await getTableColumns(db, 'invoice_items')).map(column => column.name)).toContain('customField');
+    await db.close();
+  });
 });
 
 describe('testPostgresConnection', () => {

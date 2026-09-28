@@ -56,6 +56,9 @@ export const Updater: FC = () => {
         currentVersion: version,
         newVersion: newVersion
       })}
+      secondaryText={
+        newVersion?.replace(/^v/, '') === '3.0.0' ? t('settingsMenuItems.updateDatabaseWarning') : undefined
+      }
     />
   );
 };

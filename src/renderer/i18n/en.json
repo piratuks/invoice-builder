@@ -730,7 +730,8 @@
       "tutorial": "Tutorial",
       "wallOfFame": "Wall of fame"
     },
-    "updateConfirmText": "A new version ({{newVersion}}) is ready. Restart now to update from {{currentVersion}}? You can cancel and update will apply on next launch."
+    "updateConfirmText": "A new version ({{newVersion}}) is ready. Restart now to update from {{currentVersion}}? You can cancel and update will apply on next launch.",
+    "updateDatabaseWarning": "Before installing, make sure each existing database has completed migrations through version 2.10.0 and create a backup. Version 3.0.0 does not upgrade databases with incomplete migrations."
   },
   "styleProfiles": {
     "add": "Add style profile",

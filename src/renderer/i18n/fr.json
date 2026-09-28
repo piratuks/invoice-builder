@@ -730,7 +730,8 @@
       "tutorial": "Tutoriel",
       "wallOfFame": "Tableau d'honneur"
     },
-    "updateConfirmText": "Une nouvelle version ({{newVersion}}) est prête. Redémarrer maintenant pour mettre à jour depuis {{currentVersion}} ? Vous pouvez annuler et la mise à jour s’appliquera au prochain lancement."
+    "updateConfirmText": "Une nouvelle version ({{newVersion}}) est prête. Redémarrer maintenant pour mettre à jour depuis {{currentVersion}} ? Vous pouvez annuler et la mise à jour s’appliquera au prochain lancement.",
+    "updateDatabaseWarning": "Avant l’installation, vérifiez que chaque base de données existante a terminé les migrations jusqu’à la version 2.10.0 et effectuez une sauvegarde. La version 3.0.0 ne met pas à niveau les bases dont les migrations sont incomplètes."
   },
   "styleProfiles": {
     "add": "Ajouter un profil de style",

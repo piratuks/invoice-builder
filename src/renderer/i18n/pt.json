@@ -730,7 +730,8 @@
       "tutorial": "Tutorial",
       "wallOfFame": "Mural de apoiadores"
     },
-    "updateConfirmText": "Uma nova versão ({{newVersion}}) está pronta. Reiniciar agora para atualizar de {{currentVersion}}? Você pode cancelar; a atualização será aplicada na próxima inicialização."
+    "updateConfirmText": "Uma nova versão ({{newVersion}}) está pronta. Reiniciar agora para atualizar de {{currentVersion}}? Você pode cancelar; a atualização será aplicada na próxima inicialização.",
+    "updateDatabaseWarning": "Antes de instalar, confirme que todas as bases de dados existentes concluíram as migrações até à versão 2.10.0 e faça uma cópia de segurança. A versão 3.0.0 não atualiza bases de dados com migrações incompletas."
   },
   "styleProfiles": {
     "add": "Adicionar perfil de estilo",

@@ -7,6 +7,7 @@ import type { DatabaseAdapter } from '../types/DatabaseAdapter';
 import type { PostgresConfig } from '../types/postgresConfig';
 import { getColumnType, getDefaultValue, insertOrIgnore } from '../utils/dbHelper';
 import { createPostgresAdapter, createSqliteAdapter } from './client';
+import { seedDefaultLayouts } from './layoutDefaults';
 
 const sanitizeDatabaseName = (database: string): string => {
   if (typeof database !== 'string' || database.trim().length === 0) {
@@ -131,6 +132,12 @@ export const initSchema = async (db: DatabaseAdapter): Promise<void> => {
     }
     await db.run('BEGIN');
     await db.run(
+      `CREATE TABLE IF NOT EXISTS migrations (
+      "name" TEXT PRIMARY KEY,
+      "appliedAt" ${getColumnType('DATETIME', db.type)} NOT NULL DEFAULT ${getDefaultValue("(datetime('now'))", db.type)}
+    );`
+    );
+    await db.run(
       `CREATE TABLE IF NOT EXISTS settings (
       "id" ${getColumnType('INTEGER PRIMARY KEY AUTOINCREMENT', db.type)},
       "language" TEXT NOT NULL DEFAULT 'en',
@@ -144,6 +151,11 @@ export const initSchema = async (db: DatabaseAdapter): Promise<void> => {
       "shouldIncludeBusinessName" INTEGER NOT NULL DEFAULT 1 CHECK ("shouldIncludeBusinessName" IN (0,1)),
       "quotesON" INTEGER NOT NULL DEFAULT 1 CHECK ("quotesON" IN (0,1)),
       "reportsON" INTEGER NOT NULL DEFAULT 1 CHECK ("reportsON" IN (0,1)),
+      "styleProfilesON" INTEGER NOT NULL DEFAULT 1 CHECK ("styleProfilesON" IN (0,1)),
+      "presetsON" INTEGER NOT NULL DEFAULT 1 CHECK ("presetsON" IN (0,1)),
+      "ublON" INTEGER NOT NULL DEFAULT 1 CHECK ("ublON" IN (0,1)),
+      "xrechnungON" INTEGER NOT NULL DEFAULT 1 CHECK ("xrechnungON" IN (0,1)),
+      "receiptPrintingOn" INTEGER NOT NULL DEFAULT 1 CHECK ("receiptPrintingOn" IN (0,1)),
       "createdAt" ${getColumnType('DATETIME', db.type)} NOT NULL DEFAULT ${getDefaultValue("(datetime('now'))", db.type)},
       "updatedAt" ${getColumnType('DATETIME', db.type)} NOT NULL DEFAULT ${getDefaultValue("(datetime('now'))", db.type)}
     )`
@@ -164,6 +176,11 @@ export const initSchema = async (db: DatabaseAdapter): Promise<void> => {
       "fileSize" INTEGER,
       "fileType" TEXT,
       "fileName" TEXT,
+      "vatCode" TEXT,
+      "code" TEXT,
+      "peppolEndpointId" TEXT,
+      "countryCode" TEXT,
+      "peppolEndpointSchemeId" TEXT,
       "description" TEXT,
       "isArchived" INTEGER NOT NULL DEFAULT 0 CHECK ("isArchived" IN (0,1)),
       "createdAt" ${getColumnType('DATETIME', db.type)} NOT NULL DEFAULT ${getDefaultValue("(datetime('now'))", db.type)},
@@ -180,6 +197,11 @@ export const initSchema = async (db: DatabaseAdapter): Promise<void> => {
       "phone" TEXT,
       "code" TEXT,
       "additional" TEXT,
+      "vatCode" TEXT,
+      "peppolEndpointId" TEXT,
+      "countryCode" TEXT,
+      "peppolEndpointSchemeId" TEXT,
+      "buyerReference" TEXT,
       "description" TEXT,
       "isArchived" INTEGER NOT NULL DEFAULT 0 CHECK ("isArchived" IN (0,1)),
       "createdAt" ${getColumnType('DATETIME', db.type)} NOT NULL DEFAULT ${getDefaultValue("(datetime('now'))", db.type)},
@@ -233,6 +255,98 @@ export const initSchema = async (db: DatabaseAdapter): Promise<void> => {
     );`
     );
     await db.run(
+      `CREATE TABLE IF NOT EXISTS layouts (
+      "id" ${getColumnType('INTEGER PRIMARY KEY AUTOINCREMENT', db.type)},
+      "schema" TEXT NOT NULL,
+      "isArchived" INTEGER NOT NULL DEFAULT 0 CHECK ("isArchived" IN (0,1)),
+      "createdAt" ${getColumnType('DATETIME', db.type)} NOT NULL DEFAULT ${getDefaultValue("(datetime('now'))", db.type)},
+      "updatedAt" ${getColumnType('DATETIME', db.type)} NOT NULL DEFAULT ${getDefaultValue("(datetime('now'))", db.type)}
+    );`
+    );
+    await db.run(`CREATE INDEX IF NOT EXISTS idx_layouts_id ON layouts("id")`);
+    await db.run(
+      `CREATE TABLE IF NOT EXISTS style_profiles (
+      "id" ${getColumnType('INTEGER PRIMARY KEY AUTOINCREMENT', db.type)},
+      "name" TEXT NOT NULL UNIQUE,
+      "isArchived" INTEGER NOT NULL DEFAULT 0 CHECK ("isArchived" IN (0,1)),
+      "color" TEXT,
+      "logoSize" TEXT,
+      "fontSize" TEXT,
+      "fontFamily" TEXT,
+      "pdfTexts" TEXT,
+      "layoutId" INTEGER REFERENCES layouts("id"),
+      "tableHeaderStyle" TEXT,
+      "tableRowStyle" TEXT,
+      "pageFormat" TEXT,
+      "labelUpperCase" INTEGER NOT NULL DEFAULT 0 CHECK ("labelUpperCase" IN (0,1)),
+      "showQuantity" INTEGER NOT NULL DEFAULT 1 CHECK ("showQuantity" IN (0,1)),
+      "showUnit" INTEGER NOT NULL DEFAULT 1 CHECK ("showUnit" IN (0,1)),
+      "showRowNo" INTEGER NOT NULL DEFAULT 1 CHECK ("showRowNo" IN (0,1)),
+      "fieldSortOrders" TEXT NOT NULL DEFAULT '{"no":0,"item":1,"unit":2,"quantity":3,"unitCost":4,"total":5}',
+      "watermarkFileName" TEXT,
+      "watermarkFileType" TEXT,
+      "watermarkFileSize" INTEGER,
+      "watermarkFileData" ${getColumnType('BLOB', db.type)},
+      "paidWatermarkFileName" TEXT,
+      "paidWatermarkFileType" TEXT,
+      "paidWatermarkFileSize" INTEGER,
+      "paidWatermarkFileData" ${getColumnType('BLOB', db.type)},
+      "createdAt" ${getColumnType('DATETIME', db.type)} NOT NULL DEFAULT ${getDefaultValue("(datetime('now'))", db.type)},
+      "updatedAt" ${getColumnType('DATETIME', db.type)} NOT NULL DEFAULT ${getDefaultValue("(datetime('now'))", db.type)}
+    );`
+    );
+    await db.run(`CREATE INDEX IF NOT EXISTS idx_style_profiles_id ON style_profiles("id")`);
+    await db.run(
+      `CREATE TABLE IF NOT EXISTS banks (
+      "id" ${getColumnType('INTEGER PRIMARY KEY AUTOINCREMENT', db.type)},
+      "name" TEXT NOT NULL UNIQUE,
+      "bankName" TEXT,
+      "accountNumber" TEXT,
+      "swiftCode" TEXT,
+      "address" TEXT,
+      "branchCode" TEXT,
+      "type" TEXT,
+      "routingNumber" TEXT,
+      "upiCode" TEXT,
+      "qrCode" ${getColumnType('BLOB', db.type)},
+      "qrCodeFileSize" INTEGER,
+      "qrCodeFileType" TEXT,
+      "qrCodeFileName" TEXT,
+      "accountHolder" TEXT,
+      "sortOrder" TEXT,
+      "isArchived" INTEGER NOT NULL DEFAULT 0 CHECK ("isArchived" IN (0,1)),
+      "createdAt" ${getColumnType('DATETIME', db.type)} NOT NULL DEFAULT ${getDefaultValue("(datetime('now'))", db.type)},
+      "updatedAt" ${getColumnType('DATETIME', db.type)} NOT NULL DEFAULT ${getDefaultValue("(datetime('now'))", db.type)}
+    );`
+    );
+    await db.run(
+      `CREATE TABLE IF NOT EXISTS presets (
+      "id" ${getColumnType('INTEGER PRIMARY KEY AUTOINCREMENT', db.type)},
+      "name" TEXT NOT NULL UNIQUE,
+      "businessId" INTEGER,
+      "clientId" INTEGER,
+      "currencyId" INTEGER,
+      "bankId" INTEGER,
+      "customerNotes" TEXT,
+      "thanksNotes" TEXT,
+      "termsConditionNotes" TEXT,
+      "language" TEXT,
+      "signatureData" ${getColumnType('BLOB', db.type)},
+      "signatureName" TEXT,
+      "signatureType" TEXT,
+      "signatureSize" INTEGER,
+      "styleProfilesId" INTEGER,
+      "isArchived" INTEGER NOT NULL DEFAULT 0 CHECK ("isArchived" IN (0,1)),
+      "createdAt" ${getColumnType('DATETIME', db.type)} NOT NULL DEFAULT ${getDefaultValue("(datetime('now'))", db.type)},
+      "updatedAt" ${getColumnType('DATETIME', db.type)} NOT NULL DEFAULT ${getDefaultValue("(datetime('now'))", db.type)},
+      FOREIGN KEY ("styleProfilesId") REFERENCES style_profiles("id") ON DELETE CASCADE,
+      FOREIGN KEY ("businessId") REFERENCES businesses("id") ON DELETE CASCADE,
+      FOREIGN KEY ("clientId") REFERENCES clients("id") ON DELETE CASCADE,
+      FOREIGN KEY ("currencyId") REFERENCES currencies("id") ON DELETE CASCADE,
+      FOREIGN KEY ("bankId") REFERENCES banks("id") ON DELETE CASCADE
+    );`
+    );
+    await db.run(
       `CREATE TABLE IF NOT EXISTS invoices (
       "id" ${getColumnType('INTEGER PRIMARY KEY AUTOINCREMENT', db.type)},
       "invoiceType" TEXT NOT NULL CHECK("invoiceType" IN ('quotation','invoice')),
@@ -240,10 +354,14 @@ export const initSchema = async (db: DatabaseAdapter): Promise<void> => {
       "businessId" INTEGER NOT NULL,
       "clientId" INTEGER NOT NULL,
       "currencyId" INTEGER NOT NULL,
+      "bankId" INTEGER,
+      "layoutId" INTEGER REFERENCES layouts("id"),
       "createdAt" ${getColumnType('DATETIME', db.type)} NOT NULL DEFAULT ${getDefaultValue("(datetime('now'))", db.type)},
       "updatedAt" ${getColumnType('DATETIME', db.type)} NOT NULL DEFAULT ${getDefaultValue("(datetime('now'))", db.type)},
       "issuedAt" ${getColumnType('DATETIME', db.type)} NOT NULL,
       "dueDate" ${getColumnType('DATETIME', db.type)},
+      "paidAt" ${getColumnType('DATETIME', db.type)},
+      "closedAt" ${getColumnType('DATETIME', db.type)},
       "invoiceNumber" TEXT NOT NULL,
       "isArchived" INTEGER NOT NULL DEFAULT 0 CHECK ("isArchived" IN (0,1)),
       "status" TEXT NOT NULL DEFAULT 'unpaid' CHECK ("status" IN ('unpaid','open','closed','partially','paid')),
@@ -251,75 +369,122 @@ export const initSchema = async (db: DatabaseAdapter): Promise<void> => {
       "thanksNotes" TEXT,
       "termsConditionNotes" TEXT,
       "discountName" TEXT,
-      "businessNameSnapshot" TEXT NOT NULL,
-      "businessShortNameSnapshot" TEXT NOT NULL CHECK (length("businessShortNameSnapshot") <= 2),
-      "businessAddressSnapshot" TEXT,
-      "businessRoleSnapshot" TEXT,
-      "businessEmailSnapshot" TEXT,
-      "businessPhoneSnapshot" TEXT,
-      "businessAdditionalSnapshot" TEXT,
-      "businessPaymentInformationSnapshot" TEXT,
-      "businessLogoSnapshot" ${getColumnType('BLOB', db.type)},
-      "businessFileSizeSnapshot" INTEGER,
-      "businessFileTypeSnapshot" TEXT,
-      "businessFileNameSnapshot" TEXT,
-      "clientNameSnapshot" TEXT NOT NULL,
-      "clientAddressSnapshot" TEXT,
-      "clientEmailSnapshot" TEXT,
-      "clientPhoneSnapshot" TEXT,
-      "clientCodeSnapshot" TEXT,
-      "clientAdditionalSnapshot" TEXT,
-      "currencyCodeSnapshot" TEXT NOT NULL,
-      "currencySymbolSnapshot" TEXT NOT NULL,
-      "currencySubunitSnapshot" INTEGER NOT NULL,
       "discountType" TEXT CHECK("discountType" IN ('fixed','percentage') OR "discountType" IS NULL),
-      "discountAmountCents" INTEGER NOT NULL DEFAULT 0,
+      "discountAmountCents" TEXT NOT NULL DEFAULT '0',
       "discountPercent" REAL NOT NULL DEFAULT 0,
-      "shippingFeeCents" INTEGER NOT NULL DEFAULT 0,
-      "invoicePrefixSnapshot" TEXT,
-      "invoiceSuffixSnapshot" TEXT,
-      "customizationColor" TEXT NOT NULL DEFAULT '#006400',
-      "customizationLogoSize" TEXT NOT NULL DEFAULT 'medium',
-      "customizationFontSizeSize" TEXT NOT NULL DEFAULT 'medium',
-      "customizationLayout" TEXT NOT NULL DEFAULT 'classic',
-      "customizationTableHeaderStyle" TEXT NOT NULL DEFAULT 'light',
-      "customizationTableRowStyle" TEXT NOT NULL DEFAULT 'classic',
-      "customizationPageFormat" TEXT NOT NULL DEFAULT 'A4',
-      "customizationLabelUpperCase" INTEGER NOT NULL DEFAULT 0 CHECK ("customizationLabelUpperCase" IN (0,1)),
-      "customizationWatermarkFileName" TEXT,
-      "customizationWatermarkFileType" TEXT,
-      "customizationWatermarkFileSize" INTEGER,
-      "customizationWatermarkFileData" ${getColumnType('BLOB', db.type)},
-      "customizationPaidWatermarkFileName" TEXT,
-      "customizationPaidWatermarkFileType" TEXT,
-      "customizationPaidWatermarkFileSize" INTEGER,
-      "customizationPaidWatermarkFileData" ${getColumnType('BLOB', db.type)},
+      "surchargeName" TEXT,
+      "surchargeType" TEXT CHECK("surchargeType" IN ('fixed','percentage') OR "surchargeType" IS NULL),
+      "surchargeAmountCents" TEXT NOT NULL DEFAULT '0',
+      "surchargePercent" REAL NOT NULL DEFAULT 0,
+      "shippingFeeCents" TEXT NOT NULL DEFAULT '0',
+      "invoicePrefix" TEXT,
+      "invoiceSuffix" TEXT,
       "taxName" TEXT,
       "taxRate" REAL NOT NULL DEFAULT 0,
       "taxType" TEXT CHECK("taxType" IN ('exclusive','inclusive','deducted') OR "taxType" IS NULL),
+      "signatureData" ${getColumnType('BLOB', db.type)},
+      "signatureName" TEXT,
+      "signatureType" TEXT,
+      "signatureSize" INTEGER,
+      "styleProfilesId" INTEGER,
+      "invoiceFullNumber" TEXT GENERATED ALWAYS AS (
+        COALESCE("invoicePrefix", '') || "invoiceNumber" || COALESCE("invoiceSuffix", '')
+      ) STORED,
+      "language" TEXT NOT NULL DEFAULT 'en',
       FOREIGN KEY ("businessId") REFERENCES businesses(id),
       FOREIGN KEY ("clientId") REFERENCES clients(id),
       FOREIGN KEY ("currencyId") REFERENCES currencies(id),
       FOREIGN KEY ("convertedFromQuotationId") REFERENCES invoices(id),
-      UNIQUE ("businessId", "invoiceNumber"),
+      FOREIGN KEY ("styleProfilesId") REFERENCES style_profiles("id"),
+      FOREIGN KEY ("bankId") REFERENCES banks("id"),
+      UNIQUE ("businessId", "invoiceFullNumber", "clientId", "invoiceType"),
       CHECK (
-        ("discountType" = 'fixed' AND "discountAmountCents" >= 0 AND "discountPercent" = 0) OR
-        ("discountType" = 'percentage' AND "discountPercent" <= 100 AND "discountPercent" >= 0 AND "discountAmountCents" = 0) OR
-        ("discountType" IS NULL AND "discountAmountCents" = 0 AND "discountPercent" = 0)
+        ("discountType" = 'fixed' AND CAST("discountAmountCents" AS NUMERIC) >= 0 AND "discountPercent" = 0) OR
+        ("discountType" = 'percentage' AND "discountPercent" <= 100 AND "discountPercent" >= 0 AND CAST("discountAmountCents" AS NUMERIC) = 0) OR
+        ("discountType" IS NULL AND CAST("discountAmountCents" AS NUMERIC) = 0 AND "discountPercent" = 0)
       ),
       CHECK ("dueDate" IS NULL OR "dueDate" >= "issuedAt"),
       CHECK ("convertedFromQuotationId" IS NULL OR "convertedFromQuotationId" != "id")
     );`
     );
     await db.run(
+      `CREATE TABLE IF NOT EXISTS invoice_layout_snapshots (
+      "id" ${getColumnType('INTEGER PRIMARY KEY AUTOINCREMENT', db.type)},
+      "parentInvoiceId" INTEGER NOT NULL,
+      "layoutSchema" TEXT NOT NULL,
+      "createdAt" ${getColumnType('DATETIME', db.type)} NOT NULL DEFAULT ${getDefaultValue("(datetime('now'))", db.type)},
+      "updatedAt" ${getColumnType('DATETIME', db.type)} NOT NULL DEFAULT ${getDefaultValue("(datetime('now'))", db.type)},
+      UNIQUE ("parentInvoiceId"),
+      FOREIGN KEY ("parentInvoiceId") REFERENCES invoices("id") ON DELETE CASCADE
+    );`
+    );
+    await db.run(
+      `CREATE INDEX IF NOT EXISTS idx_invoice_layout_snapshots_parentInvoiceId ON invoice_layout_snapshots("parentInvoiceId")`
+    );
+    await db.run(
+      `CREATE TABLE IF NOT EXISTS invoice_bank_snapshots (
+      "id" ${getColumnType('INTEGER PRIMARY KEY AUTOINCREMENT', db.type)},
+      "parentInvoiceId" INTEGER NOT NULL,
+      "name" TEXT NOT NULL,
+      "bankName" TEXT NOT NULL,
+      "accountNumber" TEXT NOT NULL,
+      "swiftCode" TEXT,
+      "address" TEXT,
+      "branchCode" TEXT,
+      "type" TEXT,
+      "routingNumber" TEXT,
+      "upiCode" TEXT,
+      "qrCode" ${getColumnType('BLOB', db.type)},
+      "qrCodeFileSize" INTEGER,
+      "qrCodeFileType" TEXT,
+      "qrCodeFileName" TEXT,
+      "accountHolder" TEXT,
+      "sortOrder" TEXT,
+      "createdAt" ${getColumnType('DATETIME', db.type)} NOT NULL DEFAULT ${getDefaultValue("(datetime('now'))", db.type)},
+      "updatedAt" ${getColumnType('DATETIME', db.type)} NOT NULL DEFAULT ${getDefaultValue("(datetime('now'))", db.type)},
+      FOREIGN KEY ("parentInvoiceId") REFERENCES invoices("id") ON DELETE CASCADE
+    );`
+    );
+    await db.run(
+      `CREATE TABLE IF NOT EXISTS invoice_sequences (
+      "id" ${getColumnType('INTEGER PRIMARY KEY AUTOINCREMENT', db.type)},
+      "businessId" INTEGER NOT NULL,
+      "clientId" INTEGER NOT NULL,
+      "nextSequence" BIGINT NOT NULL,
+      "invoiceType" TEXT NOT NULL DEFAULT 'invoice' CHECK ("invoiceType" IN ('quotation','invoice')),
+      "createdAt" ${getColumnType('DATETIME', db.type)} NOT NULL DEFAULT ${getDefaultValue("(datetime('now'))", db.type)},
+      "updatedAt" ${getColumnType('DATETIME', db.type)} NOT NULL DEFAULT ${getDefaultValue("(datetime('now'))", db.type)},
+      UNIQUE ("businessId", "clientId", "invoiceType")
+    );`
+    );
+    await db.run(
+      `CREATE TABLE IF NOT EXISTS workspaces (
+      "workspaceId" TEXT PRIMARY KEY,
+      "databaseKey" TEXT,
+      "createdAt" ${getColumnType('DATETIME', db.type)} NOT NULL,
+      "updatedAt" ${getColumnType('DATETIME', db.type)} NOT NULL
+    );`
+    );
+    await db.run(
+      `CREATE TABLE IF NOT EXISTS sessions (
+      "token" TEXT PRIMARY KEY,
+      "workspaceId" TEXT NOT NULL,
+      "databaseKey" TEXT,
+      "createdAt" ${getColumnType('DATETIME', db.type)} NOT NULL,
+      "updatedAt" ${getColumnType('DATETIME', db.type)} NOT NULL,
+      "expiresAt" ${getColumnType('DATETIME', db.type)} NOT NULL,
+      FOREIGN KEY ("workspaceId") REFERENCES workspaces("workspaceId")
+    );`
+    );
+    await db.run(`CREATE INDEX IF NOT EXISTS idx_sessions_workspaceId ON sessions("workspaceId")`);
+    await db.run(`CREATE INDEX IF NOT EXISTS idx_sessions_expiresAt ON sessions("expiresAt")`);
+    await db.run(
       `CREATE TABLE IF NOT EXISTS invoice_items (
       "id" ${getColumnType('INTEGER PRIMARY KEY AUTOINCREMENT', db.type)},
       "parentInvoiceId" INTEGER NOT NULL,    
       "itemId" INTEGER NOT NULL,
-      "itemNameSnapshot" TEXT NOT NULL,
-      "unitPriceCentsSnapshot" INTEGER NOT NULL DEFAULT 0, 
-      "unitNameSnapshot" TEXT,
-      "quantity" REAL NOT NULL DEFAULT 0,
+      "customField" TEXT,
+      "quantity" TEXT NOT NULL DEFAULT '0',
       "taxRate" REAL NOT NULL DEFAULT 0,
       "taxType" TEXT CHECK("taxType" IN ('exclusive','inclusive') OR "taxType" IS NULL),
       "createdAt" ${getColumnType('DATETIME', db.type)} NOT NULL DEFAULT ${getDefaultValue("(datetime('now'))", db.type)},
@@ -329,10 +494,156 @@ export const initSchema = async (db: DatabaseAdapter): Promise<void> => {
     );`
     );
     await db.run(
+      `CREATE TABLE IF NOT EXISTS invoice_business_snapshots (
+      "id" ${getColumnType('INTEGER PRIMARY KEY AUTOINCREMENT', db.type)},
+      "parentInvoiceId" INTEGER NOT NULL,
+      "businessName" TEXT NOT NULL,
+      "businessShortName" TEXT NOT NULL CHECK (length("businessShortName") <= 2),
+      "businessAddress" TEXT,
+      "businessRole" TEXT,
+      "businessEmail" TEXT,
+      "businessPhone" TEXT,
+      "businessAdditional" TEXT,
+      "businessPaymentInformation" TEXT,
+      "businessLogo" ${getColumnType('BLOB', db.type)},
+      "businessFileSize" INTEGER,
+      "businessFileType" TEXT,
+      "businessFileName" TEXT,
+      "businessVatCode" TEXT,
+      "businessCode" TEXT,
+      "businessPeppolEndpointId" TEXT,
+      "businessCountryCode" TEXT,
+      "businessPeppolEndpointSchemeId" TEXT,
+      "createdAt" ${getColumnType('DATETIME', db.type)} NOT NULL DEFAULT ${getDefaultValue("(datetime('now'))", db.type)},
+      "updatedAt" ${getColumnType('DATETIME', db.type)} NOT NULL DEFAULT ${getDefaultValue("(datetime('now'))", db.type)},
+      FOREIGN KEY ("parentInvoiceId") REFERENCES invoices("id") ON DELETE CASCADE
+    );`
+    );
+    await db.run(
+      `CREATE TABLE IF NOT EXISTS invoice_client_snapshots (
+      "id" ${getColumnType('INTEGER PRIMARY KEY AUTOINCREMENT', db.type)},
+      "parentInvoiceId" INTEGER NOT NULL,
+      "clientName" TEXT NOT NULL,
+      "clientAddress" TEXT,
+      "clientEmail" TEXT,
+      "clientPhone" TEXT,
+      "clientCode" TEXT,
+      "clientAdditional" TEXT,
+      "clientVatCode" TEXT,
+      "clientPeppolEndpointId" TEXT,
+      "clientCountryCode" TEXT,
+      "clientPeppolEndpointSchemeId" TEXT,
+      "clientBuyerReference" TEXT,
+      "createdAt" ${getColumnType('DATETIME', db.type)} NOT NULL DEFAULT ${getDefaultValue("(datetime('now'))", db.type)},
+      "updatedAt" ${getColumnType('DATETIME', db.type)} NOT NULL DEFAULT ${getDefaultValue("(datetime('now'))", db.type)},
+      FOREIGN KEY ("parentInvoiceId") REFERENCES invoices("id") ON DELETE CASCADE
+    );`
+    );
+    await db.run(
+      `CREATE TABLE IF NOT EXISTS invoice_currency_snapshots (
+      "id" ${getColumnType('INTEGER PRIMARY KEY AUTOINCREMENT', db.type)},
+      "parentInvoiceId" INTEGER NOT NULL,
+      "currencyCode" TEXT NOT NULL,
+      "currencySymbol" TEXT NOT NULL,
+      "currencySubunit" INTEGER NOT NULL,
+      "createdAt" ${getColumnType('DATETIME', db.type)} NOT NULL DEFAULT ${getDefaultValue("(datetime('now'))", db.type)},
+      "updatedAt" ${getColumnType('DATETIME', db.type)} NOT NULL DEFAULT ${getDefaultValue("(datetime('now'))", db.type)},
+      FOREIGN KEY ("parentInvoiceId") REFERENCES invoices("id") ON DELETE CASCADE
+    );`
+    );
+    await db.run(
+      `CREATE TABLE IF NOT EXISTS invoice_customizations (
+      "id" ${getColumnType('INTEGER PRIMARY KEY AUTOINCREMENT', db.type)},
+      "parentInvoiceId" INTEGER NOT NULL,
+      "color" TEXT NOT NULL DEFAULT '#006400',
+      "logoSize" TEXT NOT NULL DEFAULT 'medium',
+      "fontSize" TEXT NOT NULL DEFAULT 'medium',
+      "tableHeaderStyle" TEXT NOT NULL DEFAULT 'light',
+      "tableRowStyle" TEXT NOT NULL DEFAULT 'classic',
+      "pageFormat" TEXT NOT NULL DEFAULT 'A4',
+      "labelUpperCase" INTEGER NOT NULL DEFAULT 0 CHECK ("labelUpperCase" IN (0,1)),
+      "showQuantity" INTEGER NOT NULL DEFAULT 1 CHECK ("showQuantity" IN (0,1)),
+      "showUnit" INTEGER NOT NULL DEFAULT 1 CHECK ("showUnit" IN (0,1)),
+      "showRowNo" INTEGER NOT NULL DEFAULT 1 CHECK ("showRowNo" IN (0,1)),
+      "fieldSortOrders" TEXT NOT NULL DEFAULT '{"no":0,"item":1,"unit":2,"quantity":3,"unitCost":4,"total":5}',
+      "fontFamily" TEXT NOT NULL DEFAULT 'Roboto',
+      "pdfTexts" TEXT,
+      "watermarkFileName" TEXT,
+      "watermarkFileType" TEXT,
+      "watermarkFileSize" INTEGER,
+      "watermarkFileData" ${getColumnType('BLOB', db.type)},
+      "paidWatermarkFileName" TEXT,
+      "paidWatermarkFileType" TEXT,
+      "paidWatermarkFileSize" INTEGER,
+      "paidWatermarkFileData" ${getColumnType('BLOB', db.type)},
+      "createdAt" ${getColumnType('DATETIME', db.type)} NOT NULL DEFAULT ${getDefaultValue("(datetime('now'))", db.type)},
+      "updatedAt" ${getColumnType('DATETIME', db.type)} NOT NULL DEFAULT ${getDefaultValue("(datetime('now'))", db.type)},
+      FOREIGN KEY ("parentInvoiceId") REFERENCES invoices("id") ON DELETE CASCADE
+    );`
+    );
+    await db.run(
+      `CREATE TABLE IF NOT EXISTS invoice_style_profile_snapshots (
+      "id" ${getColumnType('INTEGER PRIMARY KEY AUTOINCREMENT', db.type)},
+      "parentInvoiceId" INTEGER NOT NULL,
+      "styleProfileName" TEXT NOT NULL,
+      "createdAt" ${getColumnType('DATETIME', db.type)} NOT NULL DEFAULT ${getDefaultValue("(datetime('now'))", db.type)},
+      "updatedAt" ${getColumnType('DATETIME', db.type)} NOT NULL DEFAULT ${getDefaultValue("(datetime('now'))", db.type)},
+      FOREIGN KEY ("parentInvoiceId") REFERENCES invoices("id") ON DELETE CASCADE
+    );`
+    );
+    await db.run(
+      `CREATE TABLE IF NOT EXISTS invoice_item_snapshots (
+      "id" ${getColumnType('INTEGER PRIMARY KEY AUTOINCREMENT', db.type)},
+      "parentInvoiceItemId" INTEGER NOT NULL,
+      "itemName" TEXT NOT NULL,
+      "unitPriceCents" TEXT NOT NULL DEFAULT '0',
+      "unitName" TEXT,
+      "createdAt" ${getColumnType('DATETIME', db.type)} NOT NULL DEFAULT ${getDefaultValue("(datetime('now'))", db.type)},
+      "updatedAt" ${getColumnType('DATETIME', db.type)} NOT NULL DEFAULT ${getDefaultValue("(datetime('now'))", db.type)},
+      FOREIGN KEY ("parentInvoiceItemId") REFERENCES invoice_items("id") ON DELETE CASCADE
+    );`
+    );
+    await db.run(
+      `CREATE INDEX IF NOT EXISTS idx_invoice_business_snapshots_parentInvoiceId ON invoice_business_snapshots("parentInvoiceId")`
+    );
+    await db.run(
+      `CREATE INDEX IF NOT EXISTS idx_invoice_business_snapshots_businessName ON invoice_business_snapshots("businessName")`
+    );
+    await db.run(
+      `CREATE INDEX IF NOT EXISTS idx_invoice_business_snapshots_businessShortName ON invoice_business_snapshots("businessShortName")`
+    );
+    await db.run(
+      `CREATE INDEX IF NOT EXISTS idx_invoice_client_snapshots_parentInvoiceId ON invoice_client_snapshots("parentInvoiceId")`
+    );
+    await db.run(
+      `CREATE INDEX IF NOT EXISTS idx_invoice_client_snapshots_clientName ON invoice_client_snapshots("clientName")`
+    );
+    await db.run(
+      `CREATE INDEX IF NOT EXISTS idx_invoice_client_snapshots_clientCode ON invoice_client_snapshots("clientCode")`
+    );
+    await db.run(
+      `CREATE INDEX IF NOT EXISTS idx_invoice_currency_snapshots_parentInvoiceId ON invoice_currency_snapshots("parentInvoiceId")`
+    );
+    await db.run(
+      `CREATE INDEX IF NOT EXISTS idx_invoice_currency_snapshots_currencyCode ON invoice_currency_snapshots("currencyCode")`
+    );
+    await db.run(
+      `CREATE INDEX IF NOT EXISTS idx_invoice_customizations_parentInvoiceId ON invoice_customizations("parentInvoiceId")`
+    );
+    await db.run(
+      `CREATE INDEX IF NOT EXISTS idx_invoice_style_profile_snapshots_parentInvoiceId ON invoice_style_profile_snapshots("parentInvoiceId")`
+    );
+    await db.run(
+      `CREATE INDEX IF NOT EXISTS idx_invoice_item_snapshots_parentInvoiceItemId ON invoice_item_snapshots("parentInvoiceItemId")`
+    );
+    await db.run(
+      `CREATE INDEX IF NOT EXISTS idx_invoice_item_snapshots_itemName ON invoice_item_snapshots("itemName")`
+    );
+    await db.run(
       `CREATE TABLE IF NOT EXISTS invoice_payments (
       "id" ${getColumnType('INTEGER PRIMARY KEY AUTOINCREMENT', db.type)},
       "parentInvoiceId" INTEGER NOT NULL,   
-      "amountCents" INTEGER NOT NULL,
+      "amountCents" TEXT NOT NULL,
       "paidAt" ${getColumnType('DATETIME', db.type)} NOT NULL DEFAULT ${getDefaultValue("(datetime('now'))", db.type)},
       "paymentMethod" TEXT NOT NULL,           
       "notes" TEXT,
@@ -366,6 +677,15 @@ export const initSchema = async (db: DatabaseAdapter): Promise<void> => {
       `CREATE INDEX IF NOT EXISTS idx_invoices_convertedFromQuotationId ON invoices("convertedFromQuotationId")`
     );
     await db.run(`CREATE INDEX IF NOT EXISTS idx_invoice_items_itemId ON invoice_items("itemId")`);
+    await db.run(
+      `CREATE INDEX IF NOT EXISTS idx_invoice_bank_snapshots_parentInvoiceId ON invoice_bank_snapshots("parentInvoiceId")`
+    );
+    await db.run(`CREATE INDEX IF NOT EXISTS idx_banks_bankname_accountnumber ON banks("bankName", "accountNumber")`);
+    await db.run(`CREATE INDEX IF NOT EXISTS idx_banks_active ON banks("isArchived")`);
+    await db.run(`CREATE INDEX IF NOT EXISTS idx_invoices_bankId ON invoices("bankId")`);
+    await db.run(`CREATE INDEX IF NOT EXISTS idx_invoices_layoutId ON invoices("layoutId")`);
+    await db.run(`CREATE INDEX IF NOT EXISTS idx_invoices_active ON invoices("isArchived")`);
+    await db.run(`CREATE INDEX IF NOT EXISTS idx_style_profiles_active ON style_profiles("isArchived")`);
     await db.run(`CREATE INDEX IF NOT EXISTS idx_items_unitId ON items("unitId")`);
     await db.run(`CREATE INDEX IF NOT EXISTS idx_items_categoryId ON items("categoryId")`);
     await db.run(`CREATE INDEX IF NOT EXISTS idx_clients_active ON clients("isArchived")`);
@@ -438,4 +758,5 @@ export const initInitialData = async (db: DatabaseAdapter): Promise<void> => {
     )
   );
   await db.run(insertOrIgnore('categories', ['name'], [['Goods'], ['Services']], db.type, 'name'));
+  await seedDefaultLayouts(db);
 };
