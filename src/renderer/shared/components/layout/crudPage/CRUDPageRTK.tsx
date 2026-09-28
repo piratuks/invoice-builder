@@ -108,6 +108,7 @@ interface Props<T, TAdd, TUpdate> {
   showRightSide?: boolean;
   showAddButton?: boolean;
   onAddClick?: (defaultOnAdd: () => void) => void;
+  renderListToolbarActions?: () => ReactNode;
 }
 
 export const CRUDPageRTK = <T, TAdd, TUpdate>(props: Props<T, TAdd, TUpdate>) => {
@@ -149,7 +150,8 @@ export const CRUDPageRTK = <T, TAdd, TUpdate>(props: Props<T, TAdd, TUpdate>) =>
     showRightSide = true,
     showAddButton = true,
     renderCustomButtons = () => null,
-    onAddClick
+    onAddClick,
+    renderListToolbarActions
   } = props;
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
@@ -558,10 +560,15 @@ export const CRUDPageRTK = <T, TAdd, TUpdate>(props: Props<T, TAdd, TUpdate>) =>
               justifyContent: 'space-between'
             }}
           >
-            {filters.length > 0 && (
-              <BottomFilterSheet filters={filters} selectedFilter={persistentFilters} onFilter={onFilter} />
+            {(filters.length > 0 || renderListToolbarActions) && (
+              <Box>
+                {filters.length > 0 && (
+                  <BottomFilterSheet filters={filters} selectedFilter={persistentFilters} onFilter={onFilter} />
+                )}
+                {renderListToolbarActions?.()}
+              </Box>
             )}
-            {filters.length <= 0 && <Box />}
+            {filters.length <= 0 && !renderListToolbarActions && <Box />}
 
             <FilterSortBar<keyof T, T>
               sortByOptions={sortOptions}
