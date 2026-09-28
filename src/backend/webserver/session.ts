@@ -49,17 +49,17 @@ const rowToSession = (row: StoredSession): WebSession => ({
 
 const persistSession = async (session: WebSession, db: DatabaseAdapter, updatedAt = new Date().toISOString()) => {
   await db.run(
-    'INSERT INTO workspaces (workspaceId, databaseKey, createdAt, updatedAt) VALUES (?, ?, ?, ?) ON CONFLICT(workspaceId) DO UPDATE SET databaseKey = excluded.databaseKey, updatedAt = excluded.updatedAt',
+    'INSERT INTO workspaces ("workspaceId", "databaseKey", "createdAt", "updatedAt") VALUES (?, ?, ?, ?) ON CONFLICT("workspaceId") DO UPDATE SET "databaseKey" = excluded."databaseKey", "updatedAt" = excluded."updatedAt"',
     [session.workspaceId, session.databaseKey ?? null, session.createdAt, updatedAt]
   );
   await db.run(
-    'INSERT INTO sessions (token, workspaceId, databaseKey, createdAt, updatedAt, expiresAt) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(token) DO UPDATE SET databaseKey = excluded.databaseKey, updatedAt = excluded.updatedAt, expiresAt = excluded.expiresAt',
+    'INSERT INTO sessions ("token", "workspaceId", "databaseKey", "createdAt", "updatedAt", "expiresAt") VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT("token") DO UPDATE SET "databaseKey" = excluded."databaseKey", "updatedAt" = excluded."updatedAt", "expiresAt" = excluded."expiresAt"',
     [session.token, session.workspaceId, session.databaseKey ?? null, session.createdAt, updatedAt, session.expiresAt]
   );
 };
 
 const deleteSession = async (token: string, db?: DatabaseAdapter) => {
-  if (db) await db.run('DELETE FROM sessions WHERE token = ?', [token]);
+  if (db) await db.run('DELETE FROM sessions WHERE "token" = ?', [token]);
   sessions.delete(token);
 };
 
@@ -69,7 +69,7 @@ export const getSession = async (token?: string, db?: DatabaseAdapter): Promise<
   if (context?.databaseKey && db && context.databaseKey !== findDatabaseKey(db)) return undefined;
   let session = context?.session;
   if (!session && db) {
-    const row = await db.get<StoredSession>('SELECT * FROM sessions WHERE token = ?', [token]);
+    const row = await db.get<StoredSession>('SELECT * FROM sessions WHERE "token" = ?', [token]);
     if (row) {
       session = rowToSession(row);
       sessions.set(token, { session, databaseKey: session.databaseKey, db });
@@ -103,7 +103,7 @@ export const bindSessionDatabase = async (token: string, databaseKey: string, db
   if (!session) throw new Error('error.sessionExpired');
   const existing = sessions.get(token);
   const workspace = await db.get<{ databaseKey: string | null }>(
-    'SELECT databaseKey FROM workspaces WHERE workspaceId = ?',
+    'SELECT "databaseKey" FROM workspaces WHERE "workspaceId" = ?',
     [session.workspaceId]
   );
   const existingDatabaseKey = existing?.databaseKey ?? workspace?.databaseKey;
@@ -130,8 +130,8 @@ export const expireSessions = async () => {
   const databases = [...new Set([...sessions.values()].map(context => context.db).filter(Boolean))];
   await Promise.all(
     databases.map(async db => {
-      await db!.run('DELETE FROM sessions WHERE expiresAt <= ?', [now]);
-      await db!.run('DELETE FROM workspaces WHERE workspaceId NOT IN (SELECT DISTINCT workspaceId FROM sessions)');
+      await db!.run('DELETE FROM sessions WHERE "expiresAt" <= ?', [now]);
+      await db!.run('DELETE FROM workspaces WHERE "workspaceId" NOT IN (SELECT DISTINCT "workspaceId" FROM sessions)');
     })
   );
   for (const [token, context] of sessions) {

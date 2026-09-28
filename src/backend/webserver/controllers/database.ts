@@ -33,7 +33,7 @@ export const initDatabaseController = (app: Express) => {
     try {
       const postgresConfig = req.body;
 
-      if (postgresConfig.host === 'localhost') {
+      if (backendConfig.nodeEnvironment === 'docker' && postgresConfig.host === 'localhost') {
         postgresConfig.host = 'host.docker.internal';
       }
 
