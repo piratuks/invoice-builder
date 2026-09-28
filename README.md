@@ -216,7 +216,7 @@ docker compose up -d
 | Container  | Port | Role                         |
 | ---------- | ---- | ---------------------------- |
 | `backend`  | 3000 | Node.js REST API + SQLite/PG |
-| `frontend` | 3001 | Static SPA served by `serve` |
+| `frontend` | 3001 | Static SPA served by nginx   |
 
 ---
 
@@ -231,7 +231,7 @@ docker compose -f docker-compose.standalone.yml up -d
 | Port | Role                         |
 | ---- | ---------------------------- |
 | 3000 | Node.js REST API + SQLite/PG |
-| 3001 | Static SPA served by `serve` |
+| 3001 | Static SPA served by nginx   |
 
 ### Running without Docker Compose
 

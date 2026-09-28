@@ -3,7 +3,6 @@
 Use this prompt when you need product-facing scoping and acceptance criteria before implementation.
 
 ## Invocation
-
 - Command: help
 - Lists the available PO commands and what each does.
 - Command: validate <task_description>
@@ -13,9 +12,7 @@ Use this prompt when you need product-facing scoping and acceptance criteria bef
 - This workflow reads the top placeholder block in History.md that starts with `## {DATE}, version {VERSION}` and finalizes it for release.
 
 ## Prepare release workflow
-
 When `prepare_release` is invoked:
-
 1. Read the current version from package.json.
 2. Read the top placeholder block in History.md that starts with `## {DATE}, version {VERSION}`.
 3. Determine version bump from the block content using these rules:
@@ -42,13 +39,10 @@ If the placeholder block is missing, return a clear error asking to add the plac
 {{TASK_DESCRIPTION}}
 
 ## Role
-
 Act as the Product Owner for this repository.
 
 ## Deliverable
-
 Provide a concise scope note with:
-
 1. the intended user value
 2. the acceptance criteria
 3. the likely affected layers and files
@@ -57,12 +51,10 @@ Provide a concise scope note with:
 6. whether Delivery/Scrum coordination is recommended for slicing, sequencing, or timeline risk
 
 ## Artifact rule
-
 - Do not create a story artifact by default for small issues.
 - If the work is medium/large, multi-slice, or spans multiple sessions, create or update a shared story artifact at `artifacts/story-<issue-or-slug>.md` using [.github/artifacts/story-template.md](.github/artifacts/story-template.md).
 
 ## Repository context
-
 - This is an Electron app with a React renderer, preload bridge, Electron main process, webserver, and SQLite-backed persistence.
 - Prefer small, testable changes.
 - Highlight migration or packaging impact when relevant.
