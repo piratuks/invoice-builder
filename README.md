@@ -21,6 +21,9 @@
 No accounts. No cloud. No subscriptions.  
 Your data stays on your machine in a database file you own.
 
+> **⚠️ One-time upgrade notice for version 3.0.0**
+> Before upgrading, back up each existing database and make sure it completed migrations through version 2.10.0. Version 3.0.0 initializes new databases from a consolidated schema and does not include the historical migration chain, so databases with incomplete migrations are not upgraded. This applies to Electron, manual, and web/Docker upgrades.
+
 > ☕ **Support Invoice Builder**
 > If this project saves you time, you can help keep it maintained through [GitHub Sponsors](https://github.com/sponsors/piratuks) or [Buy Me a Coffee](https://www.buymeacoffee.com/evaldizi).
 
@@ -271,10 +274,6 @@ docker compose -f docker-compose.standalone.yml up -d
 ```
 
 ## 📦 Installation
-
-### Upgrading to 3.0.0
-
-Before upgrading, make sure each existing database has completed migrations through version 2.10.0 and create a backup. Version 3.0.0 initializes new databases from a consolidated schema and does not include the historical migration chain, so databases with incomplete migrations are not upgraded. The Electron updater shows this warning before restart; follow these steps for manual and web/Docker upgrades as well.
 
 Download the latest release from the **GitHub Releases** page:
 
