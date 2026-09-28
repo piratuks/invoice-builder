@@ -24,6 +24,6 @@ export const getBackendConfig = (environment: NodeJS.ProcessEnv = process.env, w
       environment.MIGRATIONS_PATH || path.resolve(workingDirectory, 'src', 'backend', 'shared', 'migrations'),
     cleanupIntervalMs: numberFromEnvironment(environment.WEBSERVER_CLEANUP_INTERVAL_MS, 60_000),
     sessionTtlMs: numberFromEnvironment(environment.WEBSERVER_SESSION_TTL_MS, 30 * 60 * 1000),
-    version: '2.10.0'
+    version: '3.0.0'
   }
 });
