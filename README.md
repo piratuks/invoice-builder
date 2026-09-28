@@ -400,29 +400,50 @@ npm run dev:webserver
 
 ### ⚙️ Environment Variables
 
-- .env.development
+Frontend variables are loaded by Vite from `.env.development`, `.env.production`, or `.env.test`. They are embedded in the frontend bundle at build time and are visible to browser users, so never use `VITE_*` variables for secrets.
+
+| Variable            | Default        | Description                                                                                               |
+| ------------------- | -------------- | --------------------------------------------------------------------------------------------------------- |
+| `VITE_API_URL`      | Browser origin | Backend origin for web mode. Standard Docker deployments use the nginx proxy and should leave this unset. |
+| `VITE_ENABLE_MOCKS` | `false`        | Starts the MSW browser worker when set to `true`.                                                         |
+
+Frontend defaults and `VITE_*` access are centralized in `src/renderer/config.ts`.
+
+Backend variables are read at runtime. Electron loads the root `.env` file; the direct webserver inherits variables from its shell or process manager; Docker Compose passes variables to the backend container.
+
+| Variable                        | Default                         | Description                                                           |
+| ------------------------------- | ------------------------------- | --------------------------------------------------------------------- |
+| `NODE_ENV`                      | Unset                           | Runtime mode, including `docker`, `production`, and `test`.           |
+| `FE_SERVER_URL`                 | `http://127.0.0.1:5173`         | Electron development URL and allowed webserver CORS origin.           |
+| `USERPROFILE`                   | Current working directory       | Default directory for Electron file dialogs; normally set by Windows. |
+| `PG_POOL_MAX`                   | `10`                            | Maximum PostgreSQL pool size.                                         |
+| `PG_POOL_IDLE_TIMEOUT_MS`       | `30000`                         | Idle PostgreSQL connection timeout in milliseconds.                   |
+| `PG_POOL_CONNECTION_TIMEOUT_MS` | `5000`                          | PostgreSQL connection acquisition timeout in milliseconds.            |
+| `PG_POOL_MAX_LIFETIME_SECONDS`  | `0`                             | Maximum PostgreSQL connection lifetime in seconds; `0` disables it.   |
+| `PG_POOL_ALLOW_EXIT_ON_IDLE`    | `false`                         | Allows Node.js to exit while all PostgreSQL clients are idle.         |
+| `DEV_SERVER_URL`                | `127.0.0.1`                     | Address on which the backend webserver listens.                       |
+| `PORT`                          | `3000`                          | Backend webserver port.                                               |
+| `DB_DIRECTORY`                  | `data`                          | Directory containing webserver SQLite databases.                      |
+| `MIGRATIONS_PATH`               | `src/backend/shared/migrations` | Directory containing compiled or source migration files.              |
+| `WEBSERVER_CLEANUP_INTERVAL_MS` | `60000`                         | Interval between expired-session and inactive-database cleanup runs.  |
+| `WEBSERVER_SESSION_TTL_MS`      | `1800000`                       | Web session inactivity lifetime in milliseconds.                      |
+
+Backend defaults and parsing are centralized in `src/backend/shared/config.ts`. The PostgreSQL pool and webserver lifecycle variables can be overridden for Compose deployments through shell variables or a root `.env` file, for example:
 
 ```env
-VITE_ENABLE_MOCKS={true|false} # Enables or disables mock data (Currently no mocked data is ready)
-VITE_API_URL={url} Backend webserver URL when running without Electron (Web/Docker mode)
-
+PG_POOL_MAX=20
+PG_POOL_IDLE_TIMEOUT_MS=45000
+WEBSERVER_CLEANUP_INTERVAL_MS=120000
+WEBSERVER_SESSION_TTL_MS=3600000
 ```
 
-- .env.production
+Docker startup also uses these container-only variables, which are configured automatically by the provided Compose files:
 
-```env
-VITE_API_URL={url} Backend webserver URL when running without Electron (Web/Docker mode)
-```
-
-- .env.test
-
-```env
-VITE_API_URL={url} Backend webserver URL when running without Electron (Web/Docker mode)
-```
-
-- other (Some configuration values are not controlled through .env files and instead live directly in the codebase)
-  - Webserver configs (which are used only running locally not via docker) -> backend/webserver/config.ts
-  - Electron configs -> backend/main/config.ts
+| Variable       | Default     | Description                                                   |
+| -------------- | ----------- | ------------------------------------------------------------- |
+| `SERVICE`      | Required    | Starts `backend`, `frontend`, or `all` services in the image. |
+| `BACKEND_HOST` | `localhost` | Backend hostname used by the nginx frontend proxy.            |
+| `BACKEND_PORT` | `3000`      | Backend port used by the startup health wait and nginx proxy. |
 
 ### 📁 Project Structure
 

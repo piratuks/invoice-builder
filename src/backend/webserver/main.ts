@@ -1,18 +1,17 @@
 import cors from 'cors';
 import express, { type NextFunction, type Request, type Response } from 'express';
+import { getBackendConfig } from '../shared/config';
 import { startCleanupScheduler, stopCleanupScheduler } from './cleanup';
-import { APP_CONFIG } from './config';
 import { initControllers } from './controllers';
 import { initDatabaseController } from './controllers/database';
 import { closeAllDatabases, getDatabaseKeyFromRequest, getRequestDatabase, registerSessionDatabase } from './database';
 import { authenticateSession, getSessionTokenFromRequest } from './session';
 import { createSessionAuthorizationLimiter } from './utils/functions';
 
-const port = Number(process.env.PORT) || Number(APP_CONFIG.PORT);
-const server = process.env.DEV_SERVER_URL || APP_CONFIG.DEV_SERVER_URL;
-const feServer = process.env.FE_SERVER_URL || APP_CONFIG.FE_SERVER_URL;
-const host = process.env.NODE_ENV === 'docker' ? 'localhost' : server;
-const version = APP_CONFIG.VERSION;
+const backendConfig = getBackendConfig();
+const { frontendUrl: feServer } = backendConfig;
+const { port, host: server, version } = backendConfig.webserver;
+const host = backendConfig.nodeEnvironment === 'docker' ? 'localhost' : server;
 
 const isDatabaseBootstrapRequest = (req: Request) =>
   (req.path === '/api/databases' && (req.method === 'GET' || req.method === 'POST')) ||
@@ -103,7 +102,7 @@ const main = async () => {
   // });
 };
 
-if (process.env.NODE_ENV !== 'test') {
+if (backendConfig.nodeEnvironment !== 'test') {
   main().catch(err => {
     console.error('Failed to start server:', err);
     process.exit(1);

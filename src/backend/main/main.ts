@@ -1,16 +1,17 @@
 import { config } from 'dotenv';
 import { app, BrowserWindow } from 'electron';
 import { join, resolve } from 'path';
-import { APP_CONFIG } from './config';
+import { getBackendConfig } from '../shared/config';
 import { cleanupDatabase } from './database';
 import { initIpcHandler } from './ipc';
 import { initDBDialogsHandlers } from './ipc/dbDialogs';
 
 config();
 
+const backendConfig = getBackendConfig();
 const isDev = !app.isPackaged;
-const devServer = APP_CONFIG.FE_SERVER_URL;
-const dbName = APP_CONFIG.DB_NAME;
+const devServer = backendConfig.frontendUrl;
+const dbName = backendConfig.databaseName;
 const mainAssetsPath = isDev
   ? join(resolve(), 'dist-be/backend/main/assets')
   : join(app.getAppPath(), 'dist-be/backend/main/assets');

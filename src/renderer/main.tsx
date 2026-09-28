@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
 import { createBrowserRouter, createHashRouter, Navigate, RouterProvider } from 'react-router-dom';
 import { App } from './app/App';
+import { frontendConfig } from './config';
 import './globalErrorHandlers';
 import './i18n';
 import { BanksPage } from './pages/banks';
@@ -25,8 +26,6 @@ import { GlobalErrorBoundaryWrapper } from './shared/components/feedback/globalE
 import { ThemeProviderWrapper } from './shared/components/layout/theme/ThemeProviderWrapper';
 import { InvoiceType } from './shared/enums/invoiceType';
 import { store } from './state/configureStore';
-
-const mockEnabled = import.meta.env.VITE_ENABLE_MOCKS;
 
 const createRouter = () => {
   const routes = [
@@ -62,7 +61,7 @@ const createRouter = () => {
 };
 
 const startApp = async () => {
-  if (mockEnabled === 'true' || mockEnabled === true) {
+  if (frontendConfig.mocksEnabled) {
     try {
       const { worker } = await import('./mocks/browser');
       await worker.start();

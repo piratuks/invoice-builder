@@ -1,5 +1,6 @@
 import { randomBytes, randomUUID } from 'crypto';
 import type { Request } from 'express';
+import { getBackendConfig } from '../shared/config';
 import type { DatabaseAdapter } from '../shared/types/DatabaseAdapter';
 
 export type WebSession = {
@@ -19,7 +20,7 @@ type StoredSession = WebSession & {
 
 const sessions = new Map<string, { session: WebSession; databaseKey?: string; db?: DatabaseAdapter }>();
 
-const sessionTtlMs = Number(process.env.WEBSERVER_SESSION_TTL_MS) || 30 * 60 * 1000;
+const sessionTtlMs = getBackendConfig().webserver.sessionTtlMs;
 export const sessionCookieName = 'invoice-builder-session';
 export const issueSession = async (workspaceId?: string): Promise<WebSession> => {
   const now = new Date().toISOString();

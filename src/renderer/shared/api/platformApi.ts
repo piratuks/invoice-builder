@@ -1,4 +1,5 @@
 import { gzip } from 'pako';
+import { frontendConfig } from '../../config';
 import type { DatabaseType } from '../enums/databaseType';
 import type { DBInitType } from '../enums/dbInitType';
 import type { EInvoice } from '../enums/einvoice';
@@ -171,10 +172,7 @@ const mapInvoiceToWeb = async (data: InvoiceUpdate | InvoiceAdd) => ({
 });
 
 const baseUrl = (): string => {
-  if (typeof window === 'undefined') return '';
-  // Fall back to window.location.origin so relative /api/* URLs work when
-  // VITE_API_URL is not set (e.g. Docker + nginx reverse-proxy setup).
-  return (import.meta.env.VITE_API_URL as string) || window.location.origin;
+  return frontendConfig.getApiOrigin();
 };
 
 const apiGet = async <T>(path: string, params?: Record<string, string>): Promise<T> => {

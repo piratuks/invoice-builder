@@ -1,11 +1,13 @@
 import { dialog, ipcMain } from 'electron';
 import { promises as fs } from 'fs';
 import { join } from 'path';
+import { getBackendConfig } from '../../shared/config';
 import * as importExportService from '../../shared/services/importExport';
 import { mapDatabaseError } from '../../shared/utils/errorFunctions';
 import { requireDatabase } from '../database';
 
 export const initImportExportHandlers = () => {
+  const defaultDirectory = getBackendConfig().electron.defaultDirectory;
   ipcMain.handle('export-all-data', async event => {
     const db = requireDatabase(event);
     try {
@@ -14,7 +16,7 @@ export const initImportExportHandlers = () => {
       const defaultFileName = `invoice-builder-backup-${new Date().toISOString().slice(0, 10)}.json`;
       const result = await dialog.showSaveDialog({
         title: 'Export',
-        defaultPath: join(process.env.USERPROFILE || process.cwd(), defaultFileName),
+        defaultPath: join(defaultDirectory, defaultFileName),
         filters: [{ name: 'JSON', extensions: ['json'] }]
       });
 

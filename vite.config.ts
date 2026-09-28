@@ -4,8 +4,8 @@ import { defineConfig, loadEnv } from 'vite';
 import { configDefaults } from 'vitest/config';
 
 export default defineConfig(({ mode }) => {
-  process.env = { ...process.env, ...loadEnv(mode, process.cwd()) };
-  const apiOrigin = process.env.VITE_API_URL ?? '';
+  const environment = loadEnv(mode, process.cwd());
+  const apiOrigin = environment.VITE_API_URL ?? '';
 
   return {
     base: './',

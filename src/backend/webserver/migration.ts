@@ -1,9 +1,8 @@
-import path from 'path';
+import { getBackendConfig } from '../shared/config';
 import { runMigrations as runMigrationsShared } from '../shared/db/migrationRunner';
 import type { DatabaseAdapter } from '../shared/types/DatabaseAdapter';
 
-const migrationsPath =
-  process.env.MIGRATIONS_PATH || path.resolve(process.cwd(), 'src', 'backend', 'shared', 'migrations');
+const migrationsPath = getBackendConfig().webserver.migrationsPath;
 
 export const runMigrations = async (db: DatabaseAdapter) => {
   return runMigrationsShared(db, migrationsPath);

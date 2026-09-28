@@ -30,6 +30,15 @@ services:
       - FE_SERVER_URL=http://localhost:3001
       # Path to migration files in docker volume
       - MIGRATIONS_PATH=/app/dist-be/backend/server/shared/migrations
+      # PostgreSQL connection pool
+      - PG_POOL_MAX=${PG_POOL_MAX:-10}
+      - PG_POOL_IDLE_TIMEOUT_MS=${PG_POOL_IDLE_TIMEOUT_MS:-30000}
+      - PG_POOL_CONNECTION_TIMEOUT_MS=${PG_POOL_CONNECTION_TIMEOUT_MS:-5000}
+      - PG_POOL_MAX_LIFETIME_SECONDS=${PG_POOL_MAX_LIFETIME_SECONDS:-0}
+      - PG_POOL_ALLOW_EXIT_ON_IDLE=${PG_POOL_ALLOW_EXIT_ON_IDLE:-false}
+      # Webserver session lifecycle
+      - WEBSERVER_CLEANUP_INTERVAL_MS=${WEBSERVER_CLEANUP_INTERVAL_MS:-60000}
+      - WEBSERVER_SESSION_TTL_MS=${WEBSERVER_SESSION_TTL_MS:-1800000}
     volumes:
       - app-data:/data
     healthcheck:

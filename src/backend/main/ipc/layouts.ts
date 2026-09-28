@@ -1,12 +1,14 @@
 import { dialog, ipcMain } from 'electron';
 import { promises as fs } from 'fs';
 import { join } from 'path';
+import { getBackendConfig } from '../../shared/config';
 import * as service from '../../shared/services/layouts';
 import type { Layout } from '../../shared/types/layouts';
 import { mapDatabaseError } from '../../shared/utils/errorFunctions';
 import { requireDatabase } from '../database';
 
 export const initLayoutsHandlers = () => {
+  const defaultDirectory = getBackendConfig().electron.defaultDirectory;
   ipcMain.handle('get-all-layouts', (event, filter) => service.getAllLayouts(requireDatabase(event), filter));
   ipcMain.handle('add-layout', (event, data: Layout) => service.addLayout(requireDatabase(event), data));
   ipcMain.handle('update-layout', (event, data: Layout) => service.updateLayout(requireDatabase(event), data));
@@ -20,7 +22,7 @@ export const initLayoutsHandlers = () => {
       const fileName = `${layout.data.schema.meta.name.replace(/[^a-z0-9_-]/gi, '_') || 'layout'}.json`;
       const result = await dialog.showSaveDialog({
         title: 'Export layout',
-        defaultPath: join(process.env.USERPROFILE || process.cwd(), fileName),
+        defaultPath: join(defaultDirectory, fileName),
         filters: [{ name: 'JSON', extensions: ['json'] }]
       });
       if (result.canceled || !result.filePath) return { success: false };

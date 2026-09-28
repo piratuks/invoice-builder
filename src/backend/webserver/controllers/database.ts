@@ -1,15 +1,16 @@
 import { type Express, type Request, type Response } from 'express';
 import fsPromise from 'fs/promises';
 import path from 'path';
+import { getBackendConfig } from '../../shared/config';
 import { testPostgresConnection } from '../../shared/db/setup';
 import { DatabaseType } from '../../shared/enums/databaseType';
 import { DBInitType } from '../../shared/enums/dbInitType';
-import { APP_CONFIG } from '../config';
 import { setupDB } from '../database';
 import { getSessionTokenFromRequest, issueSession, revokeSession, sessionCookieName } from '../session';
 import { listDbLimiter } from '../utils/functions';
 
-export const dbDir = path.resolve(process.cwd(), process.env.DB_DIRECTORY || APP_CONFIG.DB_DIRECTORY);
+const backendConfig = getBackendConfig();
+export const dbDir = path.resolve(process.cwd(), backendConfig.webserver.databaseDirectory);
 
 export const initDatabaseController = (app: Express) => {
   app.get('/api/databases', listDbLimiter, async (_req: Request, res: Response) => {
@@ -59,7 +60,7 @@ export const initDatabaseController = (app: Express) => {
       const fullPath = path.resolve(dbDir, name);
       const createIfMissing = mode === DBInitType.create || typeof mode === 'undefined';
 
-      if (process.env.NODE_ENV === 'docker' && postgresConfig && postgresConfig.host === 'localhost') {
+      if (backendConfig.nodeEnvironment === 'docker' && postgresConfig && postgresConfig.host === 'localhost') {
         postgresConfig.host = 'host.docker.internal';
       }
 
@@ -75,7 +76,7 @@ export const initDatabaseController = (app: Express) => {
       res.cookie(sessionCookieName, sessionToken, {
         httpOnly: true,
         sameSite: 'lax',
-        secure: req.secure || process.env.NODE_ENV === 'production',
+        secure: req.secure || backendConfig.nodeEnvironment === 'production',
         path: '/api'
       });
       res.json({ success: true, workspaceId: selectedWorkspaceId });

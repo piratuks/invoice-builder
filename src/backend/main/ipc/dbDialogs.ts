@@ -1,5 +1,6 @@
 import { dialog, ipcMain } from 'electron';
 import { join } from 'path';
+import { getBackendConfig } from '../../shared/config';
 import { testPostgresConnection } from '../../shared/db/setup';
 import { DatabaseType } from '../../shared/enums/databaseType';
 import { DBInitType } from '../../shared/enums/dbInitType';
@@ -8,8 +9,9 @@ import { mapDatabaseError } from '../../shared/utils/errorFunctions';
 import { setupDB } from '../database';
 
 export const initDBDialogsHandlers = (dbName: string) => {
+  const defaultDirectory = getBackendConfig().electron.defaultDirectory;
   ipcMain.handle('show-save-db-dialog', async () => {
-    const defaultPath = join(process.env.USERPROFILE || process.cwd(), `${dbName}.db`);
+    const defaultPath = join(defaultDirectory, `${dbName}.db`);
     const result = await dialog.showSaveDialog({
       title: 'Select a path and database file name',
       defaultPath,
@@ -18,7 +20,7 @@ export const initDBDialogsHandlers = (dbName: string) => {
     return { success: true, data: { canceled: result.canceled, filePath: result.filePath } };
   });
   ipcMain.handle('show-open-db-dialog', async () => {
-    const defaultPath = join(process.env.USERPROFILE || process.cwd(), `${dbName}.db`);
+    const defaultPath = join(defaultDirectory, `${dbName}.db`);
     const result = await dialog.showOpenDialog({
       title: 'Open existing database file',
       defaultPath,
