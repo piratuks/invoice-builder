@@ -4,6 +4,7 @@ import { I18nextProvider } from 'react-i18next';
 import { Provider } from 'react-redux';
 import i18n from '../../../i18n';
 import { store } from '../../../state/configureStore';
+import { logout } from '../../../state/pageSlice';
 import { EInvoice } from '../../enums/einvoice';
 import { InvoiceType } from '../../enums/invoiceType';
 import {
@@ -87,6 +88,32 @@ describe('invoicesApi', () => {
 
     await waitFor(() => expect(mockApi.getAllInvoices).toHaveBeenCalledTimes(2));
     await waitFor(() => expect(query.result.current.data).toEqual([{ id: 2 }]));
+  });
+
+  it('refreshes custom headers after saving an invoice', async () => {
+    mockApi.getCustomHeaders
+      .mockResolvedValueOnce({ success: true, data: [{ header: 'Existing' }] })
+      .mockResolvedValueOnce({ success: true, data: [{ header: 'Existing' }, { header: 'New field' }] });
+    mockApi.addInvoice.mockResolvedValue({ success: true, data: { id: 5 } });
+
+    const headers = renderHook(() => useGetCustomHeadersQuery(InvoiceType.invoice), { wrapper });
+    await waitFor(() => expect(headers.result.current.isSuccess).toBe(true));
+    const mutation = renderHook(() => useAddInvoiceMutation(), { wrapper });
+    await runApiTrigger(() => mutation.result.current[0]({ invoiceType: InvoiceType.invoice } as never));
+
+    await waitFor(() => expect(mockApi.getCustomHeaders).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(headers.result.current.data).toEqual([{ header: 'Existing' }, { header: 'New field' }]));
+  });
+
+  it('clears cached invoices when the user logs out', async () => {
+    mockApi.getAllInvoices.mockResolvedValue({ success: true, data: [{ id: 7 }] });
+    const query = renderHook(() => useGetInvoicesQuery({ invoiceType: InvoiceType.invoice }), { wrapper });
+    await waitFor(() => expect(query.result.current.isSuccess).toBe(true));
+    expect(Object.keys(store.getState().invoicesApi.queries)).toHaveLength(1);
+
+    store.dispatch(logout());
+
+    await waitFor(() => expect(Object.keys(store.getState().invoicesApi.queries)).toHaveLength(0));
   });
 
   it('routes update, delete, and duplicate mutations with their required arguments', async () => {

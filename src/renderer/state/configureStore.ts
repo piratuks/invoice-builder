@@ -1,4 +1,4 @@
-import { configureStore } from '@reduxjs/toolkit';
+import { configureStore, createListenerMiddleware } from '@reduxjs/toolkit';
 import { setupListeners } from '@reduxjs/toolkit/query';
 import { useDispatch, useSelector, type TypedUseSelectorHook } from 'react-redux';
 import { backupApi } from '../shared/api/backupApi';
@@ -15,7 +15,7 @@ import { presetsApi } from '../shared/api/presetsApi';
 import { settingsApi } from '../shared/api/settingsApi';
 import { styleProfilesApi } from '../shared/api/styleProfilesApi';
 import { unitsApi } from '../shared/api/unitsApi';
-import { pageSlice } from './pageSlice';
+import { logout, pageSlice } from './pageSlice';
 
 // Entity payloads carry binary fields (logos, QR codes, signatures, watermarks) as Uint8Array,
 // which RTK's default serializableCheck flags even though it's fine to store in Redux.
@@ -46,6 +46,7 @@ const apiReducerPaths = [
   settingsApi.reducerPath
 ];
 const ignoredApiStatePaths = apiReducerPaths.map(path => new RegExp(`^${path}\\.`));
+const apiCacheResetListener = createListenerMiddleware();
 
 export const store = configureStore({
   reducer: {
@@ -73,6 +74,7 @@ export const store = configureStore({
         ignoredActionPaths: ['payload', 'meta.baseQueryMeta']
       }
     }).concat(
+      apiCacheResetListener.middleware,
       businessesApi.middleware,
       banksApi.middleware,
       backupApi.middleware,
@@ -88,6 +90,26 @@ export const store = configureStore({
       invoicesApi.middleware,
       settingsApi.middleware
     )
+});
+
+apiCacheResetListener.startListening({
+  actionCreator: logout,
+  effect: (_action, listenerApi) => {
+    listenerApi.dispatch(backupApi.util.resetApiState());
+    listenerApi.dispatch(banksApi.util.resetApiState());
+    listenerApi.dispatch(businessesApi.util.resetApiState());
+    listenerApi.dispatch(categoriesApi.util.resetApiState());
+    listenerApi.dispatch(clientsApi.util.resetApiState());
+    listenerApi.dispatch(currenciesApi.util.resetApiState());
+    listenerApi.dispatch(dbSelectorApi.util.resetApiState());
+    listenerApi.dispatch(invoicesApi.util.resetApiState());
+    listenerApi.dispatch(itemsApi.util.resetApiState());
+    listenerApi.dispatch(layoutsApi.util.resetApiState());
+    listenerApi.dispatch(presetsApi.util.resetApiState());
+    listenerApi.dispatch(settingsApi.util.resetApiState());
+    listenerApi.dispatch(styleProfilesApi.util.resetApiState());
+    listenerApi.dispatch(unitsApi.util.resetApiState());
+  }
 });
 
 export type RootState = ReturnType<typeof store.getState>;

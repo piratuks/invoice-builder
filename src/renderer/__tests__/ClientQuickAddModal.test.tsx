@@ -5,20 +5,32 @@ import { Provider } from 'react-redux';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import i18n from '../i18n';
 import { ClientQuickAddModal } from '../pages/invoices/Form/Modals/ClientQuickAddModal';
+import { clientsApi } from '../shared/api/clientsApi';
 import type { Client } from '../shared/types/client';
-import type { Response } from '../shared/types/response';
 import { store } from '../state/configureStore';
 
-const mockExecute = vi.fn();
-let capturedOnDone: ((data: Response<Client>) => void) | undefined;
-let mockLoading = false;
-
-vi.mock('../shared/hooks/clients/useClientAdd', () => ({
-  useClientAdd: (params: { onDone?: (data: Response<Client>) => void }) => {
-    capturedOnDone = params.onDone;
-    return { execute: mockExecute, loading: mockLoading, data: undefined };
-  }
+const mocks = vi.hoisted(() => ({
+  trigger: vi.fn(),
+  resolve: undefined as ((client: Client) => void) | undefined,
+  reject: undefined as ((error: unknown) => void) | undefined
 }));
+
+vi.mock('../shared/api/clientsApi', async importOriginal => {
+  const actual = await importOriginal<typeof import('../shared/api/clientsApi')>();
+  return {
+    ...actual,
+    useAddClientMutation: () => {
+      mocks.trigger.mockImplementation(() => ({
+        unwrap: () =>
+          new Promise<Client>((resolve, reject) => {
+            mocks.resolve = resolve;
+            mocks.reject = reject;
+          })
+      }));
+      return [mocks.trigger, { isLoading: false }];
+    }
+  };
+});
 
 const fakeClient: Client = {
   id: 42,
@@ -47,9 +59,10 @@ const renderModal = (props: Partial<ComponentProps<typeof ClientQuickAddModal>> 
 
 describe('ClientQuickAddModal', () => {
   beforeEach(() => {
-    mockExecute.mockReset();
-    capturedOnDone = undefined;
-    mockLoading = false;
+    mocks.trigger.mockReset();
+    mocks.resolve = undefined;
+    mocks.reject = undefined;
+    store.dispatch(clientsApi.util.resetApiState());
   });
 
   it('keeps Save disabled when name is empty', () => {
@@ -63,8 +76,8 @@ describe('ClientQuickAddModal', () => {
     fireEvent.change(screen.getByLabelText(/name/i), { target: { value: 'Acme Corp' } });
     fireEvent.click(screen.getByRole('button', { name: /save/i }));
 
-    await waitFor(() => expect(mockExecute).toHaveBeenCalledTimes(1));
-    capturedOnDone?.({ success: true, data: fakeClient });
+    await waitFor(() => expect(mocks.trigger).toHaveBeenCalledTimes(1));
+    mocks.resolve?.(fakeClient);
 
     await waitFor(() => expect(onCreated).toHaveBeenCalledWith(fakeClient));
   });
@@ -75,8 +88,8 @@ describe('ClientQuickAddModal', () => {
     fireEvent.change(screen.getByLabelText(/name/i), { target: { value: 'Acme Corp' } });
     fireEvent.click(screen.getByRole('button', { name: /save/i }));
 
-    await waitFor(() => expect(mockExecute).toHaveBeenCalledTimes(1));
-    capturedOnDone?.({ success: false, key: 'error.failed' });
+    await waitFor(() => expect(mocks.trigger).toHaveBeenCalledTimes(1));
+    mocks.reject?.({ key: 'error.failed' });
 
     expect(onCreated).not.toHaveBeenCalled();
   });
@@ -99,6 +112,6 @@ describe('ClientQuickAddModal', () => {
     fireEvent.click(saveButton);
     fireEvent.click(saveButton);
 
-    await waitFor(() => expect(mockExecute).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(mocks.trigger).toHaveBeenCalledTimes(1));
   });
 });

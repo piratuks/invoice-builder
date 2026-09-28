@@ -2,11 +2,10 @@ import { Dialog, DialogContent, Grid, TextField } from '@mui/material';
 import { memo, useCallback, useEffect, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../../../i18n';
+import { useAddClientMutation } from '../../../../shared/api/clientsApi';
 import { ModalAppBar } from '../../../../shared/components/layout/modalAppBar/ModalAppBar';
 import { useForm } from '../../../../shared/hooks/form/useForm';
-import { useClientAdd } from '../../../../shared/hooks/clients/useClientAdd';
 import type { Client, ClientAdd } from '../../../../shared/types/client';
-import type { Response } from '../../../../shared/types/response';
 import { generateClientShortName } from '../../../../shared/utils/clientFunctions';
 import { validators } from '../../../../shared/utils/validatorFunctions';
 import { useAppDispatch } from '../../../../state/configureStore';
@@ -24,25 +23,7 @@ const ClientQuickAddModalComponent: FC<Props> = ({ isOpen, onCancel = () => {}, 
   const { form, setForm, update } = useForm({ name: '', phone: '' });
   const [errors, setErrors] = useState({ name: false, phone: false });
   const [clientToAdd, setClientToAdd] = useState<ClientAdd | undefined>(undefined);
-
-  const { execute: addClient, loading } = useClientAdd({
-    client: clientToAdd,
-    immediate: false,
-    showLoader: false,
-    onDone: (data: Response<Client>) => {
-      setClientToAdd(undefined);
-      if (data.success && data.data) {
-        onCreated(data.data);
-        return;
-      }
-      if (data.message) {
-        const message = i18n.exists(data.message) ? t(data.message) : data.message;
-        dispatch(addToast({ message, severity: 'error' }));
-      } else if (data.key) {
-        dispatch(addToast({ message: t(data.key), severity: 'error' }));
-      }
-    }
-  });
+  const [addClient, { isLoading: loading }] = useAddClientMutation();
 
   const validateField = useCallback((field: keyof typeof errors, value: string) => {
     if (field === 'name') {
@@ -55,8 +36,20 @@ const ClientQuickAddModalComponent: FC<Props> = ({ isOpen, onCancel = () => {}, 
   const isFormValid = validators.required(form.name.trim()) && (form.phone === '' || validators.phone(form.phone));
 
   useEffect(() => {
-    if (clientToAdd) addClient();
-  }, [clientToAdd, addClient]);
+    if (!clientToAdd) return;
+    void addClient(clientToAdd)
+      .unwrap()
+      .then(client => onCreated(client))
+      .catch(error => {
+        const { message, key } = (error as { message?: string; key?: string }) ?? {};
+        if (message) {
+          dispatch(addToast({ message: i18n.exists(message) ? t(message) : message, severity: 'error' }));
+        } else if (key) {
+          dispatch(addToast({ message: t(key), severity: 'error' }));
+        }
+      })
+      .finally(() => setClientToAdd(undefined));
+  }, [addClient, clientToAdd, dispatch, onCreated, t]);
 
   useEffect(() => {
     if (isOpen) {
