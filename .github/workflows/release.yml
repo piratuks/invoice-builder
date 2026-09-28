@@ -32,8 +32,9 @@ jobs:
     environment: release
     env:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      npm_config_build_from_source: 'true'
     name: Build Linux Release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4

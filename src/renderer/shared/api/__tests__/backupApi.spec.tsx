@@ -5,7 +5,7 @@ import { Provider } from 'react-redux';
 import i18n from '../../../i18n';
 import { store } from '../../../state/configureStore';
 import { backupApi, useExportAllDataMutation, useImportAllDataMutation } from '../backupApi';
-import { invoicesApi, useGetInvoicesQuery } from '../invoicesApi';
+import { invoicesApi, useGetCustomHeadersQuery, useGetInvoicesQuery } from '../invoicesApi';
 import { getApi } from '../restApi';
 import { runApiTrigger } from './testUtils';
 
@@ -21,7 +21,8 @@ describe('backupApi', () => {
   const mockApi = {
     exportAllData: vi.fn(),
     importAllData: vi.fn(),
-    getAllInvoices: vi.fn()
+    getAllInvoices: vi.fn(),
+    getCustomHeaders: vi.fn()
   };
 
   beforeEach(() => {
@@ -55,5 +56,20 @@ describe('backupApi', () => {
 
     await waitFor(() => expect(mockApi.getAllInvoices).toHaveBeenCalledTimes(2));
     await waitFor(() => expect(invoices.result.current.data).toEqual([{ id: 9 }]));
+  });
+
+  it('invalidates saved custom headers after a successful import', async () => {
+    mockApi.getCustomHeaders
+      .mockResolvedValueOnce({ success: true, data: [{ header: 'Old' }] })
+      .mockResolvedValueOnce({ success: true, data: [{ header: 'Restored' }] });
+    const headers = renderHook(() => useGetCustomHeadersQuery('invoice' as never), { wrapper });
+    await waitFor(() => expect(headers.result.current.isSuccess).toBe(true));
+
+    mockApi.importAllData.mockResolvedValue({ success: true, data: undefined });
+    const importMutation = renderHook(() => useImportAllDataMutation(), { wrapper });
+    await runApiTrigger(() => importMutation.result.current[0]());
+
+    await waitFor(() => expect(mockApi.getCustomHeaders).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(headers.result.current.data).toEqual([{ header: 'Restored' }]));
   });
 });

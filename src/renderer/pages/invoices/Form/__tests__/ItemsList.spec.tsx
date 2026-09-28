@@ -5,6 +5,7 @@ import { Provider } from 'react-redux';
 import i18n from '../../../../i18n';
 import { AmountFormat } from '../../../../shared/enums/amountFormat';
 import { DateFormat } from '../../../../shared/enums/dateFormat';
+import { DeliveryProvider } from '../../../../shared/enums/deliveryProvider';
 import { InvoiceType } from '../../../../shared/enums/invoiceType';
 import { Language } from '../../../../shared/enums/language';
 import type { InvoiceFromData, InvoiceItem } from '../../../../shared/types/invoice';
@@ -95,6 +96,9 @@ describe('ItemsList', () => {
         shouldIncludeMonth: false,
         shouldIncludeBusinessName: false,
         quotesON: true,
+        invoiceSchedulesON: false,
+        deliveryProvider: DeliveryProvider.smtp,
+        smtpSecure: false,
         styleProfilesON: false,
         ublON: false,
         xrechnungON: false,

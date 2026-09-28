@@ -1,21 +1,36 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { ComponentProps } from 'react';
 import { I18nextProvider } from 'react-i18next';
 import { Provider } from 'react-redux';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import i18n from '../i18n';
 import { ClientQuickAddModal } from '../pages/invoices/Form/Modals/ClientQuickAddModal';
+import { clientsApi } from '../shared/api/clientsApi';
 import type { Client } from '../shared/types/client';
 import { store } from '../state/configureStore';
 
-const mockExecute = vi.fn();
-const mockUnwrap = vi.fn();
-let mockLoading = false;
-
-vi.mock('../shared/api/clientsApi', async importOriginal => ({
-  ...(await importOriginal<typeof import('../shared/api/clientsApi')>()),
-  useAddClientMutation: () => [mockExecute, { isLoading: mockLoading }]
+const mocks = vi.hoisted(() => ({
+  trigger: vi.fn(),
+  resolve: undefined as ((client: Client) => void) | undefined,
+  reject: undefined as ((error: unknown) => void) | undefined
 }));
+
+vi.mock('../shared/api/clientsApi', async importOriginal => {
+  const actual = await importOriginal<typeof import('../shared/api/clientsApi')>();
+  return {
+    ...actual,
+    useAddClientMutation: () => {
+      mocks.trigger.mockImplementation(() => ({
+        unwrap: () =>
+          new Promise<Client>((resolve, reject) => {
+            mocks.resolve = resolve;
+            mocks.reject = reject;
+          })
+      }));
+      return [mocks.trigger, { isLoading: false }];
+    }
+  };
+});
 
 const fakeClient: Client = {
   id: 42,
@@ -44,11 +59,10 @@ const renderModal = (props: Partial<ComponentProps<typeof ClientQuickAddModal>> 
 
 describe('ClientQuickAddModal', () => {
   beforeEach(() => {
-    mockExecute.mockReset();
-    mockExecute.mockImplementation(() => ({ unwrap: mockUnwrap }));
-    mockUnwrap.mockReset();
-    mockUnwrap.mockResolvedValue(undefined);
-    mockLoading = false;
+    mocks.trigger.mockReset();
+    mocks.resolve = undefined;
+    mocks.reject = undefined;
+    store.dispatch(clientsApi.util.resetApiState());
   });
 
   it('keeps Save disabled when name is empty', () => {
@@ -58,24 +72,28 @@ describe('ClientQuickAddModal', () => {
 
   it('creates a client and calls onCreated on success', async () => {
     const { onCreated } = renderModal();
-    mockUnwrap.mockResolvedValueOnce(fakeClient);
 
     fireEvent.change(screen.getByLabelText(/name/i), { target: { value: 'Acme Corp' } });
     fireEvent.click(screen.getByRole('button', { name: /save/i }));
 
-    await waitFor(() => expect(mockExecute).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(mocks.trigger).toHaveBeenCalledTimes(1));
+    await act(async () => {
+      mocks.resolve?.(fakeClient);
+    });
 
     await waitFor(() => expect(onCreated).toHaveBeenCalledWith(fakeClient));
   });
 
   it('does not call onCreated when the API fails', async () => {
     const { onCreated } = renderModal();
-    mockUnwrap.mockRejectedValueOnce({ key: 'error.failed' });
 
     fireEvent.change(screen.getByLabelText(/name/i), { target: { value: 'Acme Corp' } });
     fireEvent.click(screen.getByRole('button', { name: /save/i }));
 
-    await waitFor(() => expect(mockExecute).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(mocks.trigger).toHaveBeenCalledTimes(1));
+    await act(async () => {
+      mocks.reject?.({ key: 'error.failed' });
+    });
 
     expect(onCreated).not.toHaveBeenCalled();
   });
@@ -98,6 +116,38 @@ describe('ClientQuickAddModal', () => {
     fireEvent.click(saveButton);
     fireEvent.click(saveButton);
 
-    await waitFor(() => expect(mockExecute).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(mocks.trigger).toHaveBeenCalledTimes(1));
+  });
+
+  it('does not retrigger a pending save when the onCreated callback changes', async () => {
+    const firstOnCreated = vi.fn();
+    const nextOnCreated = vi.fn();
+    const props = { isOpen: true, onCreated: firstOnCreated };
+    const { rerender } = render(
+      <Provider store={store}>
+        <I18nextProvider i18n={i18n}>
+          <ClientQuickAddModal {...props} />
+        </I18nextProvider>
+      </Provider>
+    );
+
+    fireEvent.change(screen.getByLabelText(/name/i), { target: { value: 'Acme Corp' } });
+    fireEvent.click(screen.getByRole('button', { name: /save/i }));
+    await waitFor(() => expect(mocks.trigger).toHaveBeenCalledTimes(1));
+
+    rerender(
+      <Provider store={store}>
+        <I18nextProvider i18n={i18n}>
+          <ClientQuickAddModal isOpen onCreated={nextOnCreated} />
+        </I18nextProvider>
+      </Provider>
+    );
+    expect(mocks.trigger).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      mocks.resolve?.(fakeClient);
+    });
+    await waitFor(() => expect(nextOnCreated).toHaveBeenCalledWith(fakeClient));
+    expect(firstOnCreated).not.toHaveBeenCalled();
   });
 });

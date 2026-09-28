@@ -7,6 +7,7 @@ import { MemoryRouter } from 'react-router-dom';
 import i18n from '../../../i18n';
 import { AmountFormat } from '../../../shared/enums/amountFormat';
 import { DateFormat } from '../../../shared/enums/dateFormat';
+import { DeliveryProvider } from '../../../shared/enums/deliveryProvider';
 import { FontFamily } from '../../../shared/enums/fontFamily';
 import { InvoiceFormMode } from '../../../shared/enums/invoiceFormMode';
 import { InvoiceType } from '../../../shared/enums/invoiceType';
@@ -81,6 +82,9 @@ describe('invoices Form wrapper', () => {
         shouldIncludeMonth: false,
         shouldIncludeBusinessName: false,
         quotesON: true,
+        invoiceSchedulesON: false,
+        deliveryProvider: DeliveryProvider.smtp,
+        smtpSecure: false,
         styleProfilesON: true,
         ublON: false,
         xrechnungON: false,

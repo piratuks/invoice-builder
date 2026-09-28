@@ -22,6 +22,9 @@ forceCodeSigning: false
 
 afterPack: scripts/after-pack.cjs
 
+toolsets:
+  appimage: 1.0.3
+
 win:
   target:
     - nsis

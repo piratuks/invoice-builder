@@ -25,7 +25,7 @@ vi.mock('../shared/components/layout/crudPage/CRUDPageRTK', () => ({
 
 vi.mock('../shared/api/clientsApi', async importOriginal => ({
   ...(await importOriginal<typeof import('../shared/api/clientsApi')>()),
-  useGetClientsQuery: () => ({ data: [], isLoading: false, isFetching: false })
+  useGetClientsQuery: () => ({ data: [], isLoading: false, isFetching: false, refetch: vi.fn() })
 }));
 
 vi.mock('../pages/invoices/Form/Modals/ClientQuickAddModal', () => ({

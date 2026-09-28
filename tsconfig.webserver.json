@@ -6,6 +6,7 @@
     "outDir": "./dist-be/backend/server",
     "rootDir": "./src/backend",
     "strict": true,
+    "ignoreDeprecations": "6.0",
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,

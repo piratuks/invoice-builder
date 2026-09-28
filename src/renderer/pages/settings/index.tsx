@@ -223,6 +223,22 @@ export const SettingsPage = () => {
   }, [dispatch, isExporting, isImporting]);
 
   useEffect(() => {
+    if (!isUpdatingSettings) return;
+    dispatch(enableLoadingCursor());
+    return () => {
+      dispatch(disableLoadingCursor());
+    };
+  }, [dispatch, isUpdatingSettings]);
+
+  useEffect(() => {
+    if (!isExporting && !isImporting) return;
+    dispatch(enableLoadingCursor());
+    return () => {
+      dispatch(disableLoadingCursor());
+    };
+  }, [dispatch, isExporting, isImporting]);
+
+  useEffect(() => {
     if (!hasInitialized.current) {
       hasInitialized.current = true;
       return;

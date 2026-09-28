@@ -166,6 +166,6 @@ describe('ConnectionSetter', () => {
     await user.click(testButton);
     act(() => mocks.hookOptions!.onDone({ success: false }));
     await waitFor(() => expect(testButton).toBeEnabled());
-    expect(mocks.dispatch).toHaveBeenCalledTimes(dispatchCount + 2);
+    await waitFor(() => expect(mocks.dispatch).toHaveBeenCalledTimes(dispatchCount + 2));
   });
 });

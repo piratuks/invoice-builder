@@ -1,5 +1,5 @@
 import { Dialog, DialogContent, Grid, TextField } from '@mui/material';
-import { memo, useCallback, useEffect, useState, type FC } from 'react';
+import { memo, useCallback, useEffect, useRef, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../../../i18n';
 import { useAddClientMutation } from '../../../../shared/api/clientsApi';
@@ -20,43 +20,15 @@ interface Props {
 const ClientQuickAddModalComponent: FC<Props> = ({ isOpen, onCancel = () => {}, onCreated = () => {} }) => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
+  const onCreatedRef = useRef(onCreated);
   const { form, setForm, update } = useForm({ name: '', phone: '' });
   const [errors, setErrors] = useState({ name: false, phone: false });
   const [clientToAdd, setClientToAdd] = useState<ClientAdd | undefined>(undefined);
-
-  const [addClient, { isLoading: loading, isError, error }] = useAddClientMutation();
-
-  useEffect(() => {
-    if (!clientToAdd) return;
-
-    void addClient(clientToAdd)
-      .unwrap()
-      .then(client => {
-        setClientToAdd(undefined);
-        onCreated(client);
-      })
-      .catch(() => {
-        setClientToAdd(undefined);
-      });
-  }, [addClient, clientToAdd, onCreated]);
+  const [addClient, { isLoading: loading }] = useAddClientMutation();
 
   useEffect(() => {
-    if (!isError) return;
-    const { message, key } = (error as { message?: string; key?: string }) ?? {};
-    if (message) {
-      dispatch(addToast({ message: i18n.exists(message) ? t(message) : message, severity: 'error' }));
-    } else if (key) {
-      dispatch(addToast({ message: t(key), severity: 'error' }));
-    }
-  }, [isError, error, dispatch, t]);
-
-  useEffect(() => {
-    if (!loading) return;
-    dispatch(enableLoadingCursor());
-    return () => {
-      dispatch(disableLoadingCursor());
-    };
-  }, [loading, dispatch]);
+    onCreatedRef.current = onCreated;
+  }, [onCreated]);
 
   const validateField = useCallback((field: keyof typeof errors, value: string) => {
     if (field === 'name') {
@@ -69,12 +41,36 @@ const ClientQuickAddModalComponent: FC<Props> = ({ isOpen, onCancel = () => {}, 
   const isFormValid = validators.required(form.name.trim()) && (form.phone === '' || validators.phone(form.phone));
 
   useEffect(() => {
+    if (!clientToAdd) return;
+    void addClient(clientToAdd)
+      .unwrap()
+      .then(client => onCreatedRef.current(client))
+      .catch(error => {
+        const { message, key } = (error as { message?: string; key?: string }) ?? {};
+        if (message) {
+          dispatch(addToast({ message: i18n.exists(message) ? t(message) : message, severity: 'error' }));
+        } else if (key) {
+          dispatch(addToast({ message: t(key), severity: 'error' }));
+        }
+      })
+      .finally(() => setClientToAdd(undefined));
+  }, [addClient, clientToAdd, dispatch, t]);
+
+  useEffect(() => {
     if (isOpen) {
       setForm({ name: '', phone: '' });
       setErrors({ name: false, phone: false });
       setClientToAdd(undefined);
     }
   }, [isOpen, setForm]);
+
+  useEffect(() => {
+    if (!loading) return;
+    dispatch(enableLoadingCursor());
+    return () => {
+      dispatch(disableLoadingCursor());
+    };
+  }, [loading, dispatch]);
 
   const handleCancel = useCallback(() => {
     if (loading) return;

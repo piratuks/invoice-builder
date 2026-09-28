@@ -568,17 +568,14 @@ export const CRUDPageRTK = <T, TAdd, TUpdate>(props: Props<T, TAdd, TUpdate>) =>
                 {renderListToolbarActions?.()}
               </Box>
             )}
+            {filters.length <= 0 && !renderListToolbarActions && <Box />}
 
-            {filters.length <= 0 && <Box />}
-
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <FilterSortBar<keyof T, T>
-                sortByOptions={sortOptions}
-                activeSort={persistentSort.activeSort}
-                activeSortBy={activeSortBy ?? persistentSort.activeSortBy}
-                onChange={onFilterSortChange}
-              />
-            </Box>
+            <FilterSortBar<keyof T, T>
+              sortByOptions={sortOptions}
+              activeSort={persistentSort.activeSort}
+              activeSortBy={activeSortBy ?? persistentSort.activeSortBy}
+              onChange={onFilterSortChange}
+            />
           </Box>
           {persistentFilters.length > 0 && (
             <Box

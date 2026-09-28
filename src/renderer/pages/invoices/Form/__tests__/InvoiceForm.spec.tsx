@@ -14,6 +14,7 @@ import { getApi } from '../../../../shared/api/restApi';
 import { styleProfilesApi } from '../../../../shared/api/styleProfilesApi';
 import { AmountFormat } from '../../../../shared/enums/amountFormat';
 import { DateFormat } from '../../../../shared/enums/dateFormat';
+import { DeliveryProvider } from '../../../../shared/enums/deliveryProvider';
 import { InvoiceType } from '../../../../shared/enums/invoiceType';
 import { Language } from '../../../../shared/enums/language';
 import type { InvoiceFromData } from '../../../../shared/types/invoice';
@@ -111,6 +112,9 @@ describe('InvoiceForm', () => {
         shouldIncludeMonth: false,
         shouldIncludeBusinessName: false,
         quotesON: true,
+        invoiceSchedulesON: false,
+        deliveryProvider: DeliveryProvider.smtp,
+        smtpSecure: false,
         styleProfilesON: false,
         ublON: false,
         xrechnungON: false,

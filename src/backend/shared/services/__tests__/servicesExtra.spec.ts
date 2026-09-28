@@ -103,6 +103,7 @@ const makeSettings = (overrides: Partial<Settings> = {}): Settings => ({
   quotesON: false,
   invoiceSchedulesON: true,
   deliveryProvider: DeliveryProvider.smtp,
+  smtpSecure: true,
   styleProfilesON: false,
   ublON: false,
   xrechnungON: false,

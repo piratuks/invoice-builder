@@ -73,6 +73,7 @@ describe('SettingsPage', () => {
     quotesON: true,
     invoiceSchedulesON: true,
     deliveryProvider: DeliveryProvider.smtp,
+    smtpSecure: false,
     styleProfilesON: true,
     ublON: true,
     xrechnungON: true,

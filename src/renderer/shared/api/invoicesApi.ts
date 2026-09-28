@@ -65,7 +65,7 @@ const invoicesBaseQuery: BaseQueryFn<InvoicesBaseQueryArgs, unknown, InvoicesApi
 export const invoicesApi = createApi({
   reducerPath: 'invoicesApi',
   baseQuery: invoicesBaseQuery,
-  tagTypes: ['Invoice'],
+  tagTypes: ['Invoice', 'InvoiceHeaders'],
   endpoints: builder => ({
     getInvoices: builder.query<Invoice[], { invoiceType?: InvoiceType; filter?: FilterData[] } | void>({
       query: args => ({ type: 'getInvoices', invoiceType: args?.invoiceType, filter: args?.filter }),
@@ -79,25 +79,33 @@ export const invoicesApi = createApi({
     }),
     addInvoice: builder.mutation<Invoice, InvoiceAdd>({
       query: body => ({ type: 'addInvoice', body }),
-      invalidatesTags: [{ type: 'Invoice', id: 'LIST' }]
+      invalidatesTags: [
+        { type: 'Invoice', id: 'LIST' },
+        { type: 'InvoiceHeaders', id: 'LIST' }
+      ]
     }),
     updateInvoice: builder.mutation<Invoice, InvoiceUpdate>({
       query: body => ({ type: 'updateInvoice', body }),
       invalidatesTags: (_result, _error, arg) => [
         { type: 'Invoice', id: 'LIST' },
-        { type: 'Invoice', id: arg.id }
+        { type: 'Invoice', id: arg.id },
+        { type: 'InvoiceHeaders', id: 'LIST' }
       ]
     }),
     deleteInvoice: builder.mutation<unknown, number>({
       query: id => ({ type: 'deleteInvoice', id }),
       invalidatesTags: (_result, _error, id) => [
         { type: 'Invoice', id: 'LIST' },
-        { type: 'Invoice', id }
+        { type: 'Invoice', id },
+        { type: 'InvoiceHeaders', id: 'LIST' }
       ]
     }),
     duplicateInvoice: builder.mutation<Invoice, { id: number; invoiceType: InvoiceType }>({
       query: body => ({ type: 'duplicateInvoice', id: body.id, invoiceType: body.invoiceType }),
-      invalidatesTags: [{ type: 'Invoice', id: 'LIST' }]
+      invalidatesTags: [
+        { type: 'Invoice', id: 'LIST' },
+        { type: 'InvoiceHeaders', id: 'LIST' }
+      ]
     }),
     getNextSequence: builder.query<
       NextSequenceData | undefined,
@@ -109,7 +117,8 @@ export const invoicesApi = createApi({
       query: body => ({ type: 'getEInvoiceXML', body })
     }),
     getCustomHeaders: builder.query<CustomFieldMeta[], InvoiceType>({
-      query: invoiceType => ({ type: 'getCustomHeaders', invoiceType })
+      query: invoiceType => ({ type: 'getCustomHeaders', invoiceType }),
+      providesTags: [{ type: 'InvoiceHeaders', id: 'LIST' }]
     })
   })
 });
