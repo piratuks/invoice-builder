@@ -1,0 +1,2 @@
+.github/agents/*.agent.md -text whitespace=cr-at-eol
+.github/prompts/*.prompt.md -text whitespace=cr-at-eol
