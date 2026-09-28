@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { ComponentProps } from 'react';
 import { I18nextProvider } from 'react-i18next';
 import { Provider } from 'react-redux';
@@ -77,7 +77,9 @@ describe('ClientQuickAddModal', () => {
     fireEvent.click(screen.getByRole('button', { name: /save/i }));
 
     await waitFor(() => expect(mocks.trigger).toHaveBeenCalledTimes(1));
-    mocks.resolve?.(fakeClient);
+    await act(async () => {
+      mocks.resolve?.(fakeClient);
+    });
 
     await waitFor(() => expect(onCreated).toHaveBeenCalledWith(fakeClient));
   });
@@ -89,7 +91,9 @@ describe('ClientQuickAddModal', () => {
     fireEvent.click(screen.getByRole('button', { name: /save/i }));
 
     await waitFor(() => expect(mocks.trigger).toHaveBeenCalledTimes(1));
-    mocks.reject?.({ key: 'error.failed' });
+    await act(async () => {
+      mocks.reject?.({ key: 'error.failed' });
+    });
 
     expect(onCreated).not.toHaveBeenCalled();
   });
@@ -113,5 +117,37 @@ describe('ClientQuickAddModal', () => {
     fireEvent.click(saveButton);
 
     await waitFor(() => expect(mocks.trigger).toHaveBeenCalledTimes(1));
+  });
+
+  it('does not retrigger a pending save when the onCreated callback changes', async () => {
+    const firstOnCreated = vi.fn();
+    const nextOnCreated = vi.fn();
+    const props = { isOpen: true, onCreated: firstOnCreated };
+    const { rerender } = render(
+      <Provider store={store}>
+        <I18nextProvider i18n={i18n}>
+          <ClientQuickAddModal {...props} />
+        </I18nextProvider>
+      </Provider>
+    );
+
+    fireEvent.change(screen.getByLabelText(/name/i), { target: { value: 'Acme Corp' } });
+    fireEvent.click(screen.getByRole('button', { name: /save/i }));
+    await waitFor(() => expect(mocks.trigger).toHaveBeenCalledTimes(1));
+
+    rerender(
+      <Provider store={store}>
+        <I18nextProvider i18n={i18n}>
+          <ClientQuickAddModal isOpen onCreated={nextOnCreated} />
+        </I18nextProvider>
+      </Provider>
+    );
+    expect(mocks.trigger).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      mocks.resolve?.(fakeClient);
+    });
+    await waitFor(() => expect(nextOnCreated).toHaveBeenCalledWith(fakeClient));
+    expect(firstOnCreated).not.toHaveBeenCalled();
   });
 });

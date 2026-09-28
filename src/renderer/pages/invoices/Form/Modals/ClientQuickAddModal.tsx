@@ -1,5 +1,5 @@
 import { Dialog, DialogContent, Grid, TextField } from '@mui/material';
-import { memo, useCallback, useEffect, useState, type FC } from 'react';
+import { memo, useCallback, useEffect, useRef, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../../../i18n';
 import { useAddClientMutation } from '../../../../shared/api/clientsApi';
@@ -20,10 +20,15 @@ interface Props {
 const ClientQuickAddModalComponent: FC<Props> = ({ isOpen, onCancel = () => {}, onCreated = () => {} }) => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
+  const onCreatedRef = useRef(onCreated);
   const { form, setForm, update } = useForm({ name: '', phone: '' });
   const [errors, setErrors] = useState({ name: false, phone: false });
   const [clientToAdd, setClientToAdd] = useState<ClientAdd | undefined>(undefined);
   const [addClient, { isLoading: loading }] = useAddClientMutation();
+
+  useEffect(() => {
+    onCreatedRef.current = onCreated;
+  }, [onCreated]);
 
   const validateField = useCallback((field: keyof typeof errors, value: string) => {
     if (field === 'name') {
@@ -39,7 +44,7 @@ const ClientQuickAddModalComponent: FC<Props> = ({ isOpen, onCancel = () => {}, 
     if (!clientToAdd) return;
     void addClient(clientToAdd)
       .unwrap()
-      .then(client => onCreated(client))
+      .then(client => onCreatedRef.current(client))
       .catch(error => {
         const { message, key } = (error as { message?: string; key?: string }) ?? {};
         if (message) {
@@ -49,7 +54,7 @@ const ClientQuickAddModalComponent: FC<Props> = ({ isOpen, onCancel = () => {}, 
         }
       })
       .finally(() => setClientToAdd(undefined));
-  }, [addClient, clientToAdd, dispatch, onCreated, t]);
+  }, [addClient, clientToAdd, dispatch, t]);
 
   useEffect(() => {
     if (isOpen) {

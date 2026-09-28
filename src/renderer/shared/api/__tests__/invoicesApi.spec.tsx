@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { I18nextProvider } from 'react-i18next';
 import { Provider } from 'react-redux';
@@ -111,7 +111,8 @@ describe('invoicesApi', () => {
     await waitFor(() => expect(query.result.current.isSuccess).toBe(true));
     expect(Object.keys(store.getState().invoicesApi.queries)).toHaveLength(1);
 
-    store.dispatch(logout());
+    query.unmount();
+    act(() => store.dispatch(logout()));
 
     await waitFor(() => expect(Object.keys(store.getState().invoicesApi.queries)).toHaveLength(0));
   });
