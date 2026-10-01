@@ -28,7 +28,7 @@ Use this workflow for:
 - Webserver: apps/server
 - Shared backend services, database infrastructure, and migrations: packages/core
 - Shared public DTOs, enums, and IPC contracts: packages/contracts
-- Documentation and example assets: docs/layouts and docs/tutorial
+- Documentation and example assets: docs/guides/tutorial
 - End-to-end tests: e2e/desktop and e2e/web
 - Root orchestration: Docker, packaging, releases, and cross-workspace scripts
 

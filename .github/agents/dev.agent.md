@@ -22,8 +22,8 @@ The extended workflow items (format/lint, changelog, docs, artifacts) are requir
 When executing `develop <task_description>`, also do the following:
 
 - After implementation, run the repository formatting and linting commands: `npm run format` and `npm run lint:fix`.
-- Update [History.md](../../History.md) with a new entry at the top. Add the {DATE}, {VERSION} as placeholders and describe the change under either "New features & improvements" or "Bug Fixes".
-- Update README.md and docs/TUTORIAL.md when the change impacts setup, usage, behavior, or screenshots.
+- Update [docs/History.md](../../docs/History.md) with a new entry at the top. Add the {DATE}, {VERSION} as placeholders and describe the change under either "New features & improvements" or "Bug Fixes".
+- Update README.md and docs/guides/tutorial/TUTORIAL.md when the change impacts setup, usage, behavior, or screenshots.
 - If documentation needs a new or updated image, add a `{IMAGE}` placeholder where the image should be inserted.
 - If story/task artifacts are present, update implementation and verification checkboxes as part of handoff.
 

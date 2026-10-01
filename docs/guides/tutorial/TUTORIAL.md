@@ -11,14 +11,14 @@ You can either create/open a local database file or connect to a database server
 
 Recently opened databases are displayed in a **quick access list** for faster reopening.
 
-![First screen](tutorial/initial_screen.jpg)
+![First screen](initial_screen.jpg)
 
 When the application runs in Docker or the web version, databases are created inside a predefined folder. All databases in that folder are automatically listed in Quick Access.
 To remove a database from the Quick Access list, simply delete it from that folder.
 During creation, you will be prompted to enter the database name.
 
-![First screen](tutorial/initial_screen_web.jpg)
-![First screen](tutorial/initial_screen_naming_web.jpg)
+![First screen](initial_screen_web.jpg)
+![First screen](initial_screen_naming_web.jpg)
 
 ### Server database
 
@@ -30,9 +30,9 @@ On the connection screen, you can:
 - Test the connection
 - Save the connection (without password) for quick access
 
-![First screen](tutorial/connection.jpg)
-![First screen](tutorial/server_connections.jpg)
-![First screen](tutorial/password_enter.jpg)
+![First screen](connection.jpg)
+![First screen](server_connections.jpg)
+![First screen](password_enter.jpg)
 
 ### Switching databases
 
@@ -59,7 +59,7 @@ From this screen you can:
   - Terms of Use
 - Check for application updates via GitHub Releases (Available only for native software version)
 
-![Look and feel](tutorial/settings_page_3.jpg)
+![Look and feel](settings_page_3.jpg)
 
 ### Localization & Formatting
 
@@ -69,7 +69,7 @@ You can customize:
 - Number (amount) formatting
 - Date formatting
 
-![Language and format](tutorial/settings_page_1.jpg)
+![Language and format](settings_page_1.jpg)
 
 ### Receipt printing
 
@@ -82,9 +82,9 @@ Receipt printing produces a compact 80mm receipt layout for invoices, designed f
 
 > ℹ️ In web/Docker mode, the browser's print dialog may add its own header/footer (page URL, date, page count). This is a browser preference, not something the app can turn off by default — uncheck **"Headers and footers"** under **More settings** in the print dialog for a cleaner printout; the browser remembers this choice for future prints.
 
-![Receipt printing](tutorial/printing_receipt_1.png)
+![Receipt printing](printing_receipt_1.png)
 
-![Receipt printing](tutorial/printing_receipt_2.png)
+![Receipt printing](printing_receipt_2.png)
 
 ### Invoice & File Naming
 
@@ -105,7 +105,7 @@ You can optionally include:
 - Month
 - Business name
 
-![Customize invoice](tutorial/settings_page_2.jpg)
+![Customize invoice](settings_page_2.jpg)
 
 ## Businesses screen
 
@@ -125,7 +125,7 @@ Click the **Add** button at the bottom to open a modal where you can:
 - Upload a logo (crop and adjust as needed)
   > ⚠️ Maximum file size: 2 MB
 
-![Businesses creation](tutorial/businesses_page_1.jpg)
+![Businesses creation](businesses_page_1.jpg)
 
 ### Editing/Deleting a Business
 
@@ -139,7 +139,7 @@ You can also:
 - **Search businesses by name**
 - **Delete a business** by clicking the red trash icon
 
-![Businesses list](tutorial/businesses_page_2.jpg)
+![Businesses list](businesses_page_2.jpg)
 
 ### Filters
 
@@ -149,7 +149,7 @@ Businesses have filters to control what is displayed. By default:
 
 The **archived flag** can be toggled during creation or editing. This flag only affects filtering and does not delete the business.
 
-![Businesses filters](tutorial/businesses_page_3.jpg)
+![Businesses filters](businesses_page_3.jpg)
 
 ### Sorting
 
@@ -158,7 +158,7 @@ Businesses can be sorted by:
 - Name
 - Last updated date
 
-![Businesses sort](tutorial/businesses_page_4.jpg)
+![Businesses sort](businesses_page_4.jpg)
 
 ### Import & Export
 
@@ -168,7 +168,7 @@ You can:
 - Import businesses from XLSX
 - Download a XLSX template for business import
 
-![Businesses import/export](tutorial/businesses_page_5.jpg)
+![Businesses import/export](businesses_page_5.jpg)
 
 ## Banks screen
 
@@ -188,7 +188,7 @@ Click the **Add** button at the bottom to open a modal where you can:
 - Upload a QR code (crop and adjust as needed)
   > ⚠️ Maximum file size: 2 MB
 
-![Banks creation](tutorial/banks_page_1.jpg)
+![Banks creation](banks_page_1.jpg)
 
 ### Editing/Deleting a Bank
 
@@ -202,7 +202,7 @@ You can also:
 - **Search banks by name**
 - **Delete a bank** by clicking the red trash icon
 
-![Banks list](tutorial/banks_page_2.jpg)
+![Banks list](banks_page_2.jpg)
 
 ### Filters
 
@@ -212,7 +212,7 @@ Banks have filters to control what is displayed. By default:
 
 The **archived flag** can be toggled during creation or editing. This flag only affects filtering and does not delete the bank.
 
-![Banks filters](tutorial/banks_page_3.jpg)
+![Banks filters](banks_page_3.jpg)
 
 ### Sorting
 
@@ -221,7 +221,7 @@ Banks can be sorted by:
 - Name
 - Last updated date
 
-![Banks sort](tutorial/banks_page_4.jpg)
+![Banks sort](banks_page_4.jpg)
 
 ### Import & Export
 
@@ -231,7 +231,7 @@ You can:
 - Import banks from XLSX
 - Download a XLSX template for bank import
 
-![Banks import/export](tutorial/banks_page_5.jpg)
+![Banks import/export](banks_page_5.jpg)
 
 ## Presets screen
 
@@ -248,7 +248,7 @@ Click the **Add** button at the bottom to open a modal where you can:
 
 - Enter preset information
 
-![Presets creation](tutorial/presets_page_1.jpg)
+![Presets creation](presets_page_1.jpg)
 
 ### Editing/Deleting a Preset
 
@@ -259,7 +259,7 @@ You can also:
 - **Search presets by name**
 - **Delete a preset** by clicking the red trash icon
 
-![Presets list](tutorial/presets_page_2.jpg)
+![Presets list](presets_page_2.jpg)
 
 ### Filters
 
@@ -269,7 +269,7 @@ Presets have filters to control what is displayed. By default:
 
 The **archived flag** can be toggled during creation or editing. This flag only affects filtering and does not delete the preset.
 
-![Presets filters](tutorial/presets_page_3.jpg)
+![Presets filters](presets_page_3.jpg)
 
 ### Sorting
 
@@ -278,7 +278,7 @@ Presets can be sorted by:
 - Name
 - Last updated date
 
-![Presets sort](tutorial/presets_page_4.jpg)
+![Presets sort](presets_page_4.jpg)
 
 ### Import & Export
 
@@ -288,7 +288,7 @@ You can:
 - Import presets from XLSX
 - Download a XLSX template for preset import
 
-![Presets import/export](tutorial/presets_page_5.jpg)
+![Presets import/export](presets_page_5.jpg)
 
 ## Clients screen
 
@@ -301,7 +301,7 @@ Click the **Add** button at the bottom to open a modal where you can:
 - Enter client information
 - When selecting a client from an invoice or quote, use the **Add** action in the client selector to create a client without leaving the document form. Enter a name and, optionally, a phone number. The new client is selected automatically after it is created.
 
-![Clients creation](tutorial/clients_page_1.jpg)
+![Clients creation](clients_page_1.jpg)
 
 ### Editing/Deleting a Client
 
@@ -315,7 +315,7 @@ You can also:
 - **Search clients by name**
 - **Delete a client** by clicking the red trash icon
 
-![Clients list](tutorial/clients_page_2.jpg)
+![Clients list](clients_page_2.jpg)
 
 ### Filters
 
@@ -325,7 +325,7 @@ Clients have filters to control what is displayed. By default:
 
 The **archived flag** can be toggled during creation or editing. This flag only affects filtering and does not delete the client.
 
-![Clients filters](tutorial/clients_page_3.jpg)
+![Clients filters](clients_page_3.jpg)
 
 ### Sorting
 
@@ -334,7 +334,7 @@ Clients can be sorted by:
 - Name
 - Last updated date
 
-![Clients sort](tutorial/clients_page_4.jpg)
+![Clients sort](clients_page_4.jpg)
 
 ### Import & Export
 
@@ -344,7 +344,7 @@ You can:
 - Import clients from XLSX
 - Download a XLSX template for client import
 
-![Clients import/export](tutorial/clients_page_5.jpg)
+![Clients import/export](clients_page_5.jpg)
 
 ## Categories screen
 
@@ -357,7 +357,7 @@ Click the **Add** button at the bottom to open a modal where you can:
 - Enter category information
   > 💡 **Note:** Category names must be unique. You cannot create two categories with the same name.
 
-![Categories creation](tutorial/categories_page_1.jpg)
+![Categories creation](categories_page_1.jpg)
 
 ### Editing/Deleting a Category
 
@@ -371,7 +371,7 @@ You can also:
 - **Search categories by name**
 - **Delete a category** by clicking the red trash icon
 
-![Categories list](tutorial/categories_page_2.jpg)
+![Categories list](categories_page_2.jpg)
 
 ### Filters
 
@@ -381,7 +381,7 @@ Categories have filters to control what is displayed. By default:
 
 The **archived flag** can be toggled during creation or editing. This flag only affects filtering and does not delete the category.
 
-![Categories filters](tutorial/categories_page_3.jpg)
+![Categories filters](categories_page_3.jpg)
 
 ### Sorting
 
@@ -390,7 +390,7 @@ Categories can be sorted by:
 - Name
 - Last updated date
 
-![Categories sort](tutorial/categories_page_4.jpg)
+![Categories sort](categories_page_4.jpg)
 
 ### Import & Export
 
@@ -400,7 +400,7 @@ You can:
 - Import categories from XLSX
 - Download a XLSX template for category import
 
-![Categories import/export](tutorial/categories_page_5.jpg)
+![Categories import/export](categories_page_5.jpg)
 
 ## Units screen
 
@@ -413,7 +413,7 @@ Click the **Add** button at the bottom to open a modal where you can:
 - Enter unit information
   > 💡 **Note:** Unit names must be unique. You cannot create two units with the same name.
 
-![Units creation](tutorial/units_page_1.jpg)
+![Units creation](units_page_1.jpg)
 
 ### Editing/Deleting a Unit
 
@@ -427,7 +427,7 @@ You can also:
 - **Search units by name**
 - **Delete a unit** by clicking the red trash icon
 
-![Units list](tutorial/units_page_2.jpg)
+![Units list](units_page_2.jpg)
 
 ### Filters
 
@@ -437,7 +437,7 @@ Units have filters to control what is displayed. By default:
 
 The **archived flag** can be toggled during creation or editing. This flag only affects filtering and does not delete the unit.
 
-![Units filters](tutorial/units_page_3.jpg)
+![Units filters](units_page_3.jpg)
 
 ### Sorting
 
@@ -446,7 +446,7 @@ Units can be sorted by:
 - Name
 - Last updated date
 
-![Units sort](tutorial/units_page_4.jpg)
+![Units sort](units_page_4.jpg)
 
 ### Import & Export
 
@@ -456,7 +456,7 @@ You can:
 - Import units from XLSX
 - Download a XLSX template for unit import
 
-![Units import/export](tutorial/units_page_5.jpg)
+![Units import/export](units_page_5.jpg)
 
 ## Currencies screen
 
@@ -474,7 +474,7 @@ Click the **Add** button at the bottom to open a modal where you can:
   > - USD and EUR: 100 subunits = 1 USD/EUR
   > - Japanese Yen (JPY): 1 subunit = 1 JPY
 
-![Currencies creation](tutorial/currencies_page_1.jpg)
+![Currencies creation](currencies_page_1.jpg)
 
 ### Editing/Deleting a Currency
 
@@ -488,7 +488,7 @@ You can also:
 - **Search currencies by text**
 - **Delete a currency** by clicking the red trash icon
 
-![Currencies list](tutorial/currencies_page_3.jpg)
+![Currencies list](currencies_page_3.jpg)
 
 ### Filters
 
@@ -498,7 +498,7 @@ Currencies have filters to control what is displayed. By default:
 
 The **archived flag** can be toggled during creation or editing. This flag only affects filtering and does not delete the currency.
 
-![Currencies filters](tutorial/currencies_page_2.jpg)
+![Currencies filters](currencies_page_2.jpg)
 
 ### Sorting
 
@@ -507,7 +507,7 @@ Currencies can be sorted by:
 - Text
 - Last updated date
 
-![Currencies sort](tutorial/currencies_page_4.jpg)
+![Currencies sort](currencies_page_4.jpg)
 
 ### Import & Export
 
@@ -517,7 +517,7 @@ You can:
 - Import currencies from XLSX
 - Download a XLSX template for currency import
 
-![Currencies import/export](tutorial/currencies_page_5.jpg)
+![Currencies import/export](currencies_page_5.jpg)
 
 ## Items screen
 
@@ -530,7 +530,7 @@ Click the **Add** button at the bottom to open a modal where you can:
 - Enter item information
   > 💡 **Note:** The item amount is always recorded in the selected currency. The currency is attached once when the item is added to a quote or invoice. Changing the quote/invoice currency will **not** automatically convert existing item amounts.
 
-![Items creation](tutorial/items_page_1.jpg)
+![Items creation](items_page_1.jpg)
 
 ### Editing/Deleting a Item
 
@@ -544,7 +544,7 @@ You can also:
 - **Search items by name**
 - **Delete a item** by clicking the red trash icon
 
-![Items list](tutorial/items_page_2.jpg)
+![Items list](items_page_2.jpg)
 
 ### Filters
 
@@ -554,7 +554,7 @@ Items have filters to control what is displayed. By default:
 
 The **archived flag** can be toggled during creation or editing. This flag only affects filtering and does not delete the item.
 
-![Items filters](tutorial/items_page_3.jpg)
+![Items filters](items_page_3.jpg)
 
 ### Sorting
 
@@ -563,7 +563,7 @@ Items can be sorted by:
 - Name
 - Last updated date
 
-![Items sort](tutorial/items_page_4.jpg)
+![Items sort](items_page_4.jpg)
 
 ### Import & Export
 
@@ -575,7 +575,7 @@ You can:
 
 > 💡 **Note:** When importing items from XLSX, if a unit or category name is provided and does not already exist in the system, it will be automatically created.
 
-![Items import/export](tutorial/items_page_5.jpg)
+![Items import/export](items_page_5.jpg)
 
 ## Style profiles screen
 
@@ -589,10 +589,10 @@ Click the **Add** button at the bottom to open a modal where you can:
   > 💡 **Name:** must be unique. You cannot create two style profiles with the same name.
   > 💡 **Sort Order:** under "Table" tab its possible to customize sort order of generic item table headers.
 
-![Style profile creation](tutorial/style_profiles_page_1_1.jpg)
-![Style profile creation](tutorial/style_profiles_page_1_2.jpg)
-![Style profile creation](tutorial/style_profiles_page_1_3.jpg)
-![Style profile creation](tutorial/style_profiles_page_1_4.jpg)
+![Style profile creation](style_profiles_page_1_1.jpg)
+![Style profile creation](style_profiles_page_1_2.jpg)
+![Style profile creation](style_profiles_page_1_3.jpg)
+![Style profile creation](style_profiles_page_1_4.jpg)
 
 ### Editing/Deleting a Style profile
 
@@ -606,7 +606,7 @@ You can also:
 - **Search style profiles by name**
 - **Delete a style profile** by clicking the red trash icon
 
-![Style profiles list](tutorial/style_profiles_page_3.jpg)
+![Style profiles list](style_profiles_page_3.jpg)
 
 ### Filters
 
@@ -616,7 +616,7 @@ Style profiles have filters to control what is displayed. By default:
 
 The **archived flag** can be toggled during creation or editing. This flag only affects filtering and does not delete the style profile.
 
-![Style profiles filters](tutorial/style_profiles_page_2.jpg)
+![Style profiles filters](style_profiles_page_2.jpg)
 
 ### Sorting
 
@@ -625,7 +625,7 @@ Style profiles can be sorted by:
 - Name
 - Last updated date
 
-![Style profiles sort](tutorial/style_profiles_page_4.jpg)
+![Style profiles sort](style_profiles_page_4.jpg)
 
 ### Import & Export
 
@@ -635,7 +635,7 @@ You can:
 - Import style profiles from XLSX
 - Download a XLSX template for currency import
 
-![Style profiles import/export](tutorial/style_profiles_page_5.jpg)
+![Style profiles import/export](style_profiles_page_5.jpg)
 
 ## Layouts screen
 
@@ -654,11 +654,11 @@ Layout records can be archived and selected from invoice or quote page setup. Ex
 
 Click **Add** to create a new layout. The **Visual** tab is the default editing mode. Use its controls to add sections, header blocks, regions, rows, columns, and grids, then reorder or reparent them with buttons, menus, keyboard actions, or drag and drop.
 
-You can also use **Upload schema** to import a valid V1 or V2 JSON layout. The JSON must contain a layout name and use the supported schema version and properties documented in the [Layout JSON reference](LAYOUT.md). Ready-made examples are available in [`layouts`](layouts).
+You can also use **Upload schema** to import a valid V1 or V2 JSON layout. The JSON must contain a layout name and use the supported schema version and properties documented in the [Layout JSON reference](LAYOUT.md). Ready-made examples are available in [`layouts`](/docs/guides/tutorial/layouts/).
 
-![Layouts creation](tutorial/layouts_page_1.jpg)
-![Layouts visual_builder](tutorial/layouts_visual_builder.png)
-![Layouts preview](tutorial/layouts_preview.png)
+![Layouts creation](layouts_page_1.jpg)
+![Layouts visual_builder](layouts_visual_builder.png)
+![Layouts preview](layouts_preview.png)
 
 ### Editing/Deleting a Layout
 
@@ -673,7 +673,7 @@ You can also:
 - **Search layouts by name**
 - **Delete a layout** by clicking the red trash icon
 
-![Layouts editing](tutorial/layouts_page_2.jpg)
+![Layouts editing](layouts_page_2.jpg)
 
 ### Filters
 
@@ -683,7 +683,7 @@ Layouts have filters to control what is displayed. By default:
 
 The **archived flag** can be toggled during creation or editing. This flag only affects filtering and does not delete the layout.
 
-![Layouts filters](tutorial/layouts_page_3.jpg)
+![Layouts filters](layouts_page_3.jpg)
 
 ### Sorting
 
@@ -692,7 +692,7 @@ Layouts can be sorted by:
 - Schema name
 - Last updated date
 
-![Layouts sort](tutorial/layouts_page_4.jpg)
+![Layouts sort](layouts_page_4.jpg)
 
 ### Export
 
@@ -700,14 +700,14 @@ You can export a saved layout as a `.json` file for reuse or transfer to another
 
 Layout JSON export is available from the download icon on each layout in the list. Layouts are exported individually, not as an XLSX file.
 
-![Layouts export](tutorial/layouts_page_5.jpg)
+![Layouts export](layouts_page_5.jpg)
 
 ### Selecting a Layout
 
 In an invoice or quote, open page setup and select an active, non-archived layout. The selected layout determines the order and composition of the PDF sections, including the header, items table, totals, payment information, notes, signature, watermark, and page counter.
 
-![Layouts selection](tutorial/layouts_page_6.jpg)
-![Layouts selection](tutorial/layouts_page_7.jpg)
+![Layouts selection](layouts_page_6.jpg)
+![Layouts selection](layouts_page_7.jpg)
 
 For the complete JSON structure, supported sections, header blocks, composition examples, and limitations, see the [Layout JSON reference](LAYOUT.md).
 
@@ -732,7 +732,7 @@ You can also:
 
 Click the **Add** button at the bottom to open the right-hand pane, where you can enter quote details. If [Presets screen](#presets-screen) are enabled then you will have to choose either create new or from preset.
 
-![Quote creation](tutorial/quote_page_111.jpg)
+![Quote creation](quote_page_111.jpg)
 
 - **Required information:**
   - Currency
@@ -742,19 +742,19 @@ Click the **Add** button at the bottom to open the right-hand pane, where you ca
   - Quote information
   - At least one item
 
-![Quote creation](tutorial/quote_page_1.jpg)
+![Quote creation](quote_page_1.jpg)
 
 Select a currency from the dropdown. The dropdown supports **search, filter, and sort** (see [Currencies screen](#currencies-screen) for details).
 
 > 💡 **Note:** The selected currency is saved as a snapshot. The snapshot is updated only when editing the quote and changing the currency.
 
-![Quote currency creation](tutorial/quote_page_2.jpg)
+![Quote currency creation](quote_page_2.jpg)
 
 Select a business from the dropdown. The dropdown supports **search, filter, and sort** (see [Businesses screen](#businesses-screen) for details).
 
 > 💡 **Note:** The selected business is saved as a snapshot. The snapshot is updated only when editing the quote and changing the business.
 
-![Quote business creation](tutorial/quote_page_3.jpg)
+![Quote business creation](quote_page_3.jpg)
 
 Select a client from the dropdown. The dropdown supports **search, filter, and sort** (see [Clients screen](#clients-screen) for details).
 
@@ -762,7 +762,7 @@ To create a client without leaving the quote form, use the **Add** action in the
 
 > 💡 **Note:** The selected client is saved as a snapshot. The snapshot is updated only when editing the quote and changing the client.
 
-![Quote client creation](tutorial/quote_page_4.jpg)
+![Quote client creation](quote_page_4.jpg)
 
 Select a style profile from the dropdown. The dropdown supports **search, filter, and sort** (see [Style profiles screen](#style-profiles-screen) for details).
 
@@ -772,13 +772,13 @@ Select a style profile from the dropdown. The dropdown supports **search, filter
 >
 > 💡 Selecting a style profile only applies preset values. You can continue customizing everything afterward.
 
-![Quote style profile creation](tutorial/quote_page_profile.jpg)
+![Quote style profile creation](quote_page_profile.jpg)
 
 Select a language from the dropdown. The dropdown supports **search**.
 
 > 💡 **Note:** The selected language applies only to the generated PDF and is independent of the application's global language setting.
 
-![Quote style profile creation](tutorial/quote_page_language.jpg)
+![Quote style profile creation](quote_page_language.jpg)
 
 Enter the quote details, including:
 
@@ -794,7 +794,7 @@ Enter the quote details, including:
 > - You can also change or add them here, even if they were not configured in Settings.
 > - If configured, the prefix and suffix are always incorporated into the quote number automatically.
 
-![Quote information](tutorial/quote_page_5.jpg)
+![Quote information](quote_page_5.jpg)
 
 Select a item from the dropdown and set quantity and unit price. The dropdown supports **search, filter, and sort** (see [Items screen](#items-screen) for details).
 
@@ -802,76 +802,76 @@ Select a item from the dropdown and set quantity and unit price. The dropdown su
 >
 > 💡 When adding or editing an item in a quotation, a modal will appear requiring you to set the quantity and unit price. You can also define custom field data for the item, including a header, value, and alignment. Each unique custom header is added as a column in the PDF’s item table, and the corresponding value is placed in that column for the item. Alignment is configured per unique header. A header can be selected from the existing list or typed in as a new one (pressing Enter is required to register a new header). Both fields header and value must either be fully selected / entered or empty; otherwise, the Save button will remain disabled.
 
-![Quote item creation](tutorial/quote_page_6.jpg)
-![Quote item quantity](tutorial/quote_page_7.jpg)
-![Quote item quantity](tutorial/quote_page_7.1.jpg)
+![Quote item creation](quote_page_6.jpg)
+![Quote item quantity](quote_page_7.jpg)
+![Quote item quantity](quote_page_7.1.jpg)
 
 > 💡 **Note:** The items order can be changed by drag and drop.
 
-![Quote items order](tutorial/quote_page_27.jpg)
+![Quote items order](quote_page_27.jpg)
 
 Once all required information has been filled in, the quote can be saved.
 
-![Quote item quantity](tutorial/quote_page_8.jpg)
+![Quote item quantity](quote_page_8.jpg)
 
 Information on other pages is also updated to reflect the current quote count.
 
-![Quote count](tutorial/quote_page_10.jpg)
+![Quote count](quote_page_10.jpg)
 
 Additionally, you can set a **discount** (fixed amount or percentage-based).
 
-![Quote discount none](tutorial/quote_page_14.jpg)
-![Quote discount fixed](tutorial/quote_page_15.jpg)
-![Quote discount percentage](tutorial/quote_page_16.jpg)
-![Quote discount result](tutorial/quote_page_17.jpg)
+![Quote discount none](quote_page_14.jpg)
+![Quote discount fixed](quote_page_15.jpg)
+![Quote discount percentage](quote_page_16.jpg)
+![Quote discount result](quote_page_17.jpg)
 
 Additionally, you can set a **surcharge** (fixed amount or percentage-based).
 
-![Quote surcharge none](tutorial/quote_page_surcharge1.png)
-![Quote surcharge fixed](tutorial/quote_page_surcharge2.png)
-![Quote surcharge percentage](tutorial/quote_page_surcharge3.png)
-![Quote surcharge result](tutorial/quote_page_surcharge4.png)
+![Quote surcharge none](quote_page_surcharge1.png)
+![Quote surcharge fixed](quote_page_surcharge2.png)
+![Quote surcharge percentage](quote_page_surcharge3.png)
+![Quote surcharge result](quote_page_surcharge4.png)
 
 You can also configure **taxes** for the quote:
 
 - **Total-based taxes**: inclusive, exclusive, or deducted
 - **Per-item taxes**: inclusive or exclusive
 
-![Quote none](tutorial/quote_page_18.jpg)
-![Quote on total](tutorial/quote_page_19.jpg)
-![Quote deducted](tutorial/quote_page_20.jpg)
-![Quote per item](tutorial/quote_page_21.jpg)
+![Quote none](quote_page_18.jpg)
+![Quote on total](quote_page_19.jpg)
+![Quote deducted](quote_page_20.jpg)
+![Quote per item](quote_page_21.jpg)
 
 Results:
 
-![Quote on total inclusive](tutorial/quote_page_22.jpg)
-![Quote on total dedcuted](tutorial/quote_page_23.jpg)
-![Quote on total exclusive](tutorial/quote_page_26.jpg)
-![Quote per item inclusive](tutorial/quote_page_25.jpg)
-![Quote per item exclusive](tutorial/quote_page_24.jpg)
+![Quote on total inclusive](quote_page_22.jpg)
+![Quote on total dedcuted](quote_page_23.jpg)
+![Quote on total exclusive](quote_page_26.jpg)
+![Quote per item inclusive](quote_page_25.jpg)
+![Quote per item exclusive](quote_page_24.jpg)
 
 Additionally, you can set a **shipping fees** (fixed amount).
 
-![Quote shipping fees](tutorial/quote_page_28.jpg)
+![Quote shipping fees](quote_page_28.jpg)
 
 Additionally, you can set a **notes** (customer notes, thank you note, terms & conditions note).
 
-![Quote thank you notes](tutorial/quote_page_29.jpg)
-![Quote customer notes](tutorial/quote_page_30.jpg)
-![Quote terms & conditions notes](tutorial/quote_page_31.jpg)
+![Quote thank you notes](quote_page_29.jpg)
+![Quote customer notes](quote_page_30.jpg)
+![Quote terms & conditions notes](quote_page_31.jpg)
 
 Additionally, you can set a **signature** which can be set via hand/cursor or uploaded as image.
 
 > ⚠️ Maximum file size: 2 MB
 
-![Quote signature](tutorial/quote_page_signature1.jpg)
-![Quote signature](tutorial/quote_page_signature2.jpg)
+![Quote signature](quote_page_signature1.jpg)
+![Quote signature](quote_page_signature2.jpg)
 
 Additionally, you can attach **images**, which will be embedded into the PDF.
 
 > ⚠️ Maximum file size: 2 MB
 
-![Quote attachments](tutorial/quote_page_32.jpg)
+![Quote attachments](quote_page_32.jpg)
 
 ### Editing / Deleting a Quote
 
@@ -883,16 +883,16 @@ Once quotes are added, select one from the list to edit it on the right-hand pan
 - Total amount
 - Due date / Overdue information
 
-![Quote list](tutorial/quote_page_9.jpg)
-![Quote status due today](tutorial/quote_page_12.jpg)
-![Quote status overdue](tutorial/quote_page_13.jpg)
+![Quote list](quote_page_9.jpg)
+![Quote status due today](quote_page_12.jpg)
+![Quote status overdue](quote_page_13.jpg)
 
 You can also:
 
 - **Search quotes by quote number**
 - **Delete a quote** by clicking the vertical dots menu → **Delete**
 
-![Quote actions](tutorial/quote_page_11.jpg)
+![Quote actions](quote_page_11.jpg)
 
 ### Filters
 
@@ -906,7 +906,7 @@ Quotes have only **Open** and **Closed** statuses, so the status filter includes
 Client and business filters are based on **snapshot data** stored with the quote.
 The **date filter** applies to the **Issued At** date.
 
-![Quotes filters](tutorial/quote_page_33.jpg)
+![Quotes filters](quote_page_33.jpg)
 
 ### Sorting
 
@@ -917,7 +917,7 @@ Quotes can be sorted by:
 - Quote number
 - Last updated date
 
-![Quotes sort](tutorial/quote_page_34.jpg)
+![Quotes sort](quote_page_34.jpg)
 
 ### Export
 
@@ -926,7 +926,7 @@ Quotes can be exported **only to XLSX** format.
 - Export all quote-related data to XLSX
   > 💡 **Note:** Attachments and business logo snapshots are **not included** in the export.
 
-![Quotes import/export](tutorial/quote_page_35.jpg)
+![Quotes import/export](quote_page_35.jpg)
 
 ### PDF Preview
 
@@ -939,14 +939,14 @@ Quotes can be exported **only to XLSX** format.
 - Sections with zero values (**Surcharge**, **Discount**, **Tax**, **Shipping fees**) are **hidden** in the PDF.
 - **Save as Profile** button will create style profile item with these customization presets for futher usage on other quotes.
 
-![Quotes customized option 1](tutorial/quote_page_40_1.jpg)
-![Quotes customized option 2](tutorial/quote_page_40_2.jpg)
-![Quotes customized option 3](tutorial/quote_page_40_3.jpg)
-![Quotes customized option 4](tutorial/quote_page_40_4.jpg)
-![Quotes PDF](tutorial/quote_page_38.jpg)
-![Quotes PDF attachments](tutorial/quote_page_37.jpg)
-![Quotes data](tutorial/quote_page_36.jpg)
-![Quotes data example](tutorial/quote_page_41.jpg)
+![Quotes customized option 1](quote_page_40_1.jpg)
+![Quotes customized option 2](quote_page_40_2.jpg)
+![Quotes customized option 3](quote_page_40_3.jpg)
+![Quotes customized option 4](quote_page_40_4.jpg)
+![Quotes PDF](quote_page_38.jpg)
+![Quotes PDF attachments](quote_page_37.jpg)
+![Quotes data](quote_page_36.jpg)
+![Quotes data example](quote_page_41.jpg)
 
 ## Invoices screen
 
@@ -968,7 +968,7 @@ You can also:
 
 Click the **Add** button at the bottom to open the right-hand pane, where you can enter invoice details. If [Presets screen](#presets-screen) are enabled then you will have to choose either create new or from preset.
 
-![Invoice creation](tutorial/invoice_page_11.jpg)
+![Invoice creation](invoice_page_11.jpg)
 
 - **Required information:**
   - Currency
@@ -978,19 +978,19 @@ Click the **Add** button at the bottom to open the right-hand pane, where you ca
   - Invoice information
   - At least one item
 
-![Invoice creation](tutorial/invoice_page_1.jpg)
+![Invoice creation](invoice_page_1.jpg)
 
 Select a currency from the dropdown. The dropdown supports **search, filter, and sort** (see [Currencies screen](#currencies-screen) for details).
 
 > 💡 **Note:** The selected currency is saved as a snapshot. The snapshot is updated only when editing the invoice and changing the currency.
 
-![Invoice currency creation](tutorial/invoice_page_2.jpg)
+![Invoice currency creation](invoice_page_2.jpg)
 
 Select a business from the dropdown. The dropdown supports **search, filter, and sort** (see [Businesses screen](#businesses-screen) for details).
 
 > 💡 **Note:** The selected business is saved as a snapshot. The snapshot is updated only when editing the invoice and changing the business.
 
-![Invoice business creation](tutorial/invoice_page_3.jpg)
+![Invoice business creation](invoice_page_3.jpg)
 
 Select a client from the dropdown. The dropdown supports **search, filter, and sort** (see [Clients screen](#clients-screen) for details).
 
@@ -998,7 +998,7 @@ Select a client from the dropdown. The dropdown supports **search, filter, and s
 
 To create a client without leaving the invoice form, use the **Add** action in the client selector. Enter the required name and, optionally, a phone number; the new client is selected automatically after creation.
 
-![Invoice client creation](tutorial/invoice_page_4.jpg)
+![Invoice client creation](invoice_page_4.jpg)
 
 Select a style profile from the dropdown. The dropdown supports **search, filter, and sort** (see [Style profiles screen](#style-profiles-screen) for details).
 
@@ -1008,13 +1008,13 @@ Select a style profile from the dropdown. The dropdown supports **search, filter
 >
 > 💡 Selecting a style profile only applies preset values. You can continue customizing everything afterward.
 
-![Invoice style profile creation](tutorial/invoice_page_profile.jpg)
+![Invoice style profile creation](invoice_page_profile.jpg)
 
 Select a language from the dropdown. The dropdown supports **search**.
 
 > 💡 **Note:** The selected language applies only to the generated PDF and is independent of the application's global language setting.
 
-![Invoice style profile creation](tutorial/invoice_page_language.jpg)
+![Invoice style profile creation](invoice_page_language.jpg)
 
 Enter the invoice details, including:
 
@@ -1030,7 +1030,7 @@ Enter the invoice details, including:
 > - You can also change or add them here, even if they were not configured in Settings.
 > - If configured, the prefix and suffix are always incorporated into the invoice number automatically.
 
-![Invoice information](tutorial/invoice_page_5.jpg)
+![Invoice information](invoice_page_5.jpg)
 
 Select a item from the dropdown and set quantity and unit price. The dropdown supports **search, filter, and sort** (see [Items screen](#items-screen) for details).
 
@@ -1038,79 +1038,79 @@ Select a item from the dropdown and set quantity and unit price. The dropdown su
 >
 > 💡 When adding or editing an item in a invoice, a modal will appear requiring you to set the quantity and unit price. You can also define custom field data for the item, including a header, value, and alignment. Each unique custom header is added as a column in the PDF’s item table, and the corresponding value is placed in that column for the item. Alignment is configured per unique header. A header can be selected from the existing list or typed in as a new one (pressing Enter is required to register a new header). Both fields header and value must either be fully selected / entered or empty; otherwise, the Save button will remain disabled.
 
-![Invoice item creation](tutorial/invoice_page_6.jpg)
-![Invoice item quantity](tutorial/invoice_page_7.jpg)
+![Invoice item creation](invoice_page_6.jpg)
+![Invoice item quantity](invoice_page_7.jpg)
 
 > 💡 **Note:** The items order can be changed by drag and drop.
 
-![Invoice items order](tutorial/invoice_page_27.jpg)
+![Invoice items order](invoice_page_27.jpg)
 
 Once all required information has been filled in, the invoice can be saved.
 
-![Invoice item quantity](tutorial/invoice_page_8.jpg)
+![Invoice item quantity](invoice_page_8.jpg)
 
 Information on other pages is also updated to reflect the current invoice count.
 
-![Invoice count](tutorial/invoice_page_10.jpg)
+![Invoice count](invoice_page_10.jpg)
 
 Additionally, you can set a **discount** (fixed amount or percentage-based).
 
-![Invoice discount none](tutorial/invoice_page_14.jpg)
-![Invoice discount fixed](tutorial/invoice_page_15.jpg)
-![Invoice discount percentage](tutorial/invoice_page_16.jpg)
-![Invoice discount result](tutorial/invoice_page_17.jpg)
+![Invoice discount none](invoice_page_14.jpg)
+![Invoice discount fixed](invoice_page_15.jpg)
+![Invoice discount percentage](invoice_page_16.jpg)
+![Invoice discount result](invoice_page_17.jpg)
 
 Additionally, you can set a **surcharge** (fixed amount or percentage-based).
 
-![Invoice surcharge none](tutorial/invoice_page_surcharge1.png)
-![Invoice surcharge fixed](tutorial/invoice_page_surcharge2.png)
-![Invoice surcharge percentage](tutorial/invoice_page_surcharge3.png)
-![Invoice surcharge result](tutorial/invoice_page_surcharge4.png)
+![Invoice surcharge none](invoice_page_surcharge1.png)
+![Invoice surcharge fixed](invoice_page_surcharge2.png)
+![Invoice surcharge percentage](invoice_page_surcharge3.png)
+![Invoice surcharge result](invoice_page_surcharge4.png)
 
 You can also configure **taxes** for the invoice:
 
 - **Total-based taxes**: inclusive, exclusive, or deducted
 - **Per-item taxes**: inclusive or exclusive
 
-![Invoice none](tutorial/invoice_page_18.jpg)
-![Invoice on total](tutorial/invoice_page_19.jpg)
-![Invoice deducted](tutorial/invoice_page_20.jpg)
-![Invoice per item](tutorial/invoice_page_21.jpg)
+![Invoice none](invoice_page_18.jpg)
+![Invoice on total](invoice_page_19.jpg)
+![Invoice deducted](invoice_page_20.jpg)
+![Invoice per item](invoice_page_21.jpg)
 
 Results:
 
-![Invoice on total inclusive](tutorial/invoice_page_22.jpg)
-![Invoice on total dedcuted](tutorial/invoice_page_23.jpg)
-![Invoice on total exclusive](tutorial/invoice_page_24.jpg)
-![Invoice per item inclusive](tutorial/invoice_page_25.jpg)
-![Invoice per item exclusive](tutorial/invoice_page_26.jpg)
+![Invoice on total inclusive](invoice_page_22.jpg)
+![Invoice on total dedcuted](invoice_page_23.jpg)
+![Invoice on total exclusive](invoice_page_24.jpg)
+![Invoice per item inclusive](invoice_page_25.jpg)
+![Invoice per item exclusive](invoice_page_26.jpg)
 
 Additionally, you can set a **shipping fees** (fixed amount).
 
-![Invoice shipping fees](tutorial/invoice_page_28.jpg)
+![Invoice shipping fees](invoice_page_28.jpg)
 
 Additionally, **partial payments are supported**, allowing you to track paid amounts and outstanding balances per invoice.
 
-![Invoice with partial payment applied](tutorial/invoice_page_42.jpg)
+![Invoice with partial payment applied](invoice_page_42.jpg)
 
 Additionally, you can set a **notes** (customer notes, thank you note, terms & conditions note).
 
-![Invoice thank you notes](tutorial/invoice_page_29.jpg)
-![Invoice customer notes](tutorial/invoice_page_30.jpg)
-![Invoice terms & conditions notes](tutorial/invoice_page_31.jpg)
+![Invoice thank you notes](invoice_page_29.jpg)
+![Invoice customer notes](invoice_page_30.jpg)
+![Invoice terms & conditions notes](invoice_page_31.jpg)
 
 Additionally, you can set a **signature** which can be set via hand/cursor or uploaded as image.
 
 > ⚠️ Maximum file size: 2 MB
 
-![Invoice signature](tutorial/invoice_page_signature1.jpg)
-![Invoice signature](tutorial/invoice_page_signature2.jpg)
+![Invoice signature](invoice_page_signature1.jpg)
+![Invoice signature](invoice_page_signature2.jpg)
 
 Additionally, you can attach **images**, which will be embedded into the PDF.
 
 > ⚠️ Maximum file size: 2 MB
 
-![Invoice attachments](tutorial/invoice_page_32.jpg)
+![Invoice attachments](invoice_page_32.jpg)
 
 ### Editing / Deleting a Invoice
 
@@ -1122,14 +1122,14 @@ Once invoice are added, select one from the list to edit it on the right-hand pa
 - Total amount
 - Due date / Overdue information / Partial paid information
 
-![Invoice list with statuses](tutorial/invoice_page_9.jpg)
+![Invoice list with statuses](invoice_page_9.jpg)
 
 You can also:
 
 - **Search invoices by invoice number**
 - **Delete a invoice** by clicking the vertical dots menu → **Delete**
 
-![Invoice actions](tutorial/invoice_page_11.jpg)
+![Invoice actions](invoice_page_11.jpg)
 
 ### Filters
 
@@ -1143,7 +1143,7 @@ Invoices have **Unpaid**, **Partially**, **Paid** and **Closed** statuses, so th
 Client and business filters are based on **snapshot data** stored with the invoice.
 The **date filter** applies to the **Issued At** date.
 
-![Invoices filters](tutorial/invoice_page_33.jpg)
+![Invoices filters](invoice_page_33.jpg)
 
 ### Sorting
 
@@ -1154,7 +1154,7 @@ Invoices can be sorted by:
 - Invoice number
 - Last updated date
 
-![Invoices sort](tutorial/invoice_page_34.jpg)
+![Invoices sort](invoice_page_34.jpg)
 
 ### Export
 
@@ -1163,7 +1163,7 @@ Invoices can be exported **only to XLSX** format.
 - Export all invoice-related data to XLSX
   > 💡 **Note:** Attachments and business logo snapshots are **not included** in the export.
 
-![Invoices import/export](tutorial/invoice_page_35.jpg)
+![Invoices import/export](invoice_page_35.jpg)
 
 ### PDF Preview
 
@@ -1176,22 +1176,22 @@ Invoices can be exported **only to XLSX** format.
 - Sections with zero values (**Surcharge**, **Discount**, **Tax**, **Shipping fees**) are **hidden** in the PDF.
 - **Save as Profile** button will create style profile item with these customization presets for futher usage on other quotes.
 
-![Invoices customized option 1](tutorial/invoice_page_40_1.jpg)
-![Invoices customized option 2](tutorial/invoice_page_40_2.jpg)
-![Invoices customized option 3](tutorial/invoice_page_40_3.jpg)
-![Invoices customized option 4](tutorial/invoice_page_40_4.jpg)
-![Invoices PDF](tutorial/invoice_page_38.jpg)
-![Invoices PDF attachments](tutorial/invoice_page_37.jpg)
-![Invoices data](tutorial/invoice_page_36.jpg)
-![Invoices data example](tutorial/invoice_page_41.jpg)
-![Invoices paid](tutorial/invoice_page_43.jpg)
+![Invoices customized option 1](invoice_page_40_1.jpg)
+![Invoices customized option 2](invoice_page_40_2.jpg)
+![Invoices customized option 3](invoice_page_40_3.jpg)
+![Invoices customized option 4](invoice_page_40_4.jpg)
+![Invoices PDF](invoice_page_38.jpg)
+![Invoices PDF attachments](invoice_page_37.jpg)
+![Invoices data](invoice_page_36.jpg)
+![Invoices data example](invoice_page_41.jpg)
+![Invoices paid](invoice_page_43.jpg)
 
 ## Reports screen
 
 The **Reports** screen provides an overview of **aggregated financial data grouped by currency** for a selected period. It can be choosen to take into account either issued at date or paid at date for reporing.
 
-![Reports currency 1](tutorial/reports_page_1.jpg)
-![Reports currency 2](tutorial/reports_page_2.jpg)
+![Reports currency 1](reports_page_1.jpg)
+![Reports currency 2](reports_page_2.jpg)
 
 ### Filters
 
@@ -1200,8 +1200,8 @@ You can filter reports using:
 - **Predefined periods** (e.g. this month, last year)
 - **Custom date ranges**
 
-![Reports predefined filters](tutorial/reports_page_3.jpg)
-![Reports custom filters](tutorial/reports_page_4.jpg)
+![Reports predefined filters](reports_page_3.jpg)
+![Reports custom filters](reports_page_4.jpg)
 
 ## e-invoices
 
@@ -1210,12 +1210,12 @@ The application supports:
 - UBL Peppol XML: you can download the XML embedded with the PDF, or as a standalone XML file. This feature is enabled by default and can be toggled in the Settings page.
 - XRechnung (UBL 2.1) XML: you can download the standalone XML file. This feature is enabled by default and can be toggled in the Settings page.
 
-![E-Invoice](tutorial/e-invoice-actions.jpg)
+![E-Invoice](e-invoice-actions.jpg)
 
 To generate valid UBL/Peppol XML or XRechnung (UBL 2.1) XML, additional fields are available on Businesses and Clients. These fields must be properly filled to produce compliant invoices.
 
-![E-Invoice](tutorial/e-invoice-actions1.jpg)
-![E-Invoice](tutorial/e-invoice-actions2.jpg)
+![E-Invoice](e-invoice-actions1.jpg)
+![E-Invoice](e-invoice-actions2.jpg)
 
 > **ℹ️ UBL XML / XRechnung XML may fail validation if data is misconfigured.**
 > The application only checks that required fields are present. It does not guarantee that all values conform to UBL/Peppol or XRechnung (UBL 2.1) standards.

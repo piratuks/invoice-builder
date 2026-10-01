@@ -15,7 +15,7 @@ Layouts are intentionally declarative and restricted. JSON can choose which supp
 
 The upload is validated before it replaces the displayed schema. Invalid JSON or unsupported properties are rejected. The maximum layout size is 64 KB.
 
-Ready-made layout examples, including V2 region, sidebar, nested-header, and receipt-style compositions, are available in [`layouts`](layouts).
+Ready-made layout examples, including V2 region, sidebar, nested-header, and receipt-style compositions, are available in [`layouts`](/docs/guides/tutorial/layouts/).
 
 The Layouts Visual tab can edit both V1 and V2 schemas. The JSON tab is a read-only inspection view; use **Upload schema** to replace a layout with validated JSON. Visual edits support undo and redo, and Preview mode renders a representative invoice through the same PDF interpreter used by invoice and quote output.
 
