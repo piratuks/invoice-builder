@@ -84,6 +84,16 @@
   "electronmon": {
     "patterns": [
       "!app-data/**",
+      "!TODO.txt",
+      "!docs/**",
+      "!*.md",
+      "!artifacts/**",
+      "!coverage/**",
+      "!test-results/**",
+      "!e2e/**",
+      "!**/__tests__/**",
+      "!**/*.spec.*",
+      "!**/*.test.*",
       "!**/*.db",
       "!**/*.db-journal",
       "!**/*.db-wal",

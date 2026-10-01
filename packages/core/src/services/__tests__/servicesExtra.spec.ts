@@ -23,6 +23,7 @@ import type { LayoutRow } from '../../types/layouts';
 
 import type { StyleProfileRow } from '../../types/styleProfiles';
 
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { addBusiness } from '../businesses';
 import { addCategory } from '../categories';
 import { addClient } from '../clients';
@@ -309,14 +310,44 @@ describe('presets service', () => {
   });
 
   it('adds, lists, updates and deletes a preset', async () => {
-    const business = await addBusiness(db, makeBusiness({ name: 'Preset Biz', shortName: 'PB' }));
-    const client = await addClient(db, makeClient({ name: 'Preset Client', shortName: 'PC' }));
+    const business = await addBusiness(
+      db,
+      makeBusiness({
+        name: 'Preset Biz',
+        shortName: 'PB',
+        countryCode: 'DE',
+        code: 'BIZ-123',
+        peppolEndpointId: '0088:1234567890',
+        peppolEndpointSchemeId: '0088'
+      })
+    );
+    const client = await addClient(
+      db,
+      makeClient({
+        name: 'Preset Client',
+        shortName: 'PC',
+        countryCode: 'DE',
+        peppolEndpointId: '0088:0987654321',
+        peppolEndpointSchemeId: '0088',
+        buyerReference: 'PO-123'
+      })
+    );
 
     const addResult = await addPreset(
       db,
       makePreset({ name: 'Preset A', businessId: business.data?.id, clientId: client.data?.id })
     );
     expect(addResult.success).toBe(true);
+    expect(addResult.data).toMatchObject({
+      businessCountryCode: 'DE',
+      businessCode: 'BIZ-123',
+      businessPeppolEndpointId: '0088:1234567890',
+      businessPeppolEndpointSchemeId: '0088',
+      clientCountryCode: 'DE',
+      clientPeppolEndpointId: '0088:0987654321',
+      clientPeppolEndpointSchemeId: '0088',
+      clientBuyerReference: 'PO-123'
+    });
     const id = addResult.data!.id as unknown as number;
 
     const listResult = await getAllPresets(db);

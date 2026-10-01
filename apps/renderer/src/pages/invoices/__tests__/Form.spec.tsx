@@ -1,10 +1,3 @@
-import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import type { ReactNode } from 'react';
-import { I18nextProvider } from 'react-i18next';
-import { Provider } from 'react-redux';
-import { MemoryRouter } from 'react-router-dom';
-import i18n from '../../../i18n';
 import type { Invoice, Preset } from '@invoice-builder/contracts';
 import {
   AmountFormat,
@@ -17,6 +10,13 @@ import {
   TableHeaderStyle,
   TableRowStyle
 } from '@invoice-builder/contracts';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import type { ReactNode } from 'react';
+import { I18nextProvider } from 'react-i18next';
+import { Provider } from 'react-redux';
+import { MemoryRouter } from 'react-router-dom';
+import i18n from '../../../i18n';
 
 import { InvoiceFormMode } from '../../../shared/enums/invoiceFormMode';
 
@@ -165,6 +165,10 @@ describe('invoices Form wrapper', () => {
       businessFileType: 'image/png',
       businessFileName: 'logo.png',
       businessVatCode: 'VAT',
+      businessCountryCode: 'DE',
+      businessCode: 'BIZ-123',
+      businessPeppolEndpointId: '0088:1234567890',
+      businessPeppolEndpointSchemeId: '0088',
       clientId: 20,
       clientName: 'New client',
       clientAddress: 'Client address',
@@ -173,6 +177,10 @@ describe('invoices Form wrapper', () => {
       clientCode: 'CLIENT',
       clientAdditional: 'Client additional',
       clientVatCode: 'CLIENT-VAT',
+      clientCountryCode: 'DE',
+      clientPeppolEndpointId: '0088:0987654321',
+      clientPeppolEndpointSchemeId: '0088',
+      clientBuyerReference: 'PO-123',
       bankId: 30,
       bankLabel: 'Primary bank',
       bankName: 'Example bank',
@@ -234,8 +242,20 @@ describe('invoices Form wrapper', () => {
 
     await waitFor(() => expect(mockInvoiceForm.mock.calls.at(-1)?.[0]?.businessId).toBe(10));
     const form = mockInvoiceForm.mock.calls.at(-1)?.[0];
-    expect(form.invoiceBusinessSnapshot.businessName).toBe('New business');
-    expect(form.invoiceClientSnapshot.clientName).toBe('New client');
+    expect(form.invoiceBusinessSnapshot).toMatchObject({
+      businessName: 'New business',
+      businessCountryCode: 'DE',
+      businessCode: 'BIZ-123',
+      businessPeppolEndpointId: '0088:1234567890',
+      businessPeppolEndpointSchemeId: '0088'
+    });
+    expect(form.invoiceClientSnapshot).toMatchObject({
+      clientName: 'New client',
+      clientCountryCode: 'DE',
+      clientPeppolEndpointId: '0088:0987654321',
+      clientPeppolEndpointSchemeId: '0088',
+      clientBuyerReference: 'PO-123'
+    });
     expect(form.invoiceBankSnapshot.name).toBe('Primary bank');
     expect(form.invoiceCurrencySnapshot.currencyCode).toBe('EUR');
     expect(form.invoiceLayoutSnapshot.layoutSchema).toBe('{"version":2}');

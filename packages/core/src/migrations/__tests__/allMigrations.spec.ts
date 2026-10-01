@@ -1,4 +1,5 @@
 import sqlite3 from 'sqlite3';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { createSqliteAdapter } from '../../db/client';
 import { initInitialData, initSchema } from '../../db/setup';
 import type { DatabaseAdapter } from '../../types/DatabaseAdapter';

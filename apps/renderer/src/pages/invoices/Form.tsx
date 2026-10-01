@@ -1,8 +1,3 @@
-import type { InvoiceFromData, StyleProfileFromData } from '../../shared/types/formData';
-import { memo, useCallback, useDeferredValue, useEffect, useRef, useState, useTransition, type FC } from 'react';
-import { useTranslation } from 'react-i18next';
-import i18n from '../../i18n';
-import { useAddStyleProfileMutation } from '../../shared/api/styleProfilesApi';
 import type { Invoice, Preset, StyleProfileAdd } from '@invoice-builder/contracts';
 import {
   FontFamily,
@@ -14,6 +9,11 @@ import {
   TableHeaderStyle,
   TableRowStyle
 } from '@invoice-builder/contracts';
+import { memo, useCallback, useDeferredValue, useEffect, useRef, useState, useTransition, type FC } from 'react';
+import { useTranslation } from 'react-i18next';
+import i18n from '../../i18n';
+import { useAddStyleProfileMutation } from '../../shared/api/styleProfilesApi';
+import type { InvoiceFromData, StyleProfileFromData } from '../../shared/types/formData';
 
 import { InvoiceFormMode } from '../../shared/enums/invoiceFormMode';
 
@@ -182,7 +182,14 @@ const InvoiceFormComponent: FC<Props> = ({
                 businessFileSize: preset.businessFileSize ?? current.invoiceBusinessSnapshot?.businessFileSize,
                 businessFileType: preset.businessFileType ?? current.invoiceBusinessSnapshot?.businessFileType,
                 businessFileName: preset.businessFileName ?? current.invoiceBusinessSnapshot?.businessFileName,
-                businessVatCode: preset.businessVatCode ?? current.invoiceBusinessSnapshot?.businessVatCode
+                businessVatCode: preset.businessVatCode ?? current.invoiceBusinessSnapshot?.businessVatCode,
+                businessCountryCode: preset.businessCountryCode ?? current.invoiceBusinessSnapshot?.businessCountryCode,
+                businessCode: preset.businessCode ?? current.invoiceBusinessSnapshot?.businessCode,
+                businessPeppolEndpointId:
+                  preset.businessPeppolEndpointId ?? current.invoiceBusinessSnapshot?.businessPeppolEndpointId,
+                businessPeppolEndpointSchemeId:
+                  preset.businessPeppolEndpointSchemeId ??
+                  current.invoiceBusinessSnapshot?.businessPeppolEndpointSchemeId
               }
             : undefined,
           clientId: preset.clientId ?? current.clientId,
@@ -196,7 +203,13 @@ const InvoiceFormComponent: FC<Props> = ({
                 clientPhone: preset.clientPhone ?? current.invoiceClientSnapshot?.clientPhone,
                 clientCode: preset.clientCode ?? current.invoiceClientSnapshot?.clientCode,
                 clientAdditional: preset.clientAdditional ?? current.invoiceClientSnapshot?.clientAdditional,
-                clientVatCode: preset.clientVatCode ?? current.invoiceClientSnapshot?.clientVatCode
+                clientVatCode: preset.clientVatCode ?? current.invoiceClientSnapshot?.clientVatCode,
+                clientCountryCode: preset.clientCountryCode ?? current.invoiceClientSnapshot?.clientCountryCode,
+                clientPeppolEndpointId:
+                  preset.clientPeppolEndpointId ?? current.invoiceClientSnapshot?.clientPeppolEndpointId,
+                clientPeppolEndpointSchemeId:
+                  preset.clientPeppolEndpointSchemeId ?? current.invoiceClientSnapshot?.clientPeppolEndpointSchemeId,
+                clientBuyerReference: preset.clientBuyerReference ?? current.invoiceClientSnapshot?.clientBuyerReference
               }
             : undefined,
           bankId: preset.bankId ?? current.bankId,

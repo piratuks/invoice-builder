@@ -842,12 +842,15 @@ const InvoiceFormComponent: FC<Props> = ({
 
   useEffect(() => {
     if (!xmlData) return;
-    void retrieveXML({ invoiceId: xmlData.invoiceId, einvoice: xmlData.einvoice })
+    const exportRequest = xmlData;
+    setXMLData(undefined);
+
+    void retrieveXML({ invoiceId: exportRequest.invoiceId, einvoice: exportRequest.einvoice })
       .unwrap()
       .then(data => {
         if (!data) return;
-        if (xmlData.type === 'singleFile') {
-          exportXML(data, xmlData.einvoice);
+        if (exportRequest.type === 'singleFile') {
+          exportXML(data, exportRequest.einvoice);
         } else {
           exportPdfWithXml(data);
         }

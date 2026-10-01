@@ -24,6 +24,7 @@ import {
   TableRowStyle
 } from '@invoice-builder/contracts';
 
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { DatabaseAdapter } from '../../types/DatabaseAdapter';
 import type { InvoiceRow } from '../../types/invoice';
 import {

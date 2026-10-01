@@ -1,8 +1,8 @@
+import { Language } from '@invoice-builder/contracts';
 import { renderHook } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { I18nextProvider } from 'react-i18next';
 import i18n from '../../../../i18n';
-import { Language } from '@invoice-builder/contracts';
 
 import { usePdfTexts } from '../usePdfTexts';
 import { useUppercaseTranslation } from '../useUppercaseTranslation';
@@ -24,6 +24,15 @@ describe('useUppercaseTranslation', () => {
   it('falls back to the current i18n language when none is specified', () => {
     const { result } = renderHook(() => useUppercaseTranslation(false, undefined), { wrapper });
     expect(result.current.tt('common.date')).toBe(i18n.t('common.date', { lng: i18n.language }));
+  });
+
+  it('keeps the translation helper stable when its inputs do not change', () => {
+    const { result, rerender } = renderHook(() => useUppercaseTranslation(false, Language.en), { wrapper });
+    const initialTranslation = result.current.tt;
+
+    rerender();
+
+    expect(result.current.tt).toBe(initialTranslation);
   });
 });
 

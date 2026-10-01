@@ -24,6 +24,10 @@ export interface PresetMeta {
   businessFileType?: string;
   businessFileName?: string;
   businessVatCode?: string;
+  businessCountryCode?: string;
+  businessCode?: string;
+  businessPeppolEndpointId?: string;
+  businessPeppolEndpointSchemeId?: string;
   //client
   clientId?: number;
   clientName?: string;
@@ -33,6 +37,10 @@ export interface PresetMeta {
   clientCode?: string;
   clientAdditional?: string;
   clientVatCode?: string;
+  clientCountryCode?: string;
+  clientPeppolEndpointId?: string;
+  clientPeppolEndpointSchemeId?: string;
+  clientBuyerReference?: string;
   //currency
   currencyId?: number;
   currencyCode?: string;
