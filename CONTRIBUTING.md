@@ -4,7 +4,7 @@ Thank you for considering contributing to invoice-builder! We appreciate the tim
 
 ## Code of Conduct
 
-This project adheres to the [CODE-OF-CONDUCT](CODE-OF-CONDUCT.md).
+This project adheres to the [Code of Conduct](code-of-conduct.md).
 
 ## Getting Started
 

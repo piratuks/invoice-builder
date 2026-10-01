@@ -84,8 +84,8 @@ const config: Config = {
           title: 'Legal',
           items: [
             { label: 'Licence', href: `${repositoryUrl}/blob/main/LICENSE` },
-            { label: 'Privacy Policy', to: '/docs/PRIVACY-POLICY' },
-            { label: 'Terms of Use', to: '/docs/TERMS-OF-USE' }
+            { label: 'Privacy Policy', to: '/docs/privacy-policy' },
+            { label: 'Terms of Use', to: '/docs/terms-of-use' }
           ]
         },
         {
@@ -96,7 +96,7 @@ const config: Config = {
             { label: 'Issues', href: `${repositoryUrl}/issues` },
             { label: 'Discussions', href: `${repositoryUrl}/discussions` },
             { label: 'Source code', href: repositoryUrl },
-            { label: 'Supporters', to: '/docs/SUPPORTERS' },
+            { label: 'Supporters', to: '/docs/supporters' },
             { label: 'Contact us', href: 'https://github.com/piratuks' }
           ]
         }

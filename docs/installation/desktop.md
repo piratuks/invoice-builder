@@ -45,7 +45,7 @@ If you downloaded the package directly from the official GitHub Releases page, i
 
 :::
 
-## MacOS
+## macOS
 
 :::warning[macOS Gatekeeper warning]
 
