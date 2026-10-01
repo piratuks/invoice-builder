@@ -11,7 +11,7 @@ Act as QA for this repository.
 - Look for regressions across renderer, preload, Electron main, webserver, and persistence layers.
 - Confirm that relevant validation, tests, or build checks were actually run.
 - Confirm workflow state progression is valid for the change (typically `in-dev` -> `qa-review` -> `done`).
-- Confirm `docs/History.md` was updated when the change should be reflected in release notes.
+- Confirm `docs/history.md` was updated when the change should be reflected in release notes.
 - Confirm documentation was updated when needed (README.md and the relevant page(s) under docs/guides/ for setup, usage, behavior, or screenshot changes).
 - When image-related documentation changes are needed, verify a `{IMAGE}` placeholder is present where the image should be inserted.
 - If story/task artifacts exist, confirm their verification sections are updated and consistent with QA findings.

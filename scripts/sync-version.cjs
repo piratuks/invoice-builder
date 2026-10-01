@@ -25,8 +25,8 @@ const replaceOnce = (filePath, pattern, replacement) => {
   writeFile(filePath, content.replace(pattern, replacement));
 };
 
-const version = getLatestVersionFromHistory(path.join(repositoryRoot, 'docs', 'History.md'));
-console.log(`[sync-version] Latest version from docs/History.md: ${version}`);
+const version = getLatestVersionFromHistory(path.join(repositoryRoot, 'docs', 'history.md'));
+console.log(`[sync-version] Latest version from docs/history.md: ${version}`);
 
 replaceOnce(path.join(repositoryRoot, 'package.json'), /"version": "[^"]+"/, `"version": "${version}"`);
 replaceOnce(

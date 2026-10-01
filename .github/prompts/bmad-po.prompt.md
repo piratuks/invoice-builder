@@ -9,19 +9,19 @@ Use this prompt when you need product-facing scoping and acceptance criteria bef
 - This is the workflow behind the PO agent's `validate` command. When invoked, substitute the task description into `{{TASK_DESCRIPTION}}` and return scope, acceptance criteria, risks, and a verification plan.
 - Example: validate "Add a new invoice export option and define the acceptance criteria."
 - Command: prepare_release
-- This workflow reads the top placeholder block in docs/History.md that starts with `## {DATE}, version {VERSION}` and finalizes it for release.
+- This workflow reads the top placeholder block in docs/history.md that starts with `## {DATE}, version {VERSION}` and finalizes it for release.
 
 ## Prepare release workflow
 When `prepare_release` is invoked:
-1. Read the current version from package.json and the top placeholder block in docs/History.md that starts with `## {DATE}, version {VERSION}`. Stop and report an error before editing if either is missing.
+1. Read the current version from package.json and the top placeholder block in docs/history.md that starts with `## {DATE}, version {VERSION}`. Stop and report an error before editing if either is missing.
 3. Determine version bump from the block content using these rules:
 	- MAJOR: breaking change language is present (for example "breaking change", "removed", "incompatible", "migration required").
 	- MINOR: at least one item exists under "New features & improvements" and no MAJOR trigger exists.
 	- PATCH: only "Bug Fixes" entries exist and no MAJOR/MINOR trigger exists.
 4. Set `{DATE}` to today's date in `YYYY-MM-DD` format.
 5. Set `{VERSION}` to the bumped semantic version based on package.json.
-6. Update docs/History.md in place with the resolved date/version.
-7. Use the exact resolved version from docs/History.md and synchronize it across:
+6. Update docs/history.md in place with the resolved date/version.
+7. Use the exact resolved version from docs/history.md and synchronize it across:
    - package.json -> `version`
 	- packages/core/src/config.ts -> `getBackendConfig().webserver.version`
    - README.md -> add a new row under `## 📌 Supported Versions` in the format `| vX.Y.Z  | ✅ Actively supported |`
@@ -32,7 +32,7 @@ When `prepare_release` is invoked:
 	- the finalized top release block
 	- a short list of synchronized files
 
-If the placeholder block is missing, return a clear error asking to add the placeholder block at the top of docs/History.md first.
+If the placeholder block is missing, return a clear error asking to add the placeholder block at the top of docs/history.md first.
 
 ## Task
 {{TASK_DESCRIPTION}}

@@ -1,5 +1,6 @@
 # Invoice Builder
 
+[![Docs](https://img.shields.io/badge/docs-piratuks.github.io-blue?logo=docusaurus&logoColor=white)](https://piratuks.github.io/invoice-builder/)
 [![License](https://img.shields.io/github/license/piratuks/invoice-builder)](LICENSE)
 [![Downloads](https://img.shields.io/github/downloads/piratuks/invoice-builder/total)](https://github.com/piratuks/invoice-builder/releases)
 [![Latest Release](https://img.shields.io/github/v/release/piratuks/invoice-builder)](https://github.com/piratuks/invoice-builder/releases)

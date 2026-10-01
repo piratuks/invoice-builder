@@ -3,11 +3,12 @@ slug: /changelog
 title: Changelog
 ---
 
-## [Date], version [Version]
+## [Date], version 3.1.0
 
 New features & improvements
 
 - Reorganized the renderer, desktop, webserver, core, and shared contracts into dedicated workspaces.
+- Published a public documentation website (Docusaurus) at [piratuks.github.io/invoice-builder](https://piratuks.github.io/invoice-builder/), auto-built and deployed to GitHub Pages on every push to `main`, with guide pages reorganized into flat per-screen docs and dedicated screenshot/example asset folders.
 
 ## 2026-09-30, version 3.0.4
 
