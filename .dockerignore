@@ -12,7 +12,7 @@ release
 !docs/DOCKER.md
 .vscode
 tutorial
-_.log
+*.log
 .env
-.env._
+.env.*
 .coverage
