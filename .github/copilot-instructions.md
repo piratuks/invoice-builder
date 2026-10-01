@@ -7,6 +7,7 @@ This repository is an Electron app with a separate backend webserver used for th
 - Preload script: `apps/desktop/preload/preload.ts` built with `apps/desktop/vite.preload.config.ts` -> outputs `dist-desktop/preload/preload.cjs`
 - Renderer (React + Vite): `apps/renderer/src` (dev: `npm run dev:renderer`, build: `npm run build:renderer`)
 - Optional backend webserver: `apps/server/main.ts` (dev: `npm run dev:webserver`, build: `npm run build:webserver` -> `dist-server/main.js`)
+- Documentation website: `apps/website` (Docusaurus, renders `docs/` content; dev: `npm run dev:website`, build: `npm run build:website` -> `dist-website`, serve built site: `npm run serve:website`)
 - Migrations: source files in `packages/core/src/migrations`, built into `dist-migrations` using `vite.migrations.config.ts`.
 
 BMAD-inspired workflow for agentic development
@@ -62,6 +63,7 @@ Files to inspect for changes
 - Preload: `apps/desktop/preload/preload.ts` (exposes `electronAPI`)
 - Renderer entry: `apps/renderer/src/main.tsx` and `apps/renderer/src/app/*`
 - Webserver: `apps/server/main.ts`
+- Documentation website: `apps/website/docusaurus.config.ts`, `apps/website/sidebars.ts`, content sourced from repo-root `docs/`
 - Vite configs: `apps/renderer/vite.config.ts`, `apps/desktop/vite.main.config.ts`, `apps/desktop/vite.preload.config.ts`, `vite.migrations.config.ts`; repository tests use `vitest.config.ts`.
 - Package scripts in `package.json` (many composite scripts use `concurrently`, `wait-on`, and `electronmon`)
 

@@ -26,6 +26,7 @@ Use this workflow for:
 - Electron main process: apps/desktop/main
 - Preload bridge: apps/desktop/preload/preload.ts
 - Webserver: apps/server
+- Documentation website (Docusaurus, builds docs/ content): apps/website
 - Shared backend services, database infrastructure, and migrations: packages/core
 - Shared public DTOs, enums, and IPC contracts: packages/contracts
 - Documentation and example assets: docs/guides/tutorial
@@ -82,6 +83,7 @@ Rule of thumb:
 - Contract or core change: build the affected workspace; `dev:webserver` watches both compiled artifacts.
 - Persistence change: review migration safety and run the relevant build/test path.
 - Cross-runtime or user workflow change: run `npm run test:e2e`.
+- Documentation site change (apps/website or docs/): run `npm run build:website` to catch broken links (`onBrokenLinks: 'throw'`).
 
 ## Prompt templates and agents
 

@@ -22,6 +22,11 @@ apps/
   server/              Express webserver workspace
     controllers/       HTTP request handlers
     utils/             Webserver utilities
+  website/             Docusaurus documentation site workspace
+    docusaurus.config.ts  Site config, navbar, and footer
+    sidebars.ts            Docs sidebar structure (sources repo-root docs/)
+    src/                   Custom pages and components
+    static/                Static assets
 
 packages/
   contracts/           Shared DTOs, enums, and Electron IPC contracts
@@ -34,11 +39,12 @@ packages/
       utils/           Shared backend utilities
 
 e2e/                   Desktop and web end-to-end tests
-docs/                  User documentation and tutorial assets
+docs/                  User documentation and tutorial assets (rendered by apps/website)
 scripts/               Build, Docker, and maintenance scripts
 
 dist-renderer/         Generated renderer bundle
 dist-desktop/          Generated Electron main and preload bundles
 dist-server/           Generated webserver bundle
+dist-website/          Generated documentation site bundle
 dist-migrations/       Generated migration modules
 ```

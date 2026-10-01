@@ -79,6 +79,7 @@
     "test:e2e": "playwright test",
     "test:coverage": "vitest run --coverage",
     "sort:i18n": "node scripts/sort-i18n.js",
+    "version:sync": "node scripts/sync-version.cjs",
     "release:win": "npm run build:desktop:all && electron-builder --config apps/desktop/electron-builder.yml --win --x64 --publish never",
     "release:linux": "npm run build:desktop:all && electron-builder --config apps/desktop/electron-builder.yml --linux --publish never && bash scripts/embed-appimage-update.sh",
     "release:mac": "npm run build:desktop:all && electron-builder --config apps/desktop/electron-builder.yml --mac --publish never",
@@ -108,7 +109,9 @@
     "dompurify": "3.4.16",
     "exceljs": {
       "uuid": "11.1.1"
-    }
+    },
+    "uuid": "11.1.1",
+    "serialize-javascript": "^7.1.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
