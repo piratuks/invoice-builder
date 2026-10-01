@@ -2,6 +2,10 @@
 
 ## [Date], version [Version]
 
+New features & improvements
+
+- Reorganized the renderer, desktop, webserver, core, and shared contracts into dedicated workspaces.
+
 ## 2026-09-30, version 3.0.4
 
 Bug fixes

@@ -1,3 +1,5 @@
+import type { FilterData } from '@invoice-builder/contracts';
+import { FilterType } from '@invoice-builder/contracts';
 import AddIcon from '@mui/icons-material/Add';
 import SearchOffIcon from '@mui/icons-material/SearchOff';
 import {
@@ -19,8 +21,6 @@ import i18n from '../../../../i18n';
 import { useAppDispatch } from '../../../../state/configureStore';
 import { addToast, disableLoadingCursor, enableLoadingCursor, setAllowed } from '../../../../state/pageSlice';
 import { useBeforeUnloadContext } from '../../../context/BeforeUnloadContext';
-import type { FilterData } from '@invoice-builder/contracts';
-import { FilterType } from '@invoice-builder/contracts';
 
 import { SortType } from '../../../enums/sortType';
 import { usePersistentFilters } from '../../../hooks/persistent/usePersistentFilters';
@@ -290,7 +290,7 @@ export const CRUDPageRTK = <T, TAdd, TUpdate>(props: Props<T, TAdd, TUpdate>) =>
         if (result.error) {
           reportError(result.error);
         } else {
-          setSelectedItem(undefined);
+          setSelectedItem(result.data);
         }
       }
     },

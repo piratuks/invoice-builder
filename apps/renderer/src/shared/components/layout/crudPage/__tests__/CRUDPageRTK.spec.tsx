@@ -156,7 +156,7 @@ describe('CRUDPageRTK', () => {
 
   it('opens the add form and calls the add mutation trigger on save', async () => {
     const user = userEvent.setup();
-    const addTrigger = vi.fn(async () => ({ data: { id: 1, name: 'New item' } as Entity }));
+    const addTrigger = vi.fn(async () => ({ data: { id: 1, name: 'Saved item' } as Entity }));
 
     render(
       <CRUDPageRTK<Entity, Entity, Entity>
@@ -173,6 +173,7 @@ describe('CRUDPageRTK', () => {
     await user.click(screen.getByRole('button', { name: /save|common\.save/i }));
 
     await waitFor(() => expect(addTrigger).toHaveBeenCalledWith({ id: undefined, name: 'New item' }));
+    await waitFor(() => expect(screen.getByDisplayValue('Saved item')).toBeInTheDocument());
   });
 
   it('calls the update mutation trigger when editing an existing item', async () => {

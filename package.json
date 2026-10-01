@@ -79,7 +79,7 @@
     "release:win": "npm run build:desktop:all && electron-builder --config apps/desktop/electron-builder.yml --win --x64 --publish never",
     "release:linux": "npm run build:desktop:all && electron-builder --config apps/desktop/electron-builder.yml --linux --publish never && bash scripts/embed-appimage-update.sh",
     "release:mac": "npm run build:desktop:all && electron-builder --config apps/desktop/electron-builder.yml --mac --publish never",
-    "postinstall": "electron-builder install-app-deps"
+    "postinstall": "electron-rebuild -f -o sqlite3 -m packages/core"
   },
   "electronmon": {
     "patterns": [

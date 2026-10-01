@@ -20,6 +20,6 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "dev": "tsx --watch main.ts"
+    "dev": "cd ../.. && tsx --watch apps/server/main.ts"
   }
 }

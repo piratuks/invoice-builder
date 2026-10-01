@@ -1,3 +1,5 @@
+import { DatabaseType, DBInitType, IpcChannel } from '@invoice-builder/contracts';
+
 const bridge = vi.hoisted(() => ({ api: undefined as Record<string, (...args: never[]) => unknown> | undefined }));
 const ipcRenderer = vi.hoisted(() => ({
   invoke: vi.fn().mockResolvedValue(undefined),
@@ -30,7 +32,7 @@ describe('preload electronAPI bridge', () => {
       if (name.startsWith('onUpdate')) {
         invoke(() => {});
       } else if (name === 'initializeDatabase') {
-        invoke({ fullPath: '', mode: 'create' });
+        invoke({ fullPath: 'C:\\data\\new.db', mode: DBInitType.create, dbType: DatabaseType.sqlite });
       } else {
         invoke();
       }
@@ -39,5 +41,10 @@ describe('preload electronAPI bridge', () => {
     expect(ipcRenderer.invoke).toHaveBeenCalled();
     expect(ipcRenderer.send).toHaveBeenCalledWith('check-for-updates');
     expect(ipcRenderer.on).toHaveBeenCalled();
+    expect(ipcRenderer.invoke).toHaveBeenCalledWith(IpcChannel.initializeDb, {
+      fullPath: 'C:\\data\\new.db',
+      mode: DBInitType.create,
+      dbType: DatabaseType.sqlite
+    });
   });
 });

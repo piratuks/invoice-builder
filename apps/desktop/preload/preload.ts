@@ -65,8 +65,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   testConnection: (data: PostgresConfig) => ipcRenderer.invoke(IpcChannel.testConnection, data),
   selectDatabase: () => ipcRenderer.invoke(IpcChannel.showSaveDbDialog),
   openDatabase: () => ipcRenderer.invoke(IpcChannel.showOpenDbDialog),
-  initializeDatabase: data =>
-    ipcRenderer.invoke(IpcChannel.initializeDb, { fullPath: data.fullPath ?? '', mode: data.mode }),
+  initializeDatabase: data => ipcRenderer.invoke(IpcChannel.initializeDb, data),
   getDatabaseList: async () => ({ success: true, data: [] }),
 
   openUrl: (url: string) => ipcRenderer.invoke(IpcChannel.openUrl, url),
