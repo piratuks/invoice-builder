@@ -18,7 +18,7 @@ const mainAssetsPath = isDev
 const preloadPath = isDev
   ? join(resolve(), 'dist-desktop/preload/preload.cjs')
   : join(app.getAppPath(), 'dist-desktop/preload/preload.cjs');
-const indexHtmlPath = isDev ? devServer : join(app.getAppPath(), 'dist-fe/index.html');
+const indexHtmlPath = isDev ? devServer : join(app.getAppPath(), 'dist-renderer/index.html');
 
 let mainWindow: BrowserWindow;
 

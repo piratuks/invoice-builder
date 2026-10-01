@@ -5,7 +5,7 @@ Overview
 This repository is an Electron app with a separate backend webserver used for the web/docker mode. Key runtime pieces are:
 - Electron main process: `apps/desktop/main` built by `apps/desktop/vite.main.config.ts` -> outputs `dist-desktop/main/main.cjs`
 - Preload script: `apps/desktop/preload/preload.ts` built with `apps/desktop/vite.preload.config.ts` -> outputs `dist-desktop/preload/preload.cjs`
-- Renderer (React + Vite): `apps/renderer/src` (dev: `npm run dev:react`, build: `npm run build:react`)
+- Renderer (React + Vite): `apps/renderer/src` (dev: `npm run dev:renderer`, build: `npm run build:renderer`)
 - Optional backend webserver: `apps/server/main.ts` (dev: `npm run dev:webserver`, build: `npm run build:webserver` -> `dist-server/main.js`)
 - Migrations: source files in `packages/core/src/migrations`, built into `dist-migrations` using `vite.migrations.config.ts`.
 
@@ -29,11 +29,11 @@ Repository-specific expectations:
 Primary developer commands
 --------------------------
 - Full local dev (electron + renderer + preload + migrations):
-  - `npm run dev`
-- Frontend-only dev: `npm run dev:react` (uses Vite)
-- Backend webserver dev: `npm run dev:webserver` (watches contracts and core, then runs `apps/server/main.ts` via `tsx`)
-- Build production bundles: `npm run build` (runs `build:core`, `build:react`, `build:preload`, `build:migrations`, and `build:electron`)
-- Package for Windows: `npm run package` (calls `electron-builder`)
+  - `npm run dev:desktop`
+- Frontend-only dev: `npm run dev:renderer` (uses Vite)
+- Backend webserver dev: `npm run dev:webserver` (watches contracts, core, and migrations, then runs `apps/server/main.ts` via `tsx`)
+- Build all desktop production bundles: `npm run build:desktop:all` (runs `build:core`, `build:renderer`, `build:migrations`, and `build:desktop`)
+- Package for Windows: `npm run release:win` (calls `electron-builder`)
 - Tests: `npm test` (runs `vitest`), coverage: `npm run test:coverage`
 
 Important patterns and conventions
@@ -69,7 +69,7 @@ Practical tips for changes
 --------------------------
 - Small, focused PRs: prefer narrow changes (one feature/bug per PR). CI builds multiple Vite targets, which can be slow.
 - When adding IPC channels, update DTOs in `packages/contracts` and ensure the preload exposes matching functions. Backend-only DB row types live in `packages/core/src/types` and derive from contracts.
-- To run the Electron dev loop locally, use `npm run dev`; it runs multiple watchers and `wait-on` to coordinate start order.
+- To run the Electron dev loop locally, use `npm run dev:desktop`; it runs multiple watchers and `wait-on` to coordinate start order.
 - If you touch packaging or `electron-builder` config, ask for a human review before merging (release artifacts are sensitive).
 
 Commit and PR etiquette

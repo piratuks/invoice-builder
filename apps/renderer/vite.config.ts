@@ -32,7 +32,7 @@ export default defineConfig(({ mode }) => {
       strictPort: true
     },
     build: {
-      outDir: path.resolve(repositoryRoot, 'dist-fe'),
+      outDir: path.resolve(repositoryRoot, 'dist-renderer'),
       emptyOutDir: true,
       chunkSizeWarningLimit: 1500
     },

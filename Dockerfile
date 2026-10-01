@@ -16,7 +16,7 @@ COPY . .
 ARG VITE_API_URL
 ENV VITE_API_URL=$VITE_API_URL
 
-RUN npm run build:react
+RUN npm run build:renderer
 RUN npm run build:webserver
 RUN npm run build:migrations
 
@@ -27,7 +27,7 @@ WORKDIR /app
 # gettext provides envsubst to template the nginx config at startup.
 RUN apk add --no-cache nginx gettext
 
-COPY --from=builder /app/dist-fe /app/dist-fe
+COPY --from=builder /app/dist-renderer /app/dist-renderer
 COPY --from=builder /app/dist-server /app/dist-server
 COPY --from=builder /app/dist-migrations /app/dist-migrations
 COPY --from=builder /app/package.json /app/package-lock.json ./

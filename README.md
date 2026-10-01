@@ -195,7 +195,7 @@ docker pull ghcr.io/piratuks/invoice-builder:latest
 > **ℹ️ `VITE_API_URL` is no longer needed for Docker deployments.**
 > The Docker image now uses **nginx** as the frontend server. Nginx proxies all `/api/*` requests
 > to the backend internally, so the frontend never needs to know the backend's external address.
-> `VITE_API_URL` is only needed when running the web server outside Docker (e.g. `npm run dev:react`, `npm run dev:webserver`).
+> `VITE_API_URL` is only needed when running the web server outside Docker (e.g. `npm run dev:renderer`, `npm run dev:webserver`).
 >
 > If you build the image yourself for non-Docker use, you can still pass it:
 >
@@ -388,7 +388,7 @@ Clone the repository, install dependencies, and start the development server:
 git clone https://github.com/piratuks/invoice-builder.git
 cd invoice-builder
 npm install
-npm run dev
+npm run dev:desktop
 ```
 
 #### 🌐 Webserver / Browser
@@ -397,11 +397,11 @@ npm run dev
 git clone https://github.com/piratuks/invoice-builder.git
 cd invoice-builder
 npm install
-npm run dev:react
+npm run dev:renderer
 npm run dev:webserver
 ```
 
-`npm run dev:webserver` builds and watches the shared contracts workspace before running the webserver, so API DTO changes are picked up during development.
+`npm run dev:webserver` builds the shared workspaces and migrations, then watches contracts, core, and migration changes while running the webserver.
 
 ### ⚙️ Environment Variables
 
@@ -416,22 +416,22 @@ Frontend defaults and `VITE_*` access are centralized in `apps/renderer/src/conf
 
 Backend variables are read at runtime. Electron loads the root `.env` file; the direct webserver inherits variables from its shell or process manager; Docker Compose passes variables to the backend container.
 
-| Variable                        | Default                        | Description                                                           |
-| ------------------------------- | ------------------------------ | --------------------------------------------------------------------- |
-| `NODE_ENV`                      | Unset                          | Runtime mode, including `docker`, `production`, and `test`.           |
-| `FE_SERVER_URL`                 | `http://127.0.0.1:5173`        | Electron development URL and allowed webserver CORS origin.           |
-| `USERPROFILE`                   | Current working directory      | Default directory for Electron file dialogs; normally set by Windows. |
-| `PG_POOL_MAX`                   | `10`                           | Maximum PostgreSQL pool size.                                         |
-| `PG_POOL_IDLE_TIMEOUT_MS`       | `30000`                        | Idle PostgreSQL connection timeout in milliseconds.                   |
-| `PG_POOL_CONNECTION_TIMEOUT_MS` | `5000`                         | PostgreSQL connection acquisition timeout in milliseconds.            |
-| `PG_POOL_MAX_LIFETIME_SECONDS`  | `0`                            | Maximum PostgreSQL connection lifetime in seconds; `0` disables it.   |
-| `PG_POOL_ALLOW_EXIT_ON_IDLE`    | `false`                        | Allows Node.js to exit while all PostgreSQL clients are idle.         |
-| `DEV_SERVER_URL`                | `127.0.0.1`                    | Address on which the backend webserver listens.                       |
-| `PORT`                          | `3000`                         | Backend webserver port.                                               |
-| `DB_DIRECTORY`                  | `app-data`                     | Directory containing webserver SQLite databases.                      |
-| `MIGRATIONS_PATH`               | `packages/core/src/migrations` | Directory containing compiled or source migration files.              |
-| `WEBSERVER_CLEANUP_INTERVAL_MS` | `60000`                        | Interval between expired-session and inactive-database cleanup runs.  |
-| `WEBSERVER_SESSION_TTL_MS`      | `1800000`                      | Web session inactivity lifetime in milliseconds.                      |
+| Variable                        | Default                   | Description                                                           |
+| ------------------------------- | ------------------------- | --------------------------------------------------------------------- |
+| `NODE_ENV`                      | Unset                     | Runtime mode, including `docker`, `production`, and `test`.           |
+| `FE_SERVER_URL`                 | `http://127.0.0.1:5173`   | Electron development URL and allowed webserver CORS origin.           |
+| `USERPROFILE`                   | Current working directory | Default directory for Electron file dialogs; normally set by Windows. |
+| `PG_POOL_MAX`                   | `10`                      | Maximum PostgreSQL pool size.                                         |
+| `PG_POOL_IDLE_TIMEOUT_MS`       | `30000`                   | Idle PostgreSQL connection timeout in milliseconds.                   |
+| `PG_POOL_CONNECTION_TIMEOUT_MS` | `5000`                    | PostgreSQL connection acquisition timeout in milliseconds.            |
+| `PG_POOL_MAX_LIFETIME_SECONDS`  | `0`                       | Maximum PostgreSQL connection lifetime in seconds; `0` disables it.   |
+| `PG_POOL_ALLOW_EXIT_ON_IDLE`    | `false`                   | Allows Node.js to exit while all PostgreSQL clients are idle.         |
+| `DEV_SERVER_URL`                | `127.0.0.1`               | Address on which the backend webserver listens.                       |
+| `PORT`                          | `3000`                    | Backend webserver port.                                               |
+| `DB_DIRECTORY`                  | `app-data`                | Directory containing webserver SQLite databases.                      |
+| `MIGRATIONS_PATH`               | `dist-migrations`         | Directory containing compiled migration files.                        |
+| `WEBSERVER_CLEANUP_INTERVAL_MS` | `60000`                   | Interval between expired-session and inactive-database cleanup runs.  |
+| `WEBSERVER_SESSION_TTL_MS`      | `1800000`                 | Web session inactivity lifetime in milliseconds.                      |
 
 Backend defaults and parsing are centralized in `packages/core/src/config.ts`. The PostgreSQL pool and webserver lifecycle variables can be overridden for Compose deployments through shell variables or a root `.env` file, for example:
 
@@ -453,39 +453,42 @@ Docker startup also uses these container-only variables, which are configured au
 ### 📁 Project Structure
 
 ```bash
-/packages
-  /contracts        - Shared public DTOs, enums, and Electron IPC contracts
-/src
-  /backend          – Electron + Webserver
-    /main           – Electron main process
-      /assets       - Static resources required by the main process
-      /ipc          - Your inter‑process communication layer
-    /webserver      - Web server (REST API)
-      /controllers  - HTTP request handlers (GET, POST, PUT, DELETE)
-      /utils        - Utility helpers used by the webserver
-    /shared         - Environment‑agnostic logic (used by both Electron and Webserver)
-      /db           - Database access layer shared across environments
-      /enums        - Centralized TypeScript enums used by the main process
-      /migrations   - Folder is used to manage and version database schema changes.
-      /services     - Business logic for each database entity
-      /types        - TypeScript interfaces and type definitions used exclusively by the Electron/Webserver
-      /utils        - Shared utility functions
-  /preload          – Electron preload scripts
-  /renderer         – UI code
-    /__tests__      – UI unit tests
-    /app            – Core React application
-    /assets         – Fonts, images, and other static assets
-    /i18n           – Translation files
-    /mocks          – MSW (mock service worker) for testing
-    /pages          – React components related to routing
-    /state          – Redux-related code
-    /shared
-      /api          – A neutral layer for Electron preload, IPC handlers, or a lightweight web server
-      /hooks        – Reusable React hooks
-      /components   – Shared UI components
-      /enums        – TypeScript enums
-      /types        – TypeScript types/interfaces
-      /utils        – Utility functions
+apps/
+  desktop/             Electron runtime workspace
+    main/              Main process, IPC handlers, and desktop database setup
+    preload/           Secure renderer-to-main bridge
+    vite.*.config.ts   Main and preload bundle configuration
+    electron-builder.yml
+  renderer/            React and Vite renderer workspace
+    src/
+      app/             Application shell and navigation
+      pages/           Feature pages
+      shared/          APIs, components, hooks, utilities, and types
+      state/           Redux state
+      i18n/            Translation resources
+      mocks/           MSW test and development mocks
+  server/              Express webserver workspace
+    controllers/       HTTP request handlers
+    utils/             Webserver utilities
+
+packages/
+  contracts/           Shared DTOs, enums, and Electron IPC contracts
+  core/                Shared backend and persistence workspace
+    src/
+      db/              Database adapters and schema setup
+      migrations/      Versioned TypeScript migrations
+      services/        Business services
+      types/           Backend-only types
+      utils/           Shared backend utilities
+
+e2e/                   Desktop and web end-to-end tests
+docs/                  User documentation and tutorial assets
+scripts/               Build, Docker, and maintenance scripts
+
+dist-renderer/         Generated renderer bundle
+dist-desktop/          Generated Electron main and preload bundles
+dist-server/           Generated webserver bundle
+dist-migrations/       Generated migration modules
 ```
 
 ### 🛠️ Core Stack

@@ -1,6 +1,6 @@
 server {
     listen 3001;
-    root /app/dist-fe;
+    root /app/dist-renderer;
     index index.html;
 
     # Allow large request bodies (e.g. base64-encoded PNG logos in JSON)

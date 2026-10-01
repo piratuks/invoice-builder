@@ -1,7 +1,7 @@
 node_modules
 **/node_modules
 **/dist
-dist-fe
+dist-renderer
 dist-desktop
 dist-server
 dist-migrations

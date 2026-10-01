@@ -10,7 +10,7 @@ publish:
   repo: invoice-builder
 
 files:
-  - dist-fe/**
+  - dist-renderer/**
   - dist-desktop/**
   - dist-migrations/**
   - node_modules/**

@@ -8,7 +8,7 @@ import tseslint from 'typescript-eslint';
 export default [
   {
     ignores: [
-      'dist-fe/**',
+      'dist-renderer/**',
       'dist-desktop/**',
       'dist-server/**',
       'dist-migrations/**',

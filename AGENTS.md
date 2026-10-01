@@ -38,7 +38,7 @@ Use this workflow for:
 - Declare dependencies in the workspace that owns them. The root manifest is reserved for shared orchestration, testing, packaging, and release tooling.
 - Run a workspace command with `npm run <script> -w @invoice-builder/<workspace>`; use root scripts only for cross-workspace workflows.
 - npm may hoist packages to the root `node_modules`. Do not manually manage workspace `node_modules` directories.
-- Treat `dist-fe/`, `dist-desktop/`, `dist-server/`, and `dist-migrations/` as generated build output. Local runtime data belongs in `app-data/`; containers use `/app-data`.
+- Treat `dist-renderer/`, `dist-desktop/`, `dist-server/`, and `dist-migrations/` as generated build output. Local runtime data belongs in `app-data/`; containers use `/app-data`.
 - Use Node 24 LTS or a supported later release. Node 25 is outside the engine ranges declared by the current Vitest and jsdom versions.
 
 ## Default workflow
