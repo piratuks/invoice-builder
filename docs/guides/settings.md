@@ -23,7 +23,7 @@ From this screen you can:
   - Terms of Use
 - Check for application updates via GitHub Releases (Available only for native software version)
 
-![Look and feel](tutorial/settings_page_3.jpg)
+![Look and feel](images/general-data-management.jpg)
 
 ## Localization & Formatting
 
@@ -33,7 +33,7 @@ You can customize:
 - Number (amount) formatting
 - Date formatting
 
-![Language and format](tutorial/settings_page_1.jpg)
+![Language and format](images/localization-formatting.jpg)
 
 ## Receipt printing
 
@@ -48,9 +48,9 @@ Receipt printing produces a compact 80mm receipt layout for invoices, designed f
 In web/Docker mode, the browser's print dialog may add its own header/footer (page URL, date, page count). This is a browser preference, not something the app can turn off by default - uncheck **"Headers and footers"** under **More settings** in the print dialog for a cleaner printout; the browser remembers this choice for future prints.
 :::
 
-![Receipt printing](tutorial/printing_receipt_1.png)
+![Receipt printing](images/print-receipt-button.png)
 
-![Receipt printing](tutorial/printing_receipt_2.png)
+![Receipt printing](images/print-receipt-menu.png)
 
 ## Invoice & File Naming
 
@@ -71,4 +71,4 @@ You can optionally include:
 - Month
 - Business name
 
-![Customize invoice](tutorial/settings_page_2.jpg)
+![Customize invoice](images/invoice-file-naming.jpg)

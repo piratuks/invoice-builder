@@ -29,13 +29,13 @@ const sidebars: SidebarsConfig = {
         'guides/currencies',
         'guides/items',
         'guides/style-profiles',
-        'guides/layouts-screen',
+        'guides/layouts',
         'guides/quotes',
         'guides/invoices',
         'guides/reports',
         'guides/e-invoices',
-        'guides/LAYOUT',
-        'guides/layouts/index'
+        'guides/layout-json',
+        'guides/layout-json-examples'
       ]
     }
   ],
