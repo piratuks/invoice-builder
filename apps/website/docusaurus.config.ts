@@ -10,7 +10,7 @@ const config: Config = {
     'Offline-first, open-source invoicing for freelancers and small businesses who want full control of their data.',
   favicon: 'img/icon.png',
   url: 'https://piratuks.github.io',
-  baseUrl: '/',
+  baseUrl: '/invoice-builder/',
   stylesheets: [
     'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap'
   ],
@@ -101,7 +101,7 @@ const config: Config = {
           ]
         }
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} Invoice Builder.`
+      copyright: `© Invoice Builder · MIT.`
     },
     prism: { theme: prismThemes.github, darkTheme: prismThemes.dracula, additionalLanguages: ['json', 'bash'] }
   } satisfies Preset.ThemeConfig

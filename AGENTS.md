@@ -29,7 +29,7 @@ Use this workflow for:
 - Documentation website (Docusaurus, builds docs/ content): apps/website
 - Shared backend services, database infrastructure, and migrations: packages/core
 - Shared public DTOs, enums, and IPC contracts: packages/contracts
-- Documentation and example assets: docs/guides (screenshots live in docs/guides/tutorial)
+- Documentation pages: docs/guides (screenshots: docs/guides/images, layout JSON examples: docs/guides/examples)
 - End-to-end tests: e2e/desktop and e2e/web
 - Root orchestration: Docker, packaging, releases, and cross-workspace scripts
 
@@ -145,5 +145,6 @@ Suggested transition gates:
 ## When to ask for human input
 
 - Packaging, release, or installer changes.
+- CI workflow or GitHub Pages deployment changes (`.github/workflows/*.yml`).
 - Database schema changes that need migration strategy.
 - Large cross-cutting refactors.

@@ -9,7 +9,6 @@ This repository is an Electron app with a separate backend webserver used for th
 - Optional backend webserver: `apps/server/main.ts` (dev: `npm run dev:webserver`, build: `npm run build:webserver` -> `dist-server/main.js`)
 - Documentation website: `apps/website` (Docusaurus, renders `docs/` content; dev: `npm run dev:website`, build: `npm run build:website` -> `dist-website`, serve built site: `npm run serve:website`)
 - Migrations: source files in `packages/core/src/migrations`, built into `dist-migrations` using `vite.migrations.config.ts`.
-
 BMAD-inspired workflow for agentic development
 --------------------------------------------
 This repository uses a lightweight BMAD-style workflow for coding tasks. See [AGENTS.md](../AGENTS.md) for the complete workflow guide, including when to use this workflow, default verification checks, and team expectations.
@@ -63,7 +62,8 @@ Files to inspect for changes
 - Preload: `apps/desktop/preload/preload.ts` (exposes `electronAPI`)
 - Renderer entry: `apps/renderer/src/main.tsx` and `apps/renderer/src/app/*`
 - Webserver: `apps/server/main.ts`
-- Documentation website: `apps/website/docusaurus.config.ts`, `apps/website/sidebars.ts`, content sourced from repo-root `docs/`
+- Documentation website: `apps/website/docusaurus.config.ts`, `apps/website/sidebars.ts`, content sourced from repo-root `docs/` (guide pages in `docs/guides/*.md`, screenshots in `docs/guides/images/`, layout JSON examples in `docs/guides/examples/`)
+- GitHub Pages deployment: `.github/workflows/pages.yml` builds `apps/website`/`docs/` and deploys on push to `main` (requires repo Settings -> Pages source set to "GitHub Actions")
 - Vite configs: `apps/renderer/vite.config.ts`, `apps/desktop/vite.main.config.ts`, `apps/desktop/vite.preload.config.ts`, `vite.migrations.config.ts`; repository tests use `vitest.config.ts`.
 - Package scripts in `package.json` (many composite scripts use `concurrently`, `wait-on`, and `electronmon`)
 
