@@ -1,11 +1,11 @@
-import { describe, beforeEach, it, test, expect, vi } from 'vitest';
+import { DatabaseType, DBInitType } from '@invoice-builder/contracts';
 import { renderHook } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { I18nextProvider } from 'react-i18next';
 import { Provider } from 'react-redux';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import i18n from '../../../i18n';
 import { store } from '../../../state/configureStore';
-import { DatabaseType, DBInitType } from '@invoice-builder/contracts';
 
 import {
   dbSelectorApi,
