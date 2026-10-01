@@ -1,4 +1,3 @@
-import type { InvoiceFromData } from '../../../../shared/types/formData';
 import type { Settings } from '@invoice-builder/contracts';
 import {
   AmountFormat,
@@ -14,6 +13,8 @@ import {
 } from '@invoice-builder/contracts';
 import { render, screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
+import { describe, expect, it, vi } from 'vitest';
+import type { InvoiceFromData } from '../../../../shared/types/formData';
 
 import { FinancialInfo } from '../FinancialInfo';
 import { ItemsInfo } from '../ItemsInfo';
@@ -21,8 +22,20 @@ import { ItemsInfo } from '../ItemsInfo';
 vi.mock('@react-pdf/renderer', () => ({
   StyleSheet: { create: (styles: Record<string, unknown>) => styles },
   Text: ({ children }: { children?: ReactNode }) => <span>{children}</span>,
-  View: ({ children, style }: { children?: ReactNode; style?: unknown }) => (
-    <div data-pdf-style={JSON.stringify(style)}>{children}</div>
+  View: ({
+    children,
+    style,
+    fixed,
+    wrap
+  }: {
+    children?: ReactNode;
+    style?: unknown;
+    fixed?: boolean;
+    wrap?: boolean;
+  }) => (
+    <div data-pdf-fixed={fixed} data-pdf-style={JSON.stringify(style)} data-pdf-wrap={wrap}>
+      {children}
+    </div>
   )
 }));
 
@@ -112,6 +125,8 @@ describe('Preview item and financial branches', () => {
     expect(screen.getByText('Discovery')).toBeInTheDocument();
     expect(screen.getByText(/^Discount:/)).toBeInTheDocument();
     expect(screen.getByText(/^Tax\(20%\):/)).toBeInTheDocument();
+    expect(screen.getByText('Item').parentElement?.parentElement).not.toHaveAttribute('data-pdf-fixed', 'true');
+    expect(screen.getByText('Consulting').parentElement?.parentElement).toHaveAttribute('data-pdf-wrap', 'false');
   });
 
   it('gives longer custom-field content more flex space than a short item name', () => {

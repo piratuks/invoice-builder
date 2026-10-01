@@ -1,3 +1,4 @@
+import { describe, it, expect, vi } from 'vitest';
 import type { LayoutSchema, LayoutSchemaV2 } from '@invoice-builder/contracts';
 import { InvoiceStatus } from '@invoice-builder/contracts';
 import { render, screen, within } from '@testing-library/react';

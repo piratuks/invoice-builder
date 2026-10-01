@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import { fromBase64 } from '../generalFunctions';
 
 describe('fromBase64', () => {

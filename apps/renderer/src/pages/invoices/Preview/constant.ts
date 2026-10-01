@@ -1,5 +1,5 @@
-import { StyleSheet } from '@react-pdf/renderer';
 import { SizeType } from '@invoice-builder/contracts';
+import { StyleSheet } from '@react-pdf/renderer';
 
 import type { ColumnWeights } from '../../../shared/types/columnsWeights';
 
@@ -104,6 +104,17 @@ export const PDF_STYLES = StyleSheet.create({
   pb5: { paddingBottom: 5 },
   pt5: { paddingTop: 5 },
   w100: { width: '100%' },
+  headerBlockWidth: { flexShrink: 1, minWidth: 0 },
+  invoiceMeta: { width: '100%', minWidth: 0 },
+  invoiceMetaRow: { flexDirection: 'row', justifyContent: 'flex-end', width: '100%', minWidth: 0 },
+  invoiceMetaRowWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-end',
+    width: '100%',
+    minWidth: 0
+  },
+  invoiceMetaValue: { flexShrink: 1, minWidth: 0, textAlign: 'right' },
   w40: { width: '40%' },
   textEnd: { textAlign: 'right' },
   w60: { width: '60%' },

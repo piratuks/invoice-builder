@@ -1,7 +1,7 @@
-import type { InvoiceFromData } from '../../../shared/types/formData';
+import type { HeaderBlock, Settings } from '@invoice-builder/contracts';
 import { View } from '@react-pdf/renderer';
 import { memo, type FC } from 'react';
-import type { HeaderBlock, Settings } from '@invoice-builder/contracts';
+import type { InvoiceFromData } from '../../../shared/types/formData';
 import type { PdfTexts } from '../../../shared/types/invoice';
 
 import { BusinessInfo } from './BusinessInfo';
@@ -42,6 +42,7 @@ const HeaderInfoComponent: FC<Props> = ({ invoiceForm, storeSettings, logoUrl, p
               : block.width === '100%'
                 ? PDF_STYLES.w100
                 : undefined,
+      block.width ? PDF_STYLES.headerBlockWidth : undefined,
       block.paddingTop === 10 ? PDF_STYLES.pt10 : block.paddingTop === 20 ? PDF_STYLES.pt20 : undefined,
       block.paddingBottom === 20 ? PDF_STYLES.pb20 : undefined,
       block.gap === 5 ? PDF_STYLES.gap5 : block.gap === 10 ? PDF_STYLES.gap10 : undefined,

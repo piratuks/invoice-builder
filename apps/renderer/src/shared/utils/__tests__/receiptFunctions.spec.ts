@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import type { InvoiceFromData } from '../../types/formData';
 import type { Settings } from '@invoice-builder/contracts';
 import {

@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import { a11yProps } from '../generalFunctions';
 
 describe('a11yProps', () => {

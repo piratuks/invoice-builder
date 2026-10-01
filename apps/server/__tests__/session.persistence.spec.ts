@@ -1,3 +1,4 @@
+import { describe, beforeEach, it, expect, vi } from 'vitest';
 import { initSchema } from '@invoice-builder/core/db/setup';
 import { DatabaseType } from '@invoice-builder/contracts';
 

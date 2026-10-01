@@ -1,9 +1,9 @@
-import type { InvoiceFromData } from '../../../shared/types/formData';
+import type { ColumnSizing, CustomField, Settings } from '@invoice-builder/contracts';
+import { TableHeaderStyle, TableRowStyle } from '@invoice-builder/contracts';
 import { Text, View } from '@react-pdf/renderer';
 import type { Style } from '@react-pdf/types';
 import { memo, useMemo, type FC } from 'react';
-import type { ColumnSizing, CustomField, Settings } from '@invoice-builder/contracts';
-import { TableHeaderStyle, TableRowStyle } from '@invoice-builder/contracts';
+import type { InvoiceFromData } from '../../../shared/types/formData';
 
 import { getItemFinancialData } from '../../../shared/utils/invoiceFunctions';
 import { DEFAULT_TABLE_FIELD_SORT_ORDERS } from '../../../state/constant';
@@ -217,7 +217,6 @@ const ItemsInfoComponent: FC<Props> = ({ invoiceForm, storeSettings, labels, col
   return (
     <>
       <View
-        fixed
         style={[
           PDF_STYLES.row,
           {

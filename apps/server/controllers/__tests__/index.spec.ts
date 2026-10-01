@@ -1,3 +1,4 @@
+import { describe, it, expect, vi } from 'vitest';
 import { initControllers } from '../index';
 
 const calls = vi.hoisted(() => ({

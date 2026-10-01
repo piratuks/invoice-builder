@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import { base64ToBytes, isDataUrl, toDataUrl, toUint8Array } from '../dataUrlFunctions';
 
 const t = ((key: string) => key) as never;

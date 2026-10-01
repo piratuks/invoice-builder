@@ -428,6 +428,10 @@ describe('importExport service', () => {
     expect(result).toEqual({ success: true });
     expect(run.mock.calls.some(([sql]) => String(sql).includes('OVERRIDING SYSTEM VALUE'))).toBe(true);
     expect(run.mock.calls.some(([sql]) => String(sql).includes('SELECT setval'))).toBe(true);
+    const deletedTables = run.mock.calls
+      .map(([sql]) => String(sql).match(/^DELETE FROM (\w+)/)?.[1])
+      .filter((table): table is string => Boolean(table));
+    expect(deletedTables.indexOf('invoice_payments')).toBeLessThan(deletedTables.indexOf('invoices'));
     expect(run).toHaveBeenCalledWith(expect.stringContaining('UPDATE settings SET'), [0]);
   });
 

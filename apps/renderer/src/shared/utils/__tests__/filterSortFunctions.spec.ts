@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import { FilterType } from '@invoice-builder/contracts';
 
 import { SortType } from '../../enums/sortType';

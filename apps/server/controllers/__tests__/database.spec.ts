@@ -1,3 +1,4 @@
+import { describe, beforeEach, it, expect, vi } from 'vitest';
 import { initDatabaseController } from '../database';
 
 const mocks = vi.hoisted(() => ({

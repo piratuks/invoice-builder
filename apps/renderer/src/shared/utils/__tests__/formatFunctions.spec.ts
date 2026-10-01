@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import { AmountFormat } from '@invoice-builder/contracts';
 
 import { CurrencyFormat } from '../../enums/currencyFormat';

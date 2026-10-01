@@ -1,3 +1,4 @@
+import { describe, afterEach, it, expect, vi } from 'vitest';
 import { getApi, isWebMode } from '../restApi';
 
 describe('isWebMode/getApi', () => {

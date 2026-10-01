@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import type { InvoicePayment } from '@invoice-builder/contracts';
 import { DiscountType, InvoiceItemTaxType, InvoiceTaxType } from '@invoice-builder/contracts';
 

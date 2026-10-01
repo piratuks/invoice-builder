@@ -1,10 +1,10 @@
 import { IpcChannel } from '@invoice-builder/contracts';
-import { dialog, ipcMain } from 'electron';
-import { promises as fs } from 'fs';
-import { join } from 'path';
 import { getBackendConfig } from '@invoice-builder/core/config';
 import * as importExportService from '@invoice-builder/core/services/importExport';
 import { mapDatabaseError } from '@invoice-builder/core/utils/errorFunctions';
+import { dialog, ipcMain } from 'electron';
+import { promises as fs } from 'fs';
+import { join } from 'path';
 import { requireDatabase } from '../database';
 
 export const initImportExportHandlers = () => {
@@ -44,8 +44,7 @@ export const initImportExportHandlers = () => {
 
       const content = await fs.readFile(filePaths[0], 'utf8');
       const parsed = JSON.parse(content);
-      await importExportService.importAllData(db, parsed);
-      return { success: true };
+      return await importExportService.importAllData(db, parsed);
     } catch (error) {
       return { success: false, ...mapDatabaseError(error, db.type) };
     }

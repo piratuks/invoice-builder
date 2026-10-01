@@ -1,3 +1,4 @@
+import { describe, beforeEach, it, test, expect, vi } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { I18nextProvider } from 'react-i18next';

@@ -1,3 +1,4 @@
+import { describe, it, expect, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import type { LayoutSection } from '@invoice-builder/contracts';
 

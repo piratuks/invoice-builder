@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import { DatabaseType, FilterType } from '@invoice-builder/contracts';
 
 import { getHavingClauseFromFilters, getWhereClauseFromFilters } from '../filterFunctions';

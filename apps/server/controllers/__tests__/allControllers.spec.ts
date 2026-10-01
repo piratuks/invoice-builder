@@ -1,3 +1,4 @@
+import { describe, beforeEach, it, expect, vi } from 'vitest';
 import { initControllers } from '../index';
 
 const registered = vi.hoisted(() => ({

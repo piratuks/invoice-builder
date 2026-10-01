@@ -398,7 +398,7 @@ const PDFDocumentComponent: FC<Props> = ({
             <Text style={PDF_STYLES.layoutRequired}>{layoutRequired}</Text>
           </View>
         ) : templateLayout?.schemaVersion === 2 ? (
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', width: '100%' }}>
+          <View wrap={templateRegions.length === 1} style={{ flexDirection: 'row', flexWrap: 'wrap', width: '100%' }}>
             {templateRegions.map(renderRegion)}
           </View>
         ) : (

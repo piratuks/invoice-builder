@@ -1,3 +1,4 @@
+import { describe, beforeAll, it, expect, vi } from 'vitest';
 import { DatabaseType, DBInitType, IpcChannel } from '@invoice-builder/contracts';
 
 const bridge = vi.hoisted(() => ({ api: undefined as Record<string, (...args: never[]) => unknown> | undefined }));

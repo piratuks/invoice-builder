@@ -1,3 +1,4 @@
+import { describe, beforeEach, afterEach, it, expect } from 'vitest';
 import type { CategoryAdd, ItemAdd, UnitAdd } from '@invoice-builder/contracts';
 import { createTestDatabase } from '../../services/__tests__/testDb';
 import { addCategory } from '../../services/categories';

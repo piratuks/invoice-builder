@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import { parseLayoutSchema, validHeaderBlockTypes, validTotalsRowBlockTypes } from '@invoice-builder/contracts';
 
 import {

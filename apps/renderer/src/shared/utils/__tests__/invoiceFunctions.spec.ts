@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import type { Invoice, InvoiceItem, InvoicePayment, Settings } from '@invoice-builder/contracts';
 import {
   AmountFormat,

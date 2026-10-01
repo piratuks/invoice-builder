@@ -1,3 +1,4 @@
+import { describe, beforeEach, it, expect, vi } from 'vitest';
 import { initIpcHandler } from '../index';
 
 const ipc = vi.hoisted(() => ({ handle: vi.fn() }));
