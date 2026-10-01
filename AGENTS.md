@@ -22,11 +22,24 @@ Use this workflow for:
 
 ## Repository map
 
-- Renderer/UI: src/renderer
-- Electron main process: src/backend/main
-- Preload bridge: src/preload/preload.ts
-- Webserver: src/backend/webserver
-- Database and migrations: src/backend/shared
+- Renderer/UI: apps/renderer/src
+- Electron main process: apps/desktop/main
+- Preload bridge: apps/desktop/preload/preload.ts
+- Webserver: apps/server
+- Shared backend services, database infrastructure, and migrations: packages/core
+- Shared public DTOs, enums, and IPC contracts: packages/contracts
+- Documentation and example assets: docs/layouts and docs/tutorial
+- End-to-end tests: e2e/desktop and e2e/web
+- Root orchestration: Docker, packaging, releases, and cross-workspace scripts
+
+## Workspace and runtime conventions
+
+- Run npm installs, updates, and dependency pruning from the repository root. Keep the single `package-lock.json` at the root; do not create workspace-local lockfiles.
+- Declare dependencies in the workspace that owns them. The root manifest is reserved for shared orchestration, testing, packaging, and release tooling.
+- Run a workspace command with `npm run <script> -w @invoice-builder/<workspace>`; use root scripts only for cross-workspace workflows.
+- npm may hoist packages to the root `node_modules`. Do not manually manage workspace `node_modules` directories.
+- Treat `dist-fe/`, `dist-desktop/`, `dist-server/`, and `dist-migrations/` as generated build output. Local runtime data belongs in `app-data/`; containers use `/app-data`.
+- Use Node 24 LTS or a supported later release. Node 25 is outside the engine ranges declared by the current Vitest and jsdom versions.
 
 ## Default workflow
 
@@ -66,7 +79,9 @@ Rule of thumb:
 - UI change: run the relevant test or build path for the renderer.
 - IPC/main process change: build the Electron target.
 - Webserver change: build or run the webserver target.
+- Contract or core change: build the affected workspace; `dev:webserver` watches both compiled artifacts.
 - Persistence change: review migration safety and run the relevant build/test path.
+- Cross-runtime or user workflow change: run `npm run test:e2e`.
 
 ## Prompt templates and agents
 

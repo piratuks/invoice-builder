@@ -24,7 +24,7 @@ services:
     environment:
       - SERVICE=all
       - NODE_ENV=docker
-      - DB_DIRECTORY=/data
+      - DB_DIRECTORY=/app-data
       # Backend webserver port
       - PORT=3000
       # Backend webserver host
@@ -32,7 +32,7 @@ services:
       # Frontend webserver URL
       - FE_SERVER_URL=http://localhost:3001
       # Path to migration files in docker volume
-      - MIGRATIONS_PATH=/app/dist-be/backend/server/shared/migrations
+      - MIGRATIONS_PATH=/app/dist-migrations
       # PostgreSQL connection pool
       - PG_POOL_MAX=${PG_POOL_MAX:-10}
       - PG_POOL_IDLE_TIMEOUT_MS=${PG_POOL_IDLE_TIMEOUT_MS:-30000}
@@ -46,7 +46,7 @@ services:
       - BACKEND_HOST=localhost
       - BACKEND_PORT=3000
     volumes:
-      - app-data:/data
+      - app-data:/app-data
     healthcheck:
       test:
         [

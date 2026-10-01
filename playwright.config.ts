@@ -19,7 +19,7 @@ export default defineConfig({
       timeout: 120_000
     },
     {
-      command: 'npm run dev:react -- --host 127.0.0.1 --port 5183',
+      command: 'npm run dev --workspace @invoice-builder/renderer -- --host 127.0.0.1 --port 5183',
       url: 'http://127.0.0.1:5183',
       env: { VITE_API_URL: 'http://127.0.0.1:3013' },
       reuseExistingServer: true,

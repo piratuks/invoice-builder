@@ -29,9 +29,9 @@ Your data stays on your machine in a database file you own.
 
 ## 📸 Screenshots
 
-![Invoice Form](tutorial/invoice_form.jpg)
-![Invoice PDF Preview](tutorial/invoice_pdf_preview.jpg)
-![Quote PDF Preview](tutorial/quote_pdf_preview.jpg)
+![Invoice Form](docs/tutorial/invoice_form.jpg)
+![Invoice PDF Preview](docs/tutorial/invoice_pdf_preview.jpg)
+![Quote PDF Preview](docs/tutorial/quote_pdf_preview.jpg)
 
 ## ❓ Why Invoice Builder?
 
@@ -100,7 +100,7 @@ If you value **privacy, portability, and control**, this app is built for you.
 - Layouts and Visual Layout Builder for importing, creating, editing, and exporting V1/V2 invoice PDF compositions without manually writing JSON, with nested regions, sidebars, landscape layouts, rows, columns, grids, drag-and-drop, keyboard actions, undo/redo, live preview, and controlled content flow
 - Layout JSON controls section order, visibility, header composition, supported block placement, spacing, table sizing, and page-level regions
 - Export individual layouts as reusable JSON files
-- See [LAYOUT.md](LAYOUT.md) for the complete layout JSON structure and usage guide
+- See [Layout JSON reference](docs/LAYOUT.md) for the complete layout JSON structure and usage guide
 - Show quantity, unit, and row number in the PDF item table
 - Custom header sections and custom values in the PDF item table
 - Ability to reorder all columns/headers in the PDF item table
@@ -248,8 +248,8 @@ docker run -d \
   -e SERVICE=all \
   -e NODE_ENV=docker \
   -e FE_SERVER_URL=http://localhost:3001 \
-  -e MIGRATIONS_PATH=/app/dist-be/backend/server/shared/migrations \
-  -v invoice-builder-data:/data \
+  -e MIGRATIONS_PATH=/app/dist-migrations \
+  -v invoice-builder-data:/app-data \
   ghcr.io/piratuks/invoice-builder:latest
 ```
 
@@ -345,9 +345,9 @@ chmod +x Invoice-Builder-*.AppImage
 
 ## 📘 Tutorial
 
-Detailed tutorials and usage guides are available here: [TUTORIAL](TUTORIAL.md)
+Detailed tutorials and usage guides are available here: [TUTORIAL](docs/TUTORIAL.md)
 
-Layout JSON structure and supported composition options are documented in [LAYOUT.md](LAYOUT.md).
+Layout JSON structure and supported composition options are documented in [Layout JSON reference](docs/LAYOUT.md).
 
 ## 🧠 Data Model & Snapshots
 
@@ -401,6 +401,8 @@ npm run dev:react
 npm run dev:webserver
 ```
 
+`npm run dev:webserver` builds and watches the shared contracts workspace before running the webserver, so API DTO changes are picked up during development.
+
 ### ⚙️ Environment Variables
 
 Frontend variables are loaded by Vite from `.env.development`, `.env.production`, or `.env.test`. They are embedded in the frontend bundle at build time and are visible to browser users, so never use `VITE_*` variables for secrets.
@@ -410,28 +412,28 @@ Frontend variables are loaded by Vite from `.env.development`, `.env.production`
 | `VITE_API_URL`      | Browser origin | Backend origin for web mode. Standard Docker deployments use the nginx proxy and should leave this unset. |
 | `VITE_ENABLE_MOCKS` | `false`        | Starts the MSW browser worker when set to `true`.                                                         |
 
-Frontend defaults and `VITE_*` access are centralized in `src/renderer/config.ts`.
+Frontend defaults and `VITE_*` access are centralized in `apps/renderer/src/config.ts`.
 
 Backend variables are read at runtime. Electron loads the root `.env` file; the direct webserver inherits variables from its shell or process manager; Docker Compose passes variables to the backend container.
 
-| Variable                        | Default                         | Description                                                           |
-| ------------------------------- | ------------------------------- | --------------------------------------------------------------------- |
-| `NODE_ENV`                      | Unset                           | Runtime mode, including `docker`, `production`, and `test`.           |
-| `FE_SERVER_URL`                 | `http://127.0.0.1:5173`         | Electron development URL and allowed webserver CORS origin.           |
-| `USERPROFILE`                   | Current working directory       | Default directory for Electron file dialogs; normally set by Windows. |
-| `PG_POOL_MAX`                   | `10`                            | Maximum PostgreSQL pool size.                                         |
-| `PG_POOL_IDLE_TIMEOUT_MS`       | `30000`                         | Idle PostgreSQL connection timeout in milliseconds.                   |
-| `PG_POOL_CONNECTION_TIMEOUT_MS` | `5000`                          | PostgreSQL connection acquisition timeout in milliseconds.            |
-| `PG_POOL_MAX_LIFETIME_SECONDS`  | `0`                             | Maximum PostgreSQL connection lifetime in seconds; `0` disables it.   |
-| `PG_POOL_ALLOW_EXIT_ON_IDLE`    | `false`                         | Allows Node.js to exit while all PostgreSQL clients are idle.         |
-| `DEV_SERVER_URL`                | `127.0.0.1`                     | Address on which the backend webserver listens.                       |
-| `PORT`                          | `3000`                          | Backend webserver port.                                               |
-| `DB_DIRECTORY`                  | `data`                          | Directory containing webserver SQLite databases.                      |
-| `MIGRATIONS_PATH`               | `src/backend/shared/migrations` | Directory containing compiled or source migration files.              |
-| `WEBSERVER_CLEANUP_INTERVAL_MS` | `60000`                         | Interval between expired-session and inactive-database cleanup runs.  |
-| `WEBSERVER_SESSION_TTL_MS`      | `1800000`                       | Web session inactivity lifetime in milliseconds.                      |
+| Variable                        | Default                        | Description                                                           |
+| ------------------------------- | ------------------------------ | --------------------------------------------------------------------- |
+| `NODE_ENV`                      | Unset                          | Runtime mode, including `docker`, `production`, and `test`.           |
+| `FE_SERVER_URL`                 | `http://127.0.0.1:5173`        | Electron development URL and allowed webserver CORS origin.           |
+| `USERPROFILE`                   | Current working directory      | Default directory for Electron file dialogs; normally set by Windows. |
+| `PG_POOL_MAX`                   | `10`                           | Maximum PostgreSQL pool size.                                         |
+| `PG_POOL_IDLE_TIMEOUT_MS`       | `30000`                        | Idle PostgreSQL connection timeout in milliseconds.                   |
+| `PG_POOL_CONNECTION_TIMEOUT_MS` | `5000`                         | PostgreSQL connection acquisition timeout in milliseconds.            |
+| `PG_POOL_MAX_LIFETIME_SECONDS`  | `0`                            | Maximum PostgreSQL connection lifetime in seconds; `0` disables it.   |
+| `PG_POOL_ALLOW_EXIT_ON_IDLE`    | `false`                        | Allows Node.js to exit while all PostgreSQL clients are idle.         |
+| `DEV_SERVER_URL`                | `127.0.0.1`                    | Address on which the backend webserver listens.                       |
+| `PORT`                          | `3000`                         | Backend webserver port.                                               |
+| `DB_DIRECTORY`                  | `app-data`                     | Directory containing webserver SQLite databases.                      |
+| `MIGRATIONS_PATH`               | `packages/core/src/migrations` | Directory containing compiled or source migration files.              |
+| `WEBSERVER_CLEANUP_INTERVAL_MS` | `60000`                        | Interval between expired-session and inactive-database cleanup runs.  |
+| `WEBSERVER_SESSION_TTL_MS`      | `1800000`                      | Web session inactivity lifetime in milliseconds.                      |
 
-Backend defaults and parsing are centralized in `src/backend/shared/config.ts`. The PostgreSQL pool and webserver lifecycle variables can be overridden for Compose deployments through shell variables or a root `.env` file, for example:
+Backend defaults and parsing are centralized in `packages/core/src/config.ts`. The PostgreSQL pool and webserver lifecycle variables can be overridden for Compose deployments through shell variables or a root `.env` file, for example:
 
 ```env
 PG_POOL_MAX=20
@@ -451,6 +453,8 @@ Docker startup also uses these container-only variables, which are configured au
 ### 📁 Project Structure
 
 ```bash
+/packages
+  /contracts        - Shared public DTOs, enums, and Electron IPC contracts
 /src
   /backend          – Electron + Webserver
     /main           – Electron main process
@@ -497,7 +501,7 @@ Docker startup also uses these container-only variables, which are configured au
 
 ### 🗂️ Database Schema
 
-![Database Schema](schema.png)
+![Database Schema](docs/schema.png)
 
 ### 🤝 Contributing Guidelines
 
@@ -511,10 +515,10 @@ Please open an issue before starting major work to ensure alignment.
 
 ## 📚 Documentation
 
-- [Tutorial](TUTORIAL.md)
-- [Layout JSON reference](LAYOUT.md)
-- [Privacy Policy](PRIVACY-POLICY.md)
-- [Terms of Use](TERMS-OF-USE.md)
+- [Tutorial](docs/TUTORIAL.md)
+- [Layout JSON reference](docs/LAYOUT.md)
+- [Privacy Policy](docs/PRIVACY-POLICY.md)
+- [Terms of Use](docs/TERMS-OF-USE.md)
 
 ## 📌 Supported Versions
 

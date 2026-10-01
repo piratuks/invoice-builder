@@ -1,0 +1,66 @@
+appId: com.invoice-builder
+productName: Invoice Builder
+
+directories:
+  output: release
+
+publish:
+  provider: github
+  owner: piratuks
+  repo: invoice-builder
+
+files:
+  - dist-fe/**
+  - dist-desktop/**
+  - dist-migrations/**
+  - node_modules/**
+  - package.json
+
+extraMetadata:
+  main: dist-desktop/main/main.cjs
+
+forceCodeSigning: false
+
+afterPack: scripts/after-pack.cjs
+
+toolsets:
+  appimage: 1.0.3
+
+win:
+  target:
+    - nsis
+
+nsis:
+  artifactName: Invoice-Builder-Setup-${version}.${ext}
+  oneClick: true
+  perMachine: false
+  allowElevation: false
+  allowToChangeInstallationDirectory: false
+
+linux:
+  target:
+    - deb
+    - AppImage
+  category: Office
+  maintainer: 'Piratuks <evaldiz@gmail.com>'
+  icon: 'apps/desktop/main/assets/linux-icons'
+
+appImage:
+  artifactName: Invoice-Builder-${version}.${ext}
+
+mac:
+  target:
+    - dmg
+  category: public.app-category.productivity
+  icon: 'apps/desktop/main/assets/macos-icons/icon.icns'
+
+dmg:
+  artifactName: Invoice-Builder-${version}-${arch}.${ext}
+  contents:
+    - type: file
+      x: 130
+      y: 220
+    - type: link
+      x: 410
+      y: 220
+      path: /Applications

@@ -1,0 +1,77 @@
+import { SwipeableDrawer, useMediaQuery, useTheme } from '@mui/material';
+import { memo, type FC } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useGetStyleProfilesQuery } from '../../../../shared/api/styleProfilesApi';
+import { CRUDPageRTK } from '../../../../shared/components/layout/crudPage/CRUDPageRTK';
+import type { StyleProfile, StyleProfileAdd, StyleProfileUpdate } from '@invoice-builder/contracts';
+import { FilterType } from '@invoice-builder/contracts';
+
+import type { Filter } from '../../../../shared/types/filter';
+
+import { createCommonFilters, createInvoiceFilters } from '../../../../shared/utils/filterSortFunctions';
+import { List as StyleProfileList } from '../../../styleProfiles/List';
+
+interface Props {
+  isOpen: boolean;
+  onClose?: () => void;
+  onOpen?: () => void;
+  onClick?: (data: StyleProfile) => void;
+}
+
+const StyleProfilesDropdownComponent: FC<Props> = ({ isOpen, onClose, onOpen, onClick }) => {
+  const { t } = useTranslation();
+  const filters: Filter[] = [
+    ...createCommonFilters({ t, namespace: 'styleProfiles', initial: FilterType.active }),
+    ...createInvoiceFilters({ t, namespace: 'styleProfiles' })
+  ];
+  const theme = useTheme();
+  const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
+  return (
+    <>
+      <SwipeableDrawer
+        anchor="bottom"
+        open={isOpen}
+        onClose={() => onClose?.()}
+        onOpen={() => onOpen?.()}
+        slotProps={{
+          paper: {
+            sx: {
+              maxWidth: isDesktop ? '40%' : '100%',
+              height: '80%',
+              mx: 'auto',
+              borderTopLeftRadius: 16,
+              borderTopRightRadius: 16,
+              borderBottomLeftRadius: 0,
+              borderBottomRightRadius: 0,
+              p: 3
+            }
+          }
+        }}
+      >
+        <CRUDPageRTK<StyleProfile, StyleProfileAdd, StyleProfileUpdate>
+          componentId="invoices:styleprofiles"
+          filters={filters}
+          showRightSide={false}
+          showAddButton={false}
+          useRetrieve={useGetStyleProfilesQuery}
+          searchField={'name'}
+          sortOptions={[
+            { label: t('common.name'), value: 'name' },
+            { label: t('common.lastUpdate'), value: 'updatedAt' }
+          ]}
+          noItemText={t('styleProfiles.noItem')}
+          renderListItem={(item, selectedItem) => (
+            <StyleProfileList
+              key={item.id}
+              item={item}
+              showDeleteButton={false}
+              selectedItem={selectedItem}
+              onEdit={(editItem: StyleProfile) => onClick?.(editItem)}
+            />
+          )}
+        />
+      </SwipeableDrawer>
+    </>
+  );
+};
+export const StyleProfilesDropdown = memo(StyleProfilesDropdownComponent);

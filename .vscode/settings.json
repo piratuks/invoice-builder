@@ -1,0 +1,39 @@
+{
+  "editor.formatOnSave": true,
+  "prettier.ignorePath": ".prettierignore",
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "vscode.json-language-features"
+  },
+  "[html]": {
+    "editor.defaultFormatter": "vscode.html-language-features"
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[scss]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "files.associations": {
+    "**/public/mockServiceWorker.js": "plaintext"
+  },
+  "[plaintext]": {
+    "editor.formatOnSave": false
+  },
+  "files.eol": "\r\n",
+  "editor.tabSize": 2,
+  "html.format.wrapLineLength": 0,
+  "html.format.wrapAttributes": "preserve",
+  "editor.detectIndentation": false,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit",
+    "source.fixAll.eslint": "explicit"
+  },
+  "editor.gotoLocation.multipleDefinitions": "goto"
+}

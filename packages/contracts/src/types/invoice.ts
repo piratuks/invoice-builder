@@ -1,0 +1,342 @@
+import type { Alignment } from '../enums/alignment';
+import type { DiscountType } from '../enums/discountType';
+import type { FontFamily } from '../enums/fontFamily';
+import type { InvoiceStatus } from '../enums/invoiceStatus';
+import type { InvoiceType } from '../enums/invoiceType';
+import type { Language } from '../enums/language';
+import type { PageFormat } from '../enums/pageFormat';
+import type { PaymentType } from '../enums/paymentType';
+import type { SizeType } from '../enums/sizeType';
+import type { TableHeaderStyle } from '../enums/tableHeaderStyle';
+import type { TableRowStyle } from '../enums/tableRowStyle';
+import type { InvoiceItemTaxType, InvoiceTaxType } from '../enums/taxType';
+import type { LayoutSchemaAny } from './layouts';
+import type { PDFText } from './pdfText';
+import type { SortOrder } from './sortOrder';
+
+export interface CustomFieldMeta {
+  header: string;
+  alignment: Alignment;
+  sortOrder: number;
+}
+
+export interface NextSequenceData {
+  nextSequence: number;
+  formattedSequence: string;
+}
+
+export interface CustomField extends CustomFieldMeta {
+  value: string;
+}
+
+export interface InvoiceBankSnapshotsMeta {
+  parentInvoiceId?: number;
+  id?: number;
+  name?: string;
+  bankName?: string;
+  accountNumber?: string;
+  swiftCode?: string;
+  address?: string;
+  branchCode?: string;
+  type?: string;
+  routingNumber?: string;
+  accountHolder?: string;
+  sortOrder?: string;
+  upiCode?: string;
+  qrCodeFileSize?: number;
+  qrCodeFileType?: string;
+  qrCodeFileName?: string;
+}
+
+export interface InvoiceBankSnapshots extends InvoiceBankSnapshotsMeta {
+  qrCode?: Uint8Array;
+}
+
+export interface InvoiceBankSnapshotsWeb extends InvoiceBankSnapshotsMeta {
+  qrCode?: string;
+}
+
+export interface InvoiceStyleProfileSnapshots {
+  parentInvoiceId?: number;
+  id?: number;
+  styleProfileName?: string;
+}
+
+export interface InvoiceLayoutSnapshots {
+  parentInvoiceId?: number;
+  id?: number;
+  layoutSchema?: LayoutSchemaAny;
+}
+
+export interface InvoiceCustomizationMeta {
+  parentInvoiceId?: number;
+  id?: number;
+  color?: string;
+  logoSize?: SizeType;
+  fontSize?: SizeType;
+  fontFamily?: FontFamily;
+  tableHeaderStyle?: TableHeaderStyle;
+  tableRowStyle?: TableRowStyle;
+  pageFormat?: PageFormat;
+  labelUpperCase?: boolean;
+  watermarkFileName?: string;
+  watermarkFileType?: string;
+  watermarkFileSize?: number;
+  paidWatermarkFileName?: string;
+  paidWatermarkFileType?: string;
+  paidWatermarkFileSize?: number;
+  showQuantity?: boolean;
+  showUnit?: boolean;
+  showRowNo?: boolean;
+  fieldSortOrders: SortOrder;
+  pdfTexts?: PDFText;
+}
+
+export interface InvoiceCustomization extends InvoiceCustomizationMeta {
+  watermarkFileData?: Uint8Array;
+  paidWatermarkFileData?: Uint8Array;
+}
+
+export interface InvoiceCustomizationWeb extends InvoiceCustomizationMeta {
+  watermarkFileData?: string;
+  paidWatermarkFileData?: string;
+}
+
+export interface InvoicePayment {
+  id?: number;
+  parentInvoiceId?: number;
+  amountCents: string;
+  paidAt: string;
+  paymentMethod: PaymentType;
+  notes?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface InvoiceAttachmentMeta {
+  id?: number;
+  parentInvoiceId?: number;
+  fileSize: number;
+  fileType: string;
+  fileName: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface InvoiceAttachment extends InvoiceAttachmentMeta {
+  data: Uint8Array;
+}
+
+export interface InvoiceAttachmentWeb extends InvoiceAttachmentMeta {
+  data: string;
+}
+
+export interface InvoiceItemSnapshots {
+  parentInvoiceItemId: number;
+  id?: number;
+  itemName: string;
+  unitPriceCents: string;
+  unitName?: string;
+}
+
+export interface InvoiceItem {
+  id?: number;
+  parentInvoiceId?: number;
+  itemId: number;
+  invoiceItemSnapshot: InvoiceItemSnapshots;
+  quantity: string;
+  customField?: CustomField;
+  createdAt?: string;
+  updatedAt?: string;
+  taxRate: number;
+  taxType?: InvoiceItemTaxType;
+}
+
+export interface InvoiceCurrencySnapshots {
+  parentInvoiceId?: number;
+  id?: number;
+  currencyCode: string;
+  currencySymbol: string;
+  currencySubunit: number;
+}
+
+export interface InvoiceClientSnapshots {
+  parentInvoiceId?: number;
+  id?: number;
+  clientName?: string;
+  clientAddress?: string;
+  clientEmail?: string;
+  clientPhone?: string;
+  clientCode?: string;
+  clientAdditional?: string;
+  clientVatCode?: string;
+  clientPeppolEndpointId?: string;
+  clientCountryCode?: string;
+  clientPeppolEndpointSchemeId?: string;
+  clientBuyerReference?: string;
+}
+
+export interface InvoiceBusinessSnapshotsMeta {
+  parentInvoiceId?: number;
+  id?: number;
+  businessName: string;
+  businessAddress?: string;
+  businessRole?: string;
+  businessShortName: string;
+  businessEmail?: string;
+  businessPhone?: string;
+  businessAdditional?: string;
+  // Legacy payment info. New payment info is via Bank
+  businessPaymentInformation?: string;
+  businessFileSize?: number;
+  businessFileType?: string;
+  businessFileName?: string;
+  businessVatCode?: string;
+  businessPeppolEndpointId?: string;
+  businessCountryCode?: string;
+  businessCode?: string;
+  businessPeppolEndpointSchemeId?: string;
+}
+
+export interface InvoiceBusinessSnapshots extends InvoiceBusinessSnapshotsMeta {
+  businessLogo?: Uint8Array;
+}
+
+export interface InvoiceBusinessSnapshotsWeb extends InvoiceBusinessSnapshotsMeta {
+  businessLogo?: string;
+}
+
+export interface InvoiceMeta {
+  id: number;
+  invoiceType: InvoiceType;
+  convertedFromQuotationId?: number;
+  invoiceFullNumber: string;
+  businessId: number;
+  bankId?: number;
+  clientId: number;
+  layoutId?: number;
+  currencyId: number;
+  createdAt: string;
+  updatedAt: string;
+  issuedAt: string;
+  dueDate?: string;
+  invoiceNumber: string;
+  isArchived: boolean;
+  status: InvoiceStatus;
+  customerNotes?: string;
+  thanksNotes?: string;
+  termsConditionNotes?: string;
+  discountName?: string;
+  invoicePrefix?: string;
+  invoiceSuffix?: string;
+  discountType?: DiscountType;
+  discountAmountCents: string;
+  discountPercent: number;
+  surchargeType?: DiscountType;
+  surchargeAmountCents: string;
+  surchargePercent: number;
+  surchargeName?: string;
+  shippingFeeCents: string;
+  taxName?: string;
+  taxRate: number;
+  taxType?: InvoiceTaxType;
+  invoicePayments: InvoicePayment[];
+  invoiceItems: InvoiceItem[];
+  currencyFormat: string;
+  language: Language;
+  signatureSize?: number;
+  signatureType?: string;
+  signatureName?: string;
+  styleProfilesId?: number;
+  invoiceLayoutSnapshot?: InvoiceLayoutSnapshots;
+  invoiceStyleProfileSnapshot?: InvoiceStyleProfileSnapshots;
+  invoiceClientSnapshot?: InvoiceClientSnapshots;
+  invoiceCurrencySnapshot?: InvoiceCurrencySnapshots;
+  paidAt?: string;
+  closedAt?: string;
+}
+
+export interface Invoice extends InvoiceMeta {
+  signatureData?: Uint8Array;
+  invoiceAttachments: InvoiceAttachment[];
+  invoiceBusinessSnapshot?: InvoiceBusinessSnapshots;
+  invoiceCustomization?: InvoiceCustomization;
+  invoiceBankSnapshot?: InvoiceBankSnapshots;
+}
+
+export interface InvoiceWeb extends InvoiceMeta {
+  signatureData?: string | null;
+  invoiceAttachments: InvoiceAttachmentWeb[];
+  invoiceBusinessSnapshot?: InvoiceBusinessSnapshotsWeb;
+  invoiceCustomization?: InvoiceCustomizationWeb;
+  invoiceBankSnapshot?: InvoiceBankSnapshotsWeb;
+}
+export interface InvoiceAddMeta {
+  invoiceType?: InvoiceType;
+  convertedFromQuotationId?: number;
+  businessId?: number;
+  bankId?: number;
+  clientId?: number;
+  layoutId?: number;
+  currencyId?: number;
+  issuedAt?: string;
+  dueDate?: string;
+  invoiceNumber?: string;
+  isArchived?: boolean;
+  status?: InvoiceStatus;
+  customerNotes?: string;
+  thanksNotes?: string;
+  invoicePrefix?: string;
+  invoiceSuffix?: string;
+  termsConditionNotes?: string;
+  discountName?: string;
+  discountType?: DiscountType;
+  discountAmountCents?: string;
+  discountPercent?: number;
+  shippingFeeCents?: string;
+  surchargeName?: string;
+  surchargeAmountCents?: string;
+  surchargeType?: DiscountType;
+  surchargePercent?: number;
+  taxName?: string;
+  taxRate?: number;
+  taxType?: InvoiceTaxType;
+  invoicePayments?: InvoicePayment[];
+  invoiceItems?: InvoiceItem[];
+  currencyFormat?: string;
+  language?: Language;
+  signatureSize?: number;
+  signatureType?: string;
+  signatureName?: string;
+  styleProfilesId?: number;
+  invoiceLayoutSnapshot?: InvoiceLayoutSnapshots;
+  invoiceStyleProfileSnapshot?: InvoiceStyleProfileSnapshots;
+  invoiceClientSnapshot?: InvoiceClientSnapshots;
+  invoiceCurrencySnapshot?: InvoiceCurrencySnapshots;
+  paidAt?: string;
+  closedAt?: string;
+}
+
+export interface InvoiceAdd extends InvoiceAddMeta {
+  signatureData?: Uint8Array;
+  invoiceAttachments?: InvoiceAttachment[];
+  invoiceBusinessSnapshot?: InvoiceBusinessSnapshots;
+  invoiceCustomization?: InvoiceCustomization;
+  invoiceBankSnapshot?: InvoiceBankSnapshots;
+}
+
+export interface InvoiceUpdate extends InvoiceAdd {
+  id: number;
+}
+
+export interface InvoiceAddWeb extends InvoiceAddMeta {
+  signatureData?: string | null;
+  invoiceAttachments?: InvoiceAttachmentWeb[];
+  invoiceBusinessSnapshot?: InvoiceBusinessSnapshotsWeb;
+  invoiceCustomization?: InvoiceCustomizationWeb;
+  invoiceBankSnapshot?: InvoiceBankSnapshotsWeb;
+}
+
+export interface InvoiceUpdateWeb extends InvoiceAddWeb {
+  id: number;
+}

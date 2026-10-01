@@ -1,6 +1,10 @@
 node_modules
+**/node_modules
+**/dist
 dist-fe
-dist-be
+dist-desktop
+dist-server
+dist-migrations
 release
 .git
 .github
@@ -8,7 +12,7 @@ release
 !docs/DOCKER.md
 .vscode
 tutorial
-*.log
+_.log
 .env
-.env.*
+.env._
 .coverage

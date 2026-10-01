@@ -9,13 +9,17 @@ export default [
   {
     ignores: [
       'dist-fe/**',
-      'dist-be/**',
+      'dist-desktop/**',
+      'dist-server/**',
+      'dist-migrations/**',
+      '**/dist/**',
       'release/**',
       'coverage/**',
       'index.html',
       '.eslintrc.js',
       'public/**',
       'public/mockServiceWorker.js',
+      'apps/renderer/public/**',
       '.github/**'
     ]
   },

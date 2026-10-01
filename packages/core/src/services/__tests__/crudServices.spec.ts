@@ -1,0 +1,238 @@
+import type {
+  BankUpdate,
+  BusinessUpdate,
+  CategoryUpdate,
+  ClientUpdate,
+  CurrencyUpdate,
+  UnitUpdate
+} from '@invoice-builder/contracts';
+import type { DatabaseAdapter } from '../../types/DatabaseAdapter';
+
+import { addBank, batchAddBank, deleteBank, getAllBanks, updateBank } from '../banks';
+import { addBusiness, batchAddBusiness, deleteBusiness, getAllBusinesses, updateBusiness } from '../businesses';
+import { addCategory, batchAddCategory, deleteCategory, getAllCategories, updateCategory } from '../categories';
+import { addClient, batchAddClient, deleteClient, getAllClients, updateClient } from '../clients';
+import { addCurrency, batchAddCurrency, deleteCurrency, getAllCurrencies, updateCurrency } from '../currencies';
+import { addUnit, batchAddUnit, deleteUnit, getAllUnits, updateUnit } from '../units';
+import { createTestDatabase } from './testDb';
+
+const makeBank = <T extends Partial<BankUpdate>>(overrides = {} as T) => ({
+  name: 'Bank',
+  isArchived: false,
+  ...overrides
+});
+
+const makeBusiness = <T extends Partial<BusinessUpdate>>(overrides = {} as T) => ({
+  name: 'Business',
+  shortName: 'BIZ',
+  isArchived: false,
+  ...overrides
+});
+
+const makeCategory = <T extends Partial<CategoryUpdate>>(overrides = {} as T) => ({
+  name: 'Category',
+  isArchived: false,
+  ...overrides
+});
+
+const makeClient = <T extends Partial<ClientUpdate>>(overrides = {} as T) => ({
+  name: 'Client',
+  shortName: 'CLI',
+  isArchived: false,
+  ...overrides
+});
+
+const makeCurrency = <T extends Partial<CurrencyUpdate>>(overrides = {} as T) => ({
+  code: 'XXX',
+  symbol: 'X',
+  text: 'Currency',
+  format: '#',
+  subunit: 100,
+  isArchived: false,
+  ...overrides
+});
+
+const makeUnit = <T extends Partial<UnitUpdate>>(overrides = {} as T) => ({
+  name: 'Unit',
+  isArchived: false,
+  ...overrides
+});
+
+describe('generic CRUD entity services', () => {
+  let db: DatabaseAdapter;
+
+  beforeEach(async () => {
+    db = await createTestDatabase();
+  });
+
+  afterEach(async () => {
+    await db.close();
+  });
+
+  describe('banks', () => {
+    it('adds, lists, updates and deletes a bank', async () => {
+      const addResult = await addBank(db, makeBank({ name: 'Bank A' }));
+      expect(addResult.success).toBe(true);
+      expect(addResult.data?.id).toBeDefined();
+      const id = addResult.data!.id as unknown as number;
+
+      const listResult = await getAllBanks(db);
+      expect(listResult.success).toBe(true);
+      expect(listResult.data?.some(b => b.id === id)).toBe(true);
+
+      const updateResult = await updateBank(db, makeBank({ id, name: 'Bank A Updated' }));
+      expect(updateResult.success).toBe(true);
+      expect(updateResult.data?.name).toBe('Bank A Updated');
+
+      const deleteResult = await deleteBank(db, id);
+      expect(deleteResult.success).toBe(true);
+
+      const listAfterDelete = await getAllBanks(db);
+      expect(listAfterDelete.data?.some(b => b.id === id)).toBe(false);
+    });
+
+    it('batch adds banks and rolls back on constraint violation', async () => {
+      const batchResult = await batchAddBank(db, [makeBank({ name: 'Bank B' }), makeBank({ name: 'Bank C' })]);
+      expect(batchResult.success).toBe(true);
+
+      const failedBatch = await batchAddBank(db, [makeBank({ name: 'Bank D' }), makeBank({ name: 'Bank B' })]);
+      expect(failedBatch.success).toBe(false);
+
+      const listResult = await getAllBanks(db);
+      expect(listResult.data?.some(b => b.name === 'Bank D')).toBe(false);
+    });
+  });
+
+  describe('businesses', () => {
+    it('adds, lists, updates and deletes a business', async () => {
+      const addResult = await addBusiness(db, makeBusiness({ name: 'Biz A', shortName: 'BA' }));
+      expect(addResult.success).toBe(true);
+      const id = addResult.data!.id as unknown as number;
+
+      const listResult = await getAllBusinesses(db);
+      expect(listResult.data?.some(b => b.id === id)).toBe(true);
+
+      const updateResult = await updateBusiness(db, makeBusiness({ id, name: 'Biz A Updated', shortName: 'BA' }));
+      expect(updateResult.success).toBe(true);
+      expect(updateResult.data?.name).toBe('Biz A Updated');
+
+      const deleteResult = await deleteBusiness(db, id);
+      expect(deleteResult.success).toBe(true);
+    });
+
+    it('batch adds businesses', async () => {
+      const batchResult = await batchAddBusiness(db, [
+        makeBusiness({ name: 'Biz B', shortName: 'BB' }),
+        makeBusiness({ name: 'Biz C', shortName: 'BC' })
+      ]);
+      expect(batchResult.success).toBe(true);
+    });
+  });
+
+  describe('categories', () => {
+    it('adds, lists, updates and deletes a category', async () => {
+      const addResult = await addCategory(db, makeCategory({ name: 'Category A' }));
+      expect(addResult.success).toBe(true);
+      const id = addResult.data!.id as unknown as number;
+
+      const listResult = await getAllCategories(db);
+      expect(listResult.data?.some(c => c.id === id)).toBe(true);
+
+      const updateResult = await updateCategory(db, makeCategory({ id, name: 'Category A Updated' }));
+      expect(updateResult.success).toBe(true);
+
+      const deleteResult = await deleteCategory(db, id);
+      expect(deleteResult.success).toBe(true);
+    });
+
+    it('batch adds categories and rolls back on constraint violation', async () => {
+      const okBatch = await batchAddCategory(db, [makeCategory({ name: 'Category B' })]);
+      expect(okBatch.success).toBe(true);
+
+      const badBatch = await batchAddCategory(db, [
+        makeCategory({ name: 'Category C' }),
+        makeCategory({ name: 'Category B' })
+      ]);
+      expect(badBatch.success).toBe(false);
+    });
+  });
+
+  describe('clients', () => {
+    it('adds, lists, updates and deletes a client', async () => {
+      const addResult = await addClient(db, makeClient({ name: 'Client A', shortName: 'CA' }));
+      expect(addResult.success).toBe(true);
+      const id = addResult.data!.id as unknown as number;
+
+      const listResult = await getAllClients(db);
+      expect(listResult.data?.some(c => c.id === id)).toBe(true);
+
+      const updateResult = await updateClient(db, makeClient({ id, name: 'Client A Updated', shortName: 'CA' }));
+      expect(updateResult.success).toBe(true);
+
+      const deleteResult = await deleteClient(db, id);
+      expect(deleteResult.success).toBe(true);
+    });
+
+    it('batch adds clients', async () => {
+      const batchResult = await batchAddClient(db, [
+        makeClient({ name: 'Client B', shortName: 'CB' }),
+        makeClient({ name: 'Client C', shortName: 'CC' })
+      ]);
+      expect(batchResult.success).toBe(true);
+    });
+  });
+
+  describe('currencies', () => {
+    it('adds, lists, updates and deletes a currency', async () => {
+      const addResult = await addCurrency(db, makeCurrency({ code: 'XYZ', symbol: 'X', text: 'Xylo' }));
+      expect(addResult.success).toBe(true);
+      const id = addResult.data!.id as unknown as number;
+
+      const listResult = await getAllCurrencies(db);
+      expect(listResult.data?.some(c => c.id === id)).toBe(true);
+
+      const updateResult = await updateCurrency(db, makeCurrency({ id, code: 'XYZ', symbol: 'X2', text: 'Xylo' }));
+      expect(updateResult.success).toBe(true);
+      expect(updateResult.data?.symbol).toBe('X2');
+
+      const deleteResult = await deleteCurrency(db, id);
+      expect(deleteResult.success).toBe(true);
+    });
+
+    it('batch adds currencies and rolls back on constraint violation', async () => {
+      const okBatch = await batchAddCurrency(db, [makeCurrency({ code: 'AAA', symbol: 'A', text: 'Alpha' })]);
+      expect(okBatch.success).toBe(true);
+
+      const badBatch = await batchAddCurrency(db, [
+        makeCurrency({ code: 'BBB', symbol: 'B', text: 'Beta' }),
+        makeCurrency({ code: 'AAA', symbol: 'A2', text: 'Alpha2' })
+      ]);
+      expect(badBatch.success).toBe(false);
+    });
+  });
+
+  describe('units', () => {
+    it('adds, lists, updates and deletes a unit', async () => {
+      const addResult = await addUnit(db, makeUnit({ name: 'Unit A' }));
+      expect(addResult.success).toBe(true);
+      const id = addResult.data!.id as unknown as number;
+
+      const listResult = await getAllUnits(db);
+      expect(listResult.data?.some(u => u.id === id)).toBe(true);
+
+      const updateResult = await updateUnit(db, makeUnit({ id, name: 'Unit A Updated' }));
+      expect(updateResult.success).toBe(true);
+
+      const deleteResult = await deleteUnit(db, id);
+      expect(deleteResult.success).toBe(true);
+    });
+
+    it('batch adds units and rolls back on constraint violation', async () => {
+      const okBatch = await batchAddUnit(db, [makeUnit({ name: 'Unit B' })]);
+      expect(okBatch.success).toBe(true);
+
+      const badBatch = await batchAddUnit(db, [makeUnit({ name: 'Unit C' }), makeUnit({ name: 'Unit B' })]);
+      expect(badBatch.success).toBe(false);
+    });
+  });
+});

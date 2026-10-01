@@ -1,0 +1,21 @@
+{
+  "name": "@invoice-builder/desktop",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@invoice-builder/contracts": "*",
+    "@invoice-builder/core": "*",
+    "dotenv": "^17.3.1",
+    "electron-updater": "^6.8.3"
+  },
+  "devDependencies": {
+    "electron": "^44.2.0",
+    "vite": "^8.3.1",
+    "vite-plugin-static-copy": "^4.1.0"
+  },
+  "scripts": {
+    "build:main": "vite build --config vite.main.config.ts",
+    "build:preload": "vite build --config vite.preload.config.ts"
+  }
+}

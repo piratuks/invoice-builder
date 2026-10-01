@@ -4,8 +4,8 @@ const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 
 const root = path.resolve(__dirname, '..');
-const sourceDir = path.join(root, 'src', 'backend', 'shared', 'migrations');
-const outputDir = path.join(root, 'dist-be', 'backend', 'migrations');
+const sourceDir = path.join(root, 'packages', 'core', 'src', 'migrations');
+const outputDir = path.join(root, 'dist-migrations');
 const migrationFiles = fs.existsSync(sourceDir)
   ? fs.readdirSync(sourceDir).filter(file => /^\d{8}-\d{2}-.+\.ts$/.test(file))
   : [];

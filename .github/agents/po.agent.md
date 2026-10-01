@@ -21,7 +21,7 @@ Act as the Product Owner for this repository.
 - Treats the request as a PO task. It should follow the workflow in .github/prompts/bmad-po.prompt.md, substitute the task into the prompt, and return scope, acceptance criteria, risks, and a verification plan.
 - Example: validate "Add a new invoice export option and define the acceptance criteria."
 - Command: prepare_release
-- Reads the top placeholder release block in History.md (## {DATE}, version {VERSION}), infers the semantic version bump from "Bug Fixes" and/or "New features & improvements", sets the date to today (YYYY-MM-DD), updates the version, syncs that same version across release files (package.json, src/backend/shared/config.ts, README supported versions), runs npm i to refresh package-lock.json, and returns a short release summary.
+- Reads the top placeholder release block in History.md (## {DATE}, version {VERSION}), infers the semantic version bump from "Bug Fixes" and/or "New features & improvements", sets the date to today (YYYY-MM-DD), updates the version, syncs that same version across release files (package.json, packages/core/src/config.ts, README supported versions), refreshes package-lock.json with `npm install --package-lock-only --ignore-scripts`, and returns a short release summary.
 
 ## How it is wired
 - This agent file is the entry point for the PO role.

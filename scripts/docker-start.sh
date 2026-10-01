@@ -26,9 +26,9 @@ wait_for_backend() {
 
 case "$SERVICE" in
   backend)
-    mkdir -p /data
+    mkdir -p /app-data
     echo "Starting backend webserver..."
-    exec node /app/dist-be/backend/server/webserver/main.js
+    exec node /app/dist-server/main.js
     ;;
 
   frontend)
@@ -43,9 +43,9 @@ case "$SERVICE" in
     ;;
 
   all)
-    mkdir -p /data
+    mkdir -p /app-data
     echo "Starting backend and frontend in single container..."
-    node /app/dist-be/backend/server/webserver/main.js &
+    node /app/dist-server/main.js &
     BACKEND_PID=$!
     wait_for_backend localhost "${BACKEND_PORT:-3000}"
     export BACKEND_HOST=localhost

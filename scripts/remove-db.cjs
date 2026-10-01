@@ -9,4 +9,4 @@ if (!dbName || !container) {
   process.exit(1);
 }
 
-execSync(`docker exec ${container} rm -f /data/${dbName}`, { stdio: 'inherit' });
+execSync(`docker exec ${container} rm -f /app-data/${dbName}`, { stdio: 'inherit' });

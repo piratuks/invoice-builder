@@ -3,7 +3,7 @@ import { builtinModules } from 'module';
 import path from 'path';
 import { defineConfig } from 'vite';
 
-const MIGRATIONS_SRC = path.resolve(import.meta.dirname, 'src', 'backend', 'shared', 'migrations');
+const MIGRATIONS_SRC = path.resolve(import.meta.dirname, 'packages', 'core', 'src', 'migrations');
 
 export default defineConfig(() => {
   const files = fs.readdirSync(MIGRATIONS_SRC).filter(f => f.endsWith('.ts'));
@@ -15,7 +15,7 @@ export default defineConfig(() => {
 
   return {
     build: {
-      outDir: path.resolve(import.meta.dirname, 'dist-be', 'backend', 'migrations'),
+      outDir: path.resolve(import.meta.dirname, 'dist-migrations'),
       target: 'node20',
       lib: {
         entry: input,
@@ -45,7 +45,7 @@ export default defineConfig(() => {
     resolve: {
       tsconfigPaths: true,
       alias: {
-        '@main': path.resolve(import.meta.dirname, 'src/backend/main')
+        '@main': path.resolve(import.meta.dirname, 'apps', 'desktop', 'main')
       }
     },
     publicDir: false,

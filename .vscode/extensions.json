@@ -3,6 +3,8 @@
     "esbenp.prettier-vscode",
     "dbaeumer.vscode-eslint",
     "eamodio.gitlens",
-    "styled-components.vscode-styled-components"
+    "ms-playwright.playwright",
+    "redhat.vscode-yaml",
+    "ms-azuretools.vscode-docker"
   ]
 }

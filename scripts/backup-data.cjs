@@ -10,7 +10,7 @@ if (!destPath || !container) {
 }
 
 try {
-  execSync(`docker cp ${container}:/data ${destPath}`, { stdio: 'inherit' });
+  execSync(`docker cp ${container}:/app-data ${destPath}`, { stdio: 'inherit' });
   console.log(`Data copied to ${destPath}`);
 } catch (err) {
   console.error('Error copying data:', err.message);

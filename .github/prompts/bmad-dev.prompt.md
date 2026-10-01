@@ -23,7 +23,7 @@ Act as the developer implementing the change.
 5. Check for TypeScript issues in the affected files and fix them before finishing. Treat errors such as possibly undefined values, unsafe property access, or other type mismatches as required fixes, not optional cleanup.
 6. After implementation, run `npm run format` and `npm run lint:fix` to ensure formatting and linting are corrected.
 7. Update [History.md](../../History.md) with a new entry at the top. Add the {DATE}, {VERSION} as placeholders and describe the change under either "New features & improvements" or "Bug Fixes".
-8. Update README.md and TUTORIAL.md when the change impacts setup, usage, behavior, or screenshots.
+8. Update README.md and docs/TUTORIAL.md when the change impacts setup, usage, behavior, or screenshots.
 9. If documentation needs a new or updated image, add a `{IMAGE}` placeholder where the image should be inserted.
 10. If shared story/task artifacts are used under `artifacts/`, update implementation checklist and verification notes before handoff; do not create new artifact instances by default.
 11. Leave concise comments where the logic is non-obvious or would benefit future maintainers.

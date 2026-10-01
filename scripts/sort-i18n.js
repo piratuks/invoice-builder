@@ -14,7 +14,7 @@ function sortObject(obj) {
   return obj;
 }
 
-const folder = path.resolve('src/renderer/i18n');
+const folder = path.resolve('apps/renderer/src/i18n');
 const files = fs.readdirSync(folder).filter(f => f.endsWith('.json'));
 
 files.forEach(file => {

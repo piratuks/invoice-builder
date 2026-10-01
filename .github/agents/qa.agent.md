@@ -12,7 +12,7 @@ Act as QA for this repository.
 - Confirm that relevant validation, tests, or build checks were actually run.
 - Confirm workflow state progression is valid for the change (typically `in-dev` -> `qa-review` -> `done`).
 - Confirm `History.md` was updated when the change should be reflected in release notes.
-- Confirm documentation was updated when needed (README.md and TUTORIAL.md for setup, usage, behavior, or screenshot changes).
+- Confirm documentation was updated when needed (README.md and docs/TUTORIAL.md for setup, usage, behavior, or screenshot changes).
 - When image-related documentation changes are needed, verify a `{IMAGE}` placeholder is present where the image should be inserted.
 - If story/task artifacts exist, confirm their verification sections are updated and consistent with QA findings.
 - Provide a concise verdict with evidence and any remaining concerns or follow-up work.

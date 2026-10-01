@@ -1,0 +1,61 @@
+{
+  "name": "@invoice-builder/renderer",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/modifiers": "^9.0.0",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@invoice-builder/contracts": "*",
+    "@monaco-editor/react": "^4.7.0",
+    "@mui/icons-material": "^9.4.0",
+    "@mui/material": "^9.4.0",
+    "@mui/x-date-pickers": "^9.7.0",
+    "@react-pdf/renderer": "^4.9.0",
+    "@reduxjs/toolkit": "^2.12.0",
+    "date-fns": "^4.1.0",
+    "dayjs": "^1.11.21",
+    "exceljs": "^4.4.0",
+    "file-saver": "^2.0.5",
+    "i18next": "^26.0.8",
+    "i18next-browser-languagedetector": "^8.2.1",
+    "mui-color-input": "^9.0.0",
+    "pako": "^3.0.1",
+    "pdf-lib": "^1.17.1",
+    "react": "^19.2.6",
+    "react-dom": "^19.3.0",
+    "react-error-boundary": "^6.1.1",
+    "react-i18next": "^17.0.15",
+    "react-image-crop": "^11.1.1",
+    "react-number-format": "^5.4.5",
+    "react-redux": "^9.3.0",
+    "react-router-dom": "^7.18.3",
+    "react-signature-canvas": "^1.1.0-alpha.2",
+    "recharts": "^3.8.0",
+    "uuid": "^14.0.0"
+  },
+  "devDependencies": {
+    "@emotion/jest": "^11.14.2",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/file-saver": "^2.0.7",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.3.0",
+    "@types/redux-mock-store": "^1.5.0",
+    "@vitejs/plugin-react": "^6.0.5",
+    "msw": "^2.12.14",
+    "redux-mock-store": "^1.5.5",
+    "vite": "^8.3.1"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "msw": {
+    "workerDirectory": "public"
+  }
+}

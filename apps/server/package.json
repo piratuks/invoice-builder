@@ -1,0 +1,25 @@
+{
+  "name": "@invoice-builder/server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "dependencies": {
+    "@invoice-builder/core": "*",
+    "@invoice-builder/contracts": "*",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.7.0",
+    "multer": "^2.3.0",
+    "pako": "^3.0.1"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/multer": "^2.1.0",
+    "tsx": "^4.23.13"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsx --watch main.ts"
+  }
+}

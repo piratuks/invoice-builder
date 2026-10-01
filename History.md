@@ -1,5 +1,7 @@
 # Invoice Builder
 
+## [Date], version [Version]
+
 ## 2026-09-30, version 3.0.4
 
 Bug fixes
@@ -83,7 +85,7 @@ New features & improvements
 - Added Classic, Modern, and Compact layouts as built-in layouts, with archived legacy-compatible layouts for existing documents.
 - Added layout selection to invoice and quote page setup, with layout snapshots preserving the structure of historical documents.
 - Added individual layout JSON export for reusing and transferring saved layouts.
-- Added [LAYOUT.md](LAYOUT.md), documenting the layout JSON structure, supported variations, usage, and limitations.
+- Added [LAYOUT.md](docs/LAYOUT.md), documenting the layout JSON structure, supported variations, usage, and limitations.
 
 Bug fixes
 
