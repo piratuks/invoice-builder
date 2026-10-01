@@ -228,7 +228,7 @@ export const Menu: FC<Props> = ({
           isSelected: false,
           isToggle: false,
           onClick: () => {
-            getApi().openUrl('https://github.com/piratuks/invoice-builder/blob/main/docs/guides/tutorial/index.md');
+            getApi().openUrl('https://github.com/piratuks/invoice-builder/blob/main/docs/guides/index.md');
           }
         },
         {

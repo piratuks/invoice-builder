@@ -16,7 +16,27 @@ const sidebars: SidebarsConfig = {
       label: 'Guides',
       link: { type: 'doc', id: 'guides/index' },
       collapsible: false,
-      items: []
+      items: [
+        'guides/getting-started',
+        'guides/settings',
+        'guides/common-patterns',
+        'guides/businesses',
+        'guides/banks',
+        'guides/presets',
+        'guides/clients',
+        'guides/categories',
+        'guides/units',
+        'guides/currencies',
+        'guides/items',
+        'guides/style-profiles',
+        'guides/layouts-screen',
+        'guides/quotes',
+        'guides/invoices',
+        'guides/reports',
+        'guides/e-invoices',
+        'guides/LAYOUT',
+        'guides/layouts/index'
+      ]
     }
   ],
   development: [

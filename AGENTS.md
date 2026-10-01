@@ -29,7 +29,7 @@ Use this workflow for:
 - Documentation website (Docusaurus, builds docs/ content): apps/website
 - Shared backend services, database infrastructure, and migrations: packages/core
 - Shared public DTOs, enums, and IPC contracts: packages/contracts
-- Documentation and example assets: docs/guides/tutorial
+- Documentation and example assets: docs/guides (screenshots live in docs/guides/tutorial)
 - End-to-end tests: e2e/desktop and e2e/web
 - Root orchestration: Docker, packaging, releases, and cross-workspace scripts
 
@@ -92,7 +92,7 @@ Rule of thumb:
 - Use [.github/prompts/bmad-qa.prompt.md](.github/prompts/bmad-qa.prompt.md) for review and verification.
 - Use [.github/prompts/bmad-delivery.prompt.md](.github/prompts/bmad-delivery.prompt.md) for release planning, sequencing, and dependency-aware delivery slices.
 - Use [.github/prompts/bmad-scrum.prompt.md](.github/prompts/bmad-scrum.prompt.md) for sprint-level planning and daily execution cadence.
-- Custom agents in [.github/agents](.github/agents) back each role — invoke them directly as `po`, `dev`, `qa`, `delivery`, and `scrum`.
+- Custom agents in [.github/agents](.github/agents) back each role - invoke them directly as `po`, `dev`, `qa`, `delivery`, and `scrum`.
 
 ## Lightweight artifacts
 

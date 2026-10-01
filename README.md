@@ -100,7 +100,7 @@ If you value **privacy, portability, and control**, this app is built for you.
 - Layouts and Visual Layout Builder for importing, creating, editing, and exporting V1/V2 invoice PDF compositions without manually writing JSON, with nested regions, sidebars, landscape layouts, rows, columns, grids, drag-and-drop, keyboard actions, undo/redo, live preview, and controlled content flow
 - Layout JSON controls section order, visibility, header composition, supported block placement, spacing, table sizing, and page-level regions
 - Export individual layouts as reusable JSON files
-- See [Layout JSON reference](docs/guides/tutorial/LAYOUT.md) for the complete layout JSON structure and usage guide
+- See [Layout JSON reference](docs/guides/LAYOUT.md) for the complete layout JSON structure and usage guide
 - Show quantity, unit, and row number in the PDF item table
 - Custom header sections and custom values in the PDF item table
 - Ability to reorder all columns/headers in the PDF item table

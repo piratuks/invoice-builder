@@ -55,7 +55,7 @@ Important patterns and conventions
   - Both Electron and the webserver consume core through `@invoice-builder/core` subpath imports.
 - Database & migrations:
   - Migrations live in `packages/core/src/migrations` and are built into `dist-migrations`. Use `npm run build:migrations` for CI packaging.
-  - The app uses SQLite (`sqlite3`). Be careful when changing schema—migrations need to run in a controlled order.
+  - The app uses SQLite (`sqlite3`). Be careful when changing schema-migrations need to run in a controlled order.
 
 Files to inspect for changes
 ----------------------------
