@@ -6,7 +6,7 @@
   "dependencies": {
     "@invoice-builder/contracts": "*",
     "@invoice-builder/core": "*",
-    "dotenv": "^17.3.1",
+    "dotenv": "^18.0.5",
     "electron-updater": "^6.8.3"
   },
   "devDependencies": {
