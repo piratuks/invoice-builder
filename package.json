@@ -118,7 +118,7 @@
   "devDependencies": {
     "@eslint/js": "^9.39.2",
     "@playwright/test": "^1.63.0",
-    "@types/node": "^26.4.0",
+    "@types/node": "^26.6.4",
     "@vitejs/plugin-react": "^6.0.5",
     "@vitest/coverage-v8": "^5.0.0",
     "concurrently": "^10.0.3",
