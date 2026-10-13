@@ -121,7 +121,7 @@
     "@types/node": "^26.6.4",
     "@vitejs/plugin-react": "^6.0.5",
     "@vitest/coverage-v8": "^5.0.0",
-    "concurrently": "^10.0.3",
+    "concurrently": "^10.0.6",
     "electron": "^44.2.0",
     "electron-builder": "^26.8.1",
     "electronmon": "^2.0.4",
