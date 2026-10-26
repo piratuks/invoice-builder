@@ -37,7 +37,10 @@ describe('validators.sortCode', () => {
 describe('validators.accountNumber', () => {
   it('validates alphanumeric account numbers', () => {
     expect(validators.accountNumber('AB12 3456')).toBe(true);
+    expect(validators.accountNumber('273195763/0300')).toBe(true);
+    expect(validators.accountNumber('273195763 / 0300')).toBe(true);
     expect(validators.accountNumber('AB')).toBe(false);
+    expect(validators.accountNumber('273195763/03!0')).toBe(false);
     expect(validators.accountNumber('')).toBe(false);
   });
 });

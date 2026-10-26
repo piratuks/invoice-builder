@@ -3,11 +3,12 @@ slug: /changelog
 title: Changelog
 ---
 
-## [DATE], version [VERSION]
+## 2026-10-26, version 3.2.0
 
 New features & improvements
 
 - Added Czech language support.
+- Allowed forward slashes in bank account numbers to support Czech domestic formats such as `273195763/0300`.
 
 ## 2026-10-02, version 3.1.2
 

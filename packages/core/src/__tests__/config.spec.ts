@@ -22,7 +22,7 @@ describe('getBackendConfig', () => {
       migrationsPath: path.resolve('project', 'dist-migrations'),
       cleanupIntervalMs: 60_000,
       sessionTtlMs: 1_800_000,
-      version: '3.1.2'
+      version: '3.2.0'
     });
   });
 

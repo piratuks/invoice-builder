@@ -23,6 +23,6 @@ export const getBackendConfig = (environment: NodeJS.ProcessEnv = process.env, w
     migrationsPath: environment.MIGRATIONS_PATH || path.resolve(workingDirectory, 'dist-migrations'),
     cleanupIntervalMs: numberFromEnvironment(environment.WEBSERVER_CLEANUP_INTERVAL_MS, 60_000),
     sessionTtlMs: numberFromEnvironment(environment.WEBSERVER_SESSION_TTL_MS, 30 * 60 * 1000),
-    version: '3.1.2'
+    version: '3.2.0'
   }
 });
