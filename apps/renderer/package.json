@@ -11,7 +11,7 @@
     "@emotion/styled": "^11.14.0",
     "@invoice-builder/contracts": "*",
     "@monaco-editor/react": "^4.7.0",
-    "@mui/icons-material": "^9.4.0",
+    "@mui/icons-material": "^9.5.0",
     "@mui/material": "^9.4.0",
     "@mui/x-date-pickers": "^9.7.0",
     "@react-pdf/renderer": "^4.9.0",
