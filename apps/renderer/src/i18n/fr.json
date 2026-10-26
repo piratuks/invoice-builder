@@ -119,7 +119,7 @@
   "common": {
     "accountHolder": "Titulaire du compte",
     "accountNumber": "Numéro de compte",
-    "accountNumberInvalid": "Le numéro de compte doit contenir 4 à 34 caractères et uniquement des lettres, des chiffres ou des tirets.",
+    "accountNumberInvalid": "Le numéro de compte doit contenir 4 à 34 caractères et uniquement des lettres, des chiffres, des tirets ou des barres obliques (/).",
     "addDB": "Ajouter une base de données",
     "additional": "Supplémentaire",
     "address": "Adresse",

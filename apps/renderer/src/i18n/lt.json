@@ -119,7 +119,7 @@
   "common": {
     "accountHolder": "Sąskaitos savininkas",
     "accountNumber": "Sąskaitos numeris",
-    "accountNumberInvalid": "Sąskaitos numeris turi būti 4–34 simbolių ilgio ir gali sudaryti tik raidės, skaičiai arba brūkšneliai.",
+    "accountNumberInvalid": "Sąskaitos numeris turi būti 4–34 simbolių ilgio ir jį gali sudaryti tik raidės, skaičiai, brūkšneliai arba pasvirieji brūkšniai (/).",
     "addDB": "Pridėti duomenų bazę",
     "additional": "Papildoma informacija",
     "address": "Adresas",

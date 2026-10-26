@@ -119,7 +119,7 @@
   "common": {
     "accountHolder": "Kontoinhaber",
     "accountNumber": "Kontonummer",
-    "accountNumberInvalid": "Die Kontonummer muss 4–34 Zeichen lang sein und darf nur Buchstaben, Zahlen oder Bindestriche enthalten.",
+    "accountNumberInvalid": "Die Kontonummer muss 4–34 Zeichen lang sein und darf nur Buchstaben, Zahlen, Bindestriche oder Schrägstriche (/) enthalten.",
     "addDB": "Datenbank hinzufügen",
     "additional": "Zusätzlich",
     "address": "Adresse",

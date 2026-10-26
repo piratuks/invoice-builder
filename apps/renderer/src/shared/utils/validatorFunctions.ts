@@ -14,7 +14,7 @@ export const validators = {
 
     const cleaned = v.replace(/\s+/g, '');
 
-    return /^[A-Z0-9/\\-]{4,34}$/i.test(cleaned);
+    return /^[A-Z0-9/-]{4,34}$/i.test(cleaned);
   },
   swift: (v: string) => /^[A-Z0-9]{8}([A-Z0-9]{3})?$/.test(v.toUpperCase()),
   routingNumber: (v: string) => /^\d{9}$/.test(v),

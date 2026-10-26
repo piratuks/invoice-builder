@@ -119,7 +119,7 @@
   "common": {
     "accountHolder": "Vlastník účtu",
     "accountNumber": "Číslo účtu",
-    "accountNumberInvalid": "Číslo účtu musí mít 4–34 znaků a obsahovat pouze písmena, číslice nebo pomlčky",
+    "accountNumberInvalid": "Číslo účtu musí mít 4–34 znaků a obsahovat pouze písmena, číslice, pomlčky nebo lomítka (/)",
     "addDB": "Přidat databázi",
     "additional": "Dodatečné",
     "address": "Adresa",

@@ -119,7 +119,7 @@
   "common": {
     "accountHolder": "Account holder",
     "accountNumber": "Account number",
-    "accountNumberInvalid": "Account number must be 4–34 characters and contain only letters, numbers, or hyphens",
+    "accountNumberInvalid": "Account number must be 4–34 characters and contain only letters, numbers, hyphens, or forward slashes (/)",
     "addDB": "Add Database",
     "additional": "Additional",
     "address": "Address",

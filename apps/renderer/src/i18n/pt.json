@@ -119,7 +119,7 @@
   "common": {
     "accountHolder": "Titular da conta",
     "accountNumber": "Número da conta",
-    "accountNumberInvalid": "O número da conta deve ter de 4 a 34 caracteres e conter apenas letras, números ou hífens",
+    "accountNumberInvalid": "O número da conta deve ter de 4 a 34 caracteres e conter apenas letras, números, hífens ou barras (/)",
     "addDB": "Adicionar banco de dados",
     "additional": "Adicional",
     "address": "Endereço",

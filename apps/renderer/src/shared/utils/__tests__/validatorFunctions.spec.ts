@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { validateOnlyNumbersLetters, validators } from '../validatorFunctions';
 
 describe('validators.email', () => {
@@ -35,13 +35,29 @@ describe('validators.sortCode', () => {
 });
 
 describe('validators.accountNumber', () => {
-  it('validates alphanumeric account numbers', () => {
+  it('validates account numbers with letters, numbers, forward slashes, hyphens and whitespace', () => {
     expect(validators.accountNumber('AB12 3456')).toBe(true);
+    expect(validators.accountNumber('ab12-3456')).toBe(true);
+    expect(validators.accountNumber('19-273195763/0300')).toBe(true);
     expect(validators.accountNumber('273195763/0300')).toBe(true);
     expect(validators.accountNumber('273195763 / 0300')).toBe(true);
     expect(validators.accountNumber('AB')).toBe(false);
     expect(validators.accountNumber('273195763/03!0')).toBe(false);
     expect(validators.accountNumber('')).toBe(false);
+  });
+
+  it.each(['AB\\1234', '273195763\\0300', 'AB_1234', 'AB.1234', 'AB:1234', '   '])(
+    'rejects unsupported account number %j',
+    value => {
+      expect(validators.accountNumber(value)).toBe(false);
+    }
+  );
+
+  it('enforces the 4-34 character limit after removing whitespace', () => {
+    expect(validators.accountNumber('A / 1')).toBe(false);
+    expect(validators.accountNumber('A / 1 -')).toBe(true);
+    expect(validators.accountNumber(` ${'A'.repeat(33)} / `)).toBe(true);
+    expect(validators.accountNumber(` ${'A'.repeat(34)} / `)).toBe(false);
   });
 });
 
