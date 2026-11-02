@@ -130,7 +130,7 @@
   "devDependencies": {
     "@eslint/js": "^9.39.2",
     "@playwright/test": "^1.64.0",
-    "@types/node": "^26.6.4",
+    "@types/node": "^26.6.6",
     "@vitejs/plugin-react": "^6.1.2",
     "@vitest/coverage-v8": "^5.0.0",
     "concurrently": "^10.0.6",
