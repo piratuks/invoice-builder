@@ -527,6 +527,7 @@
     "addRegion": "Region hinzufügen",
     "addSection": "Abschnitt hinzufügen",
     "align": "Ausrichtung",
+    "textAlign": "Textausrichtung (Standard)",
     "boxed": "Umrahmt",
     "defaultValue": "Standard",
     "disabled": "Deaktiviert",

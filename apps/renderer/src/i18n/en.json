@@ -527,6 +527,7 @@
     "addRegion": "Add region",
     "addSection": "Add section",
     "align": "Alignment",
+    "textAlign": "Text alignment (default)",
     "boxed": "Boxed",
     "defaultValue": "Default",
     "disabled": "Disabled",

@@ -342,3 +342,70 @@ describe('V2 PDF layout rendering', () => {
     expect(contents.every(content => content.length > 0)).toBe(true);
   }, 20_000);
 });
+
+describe.each([SizeType.small, SizeType.medium, SizeType.large])('PDF header text alignment with %s font', fontSize => {
+  it.each(['left', 'center', 'right', undefined] as const)('generates a PDF with textAlign=%s', async textAlign => {
+    const layoutSchema: LayoutSchemaV2 = {
+      schemaVersion: 2,
+      meta: { name: 'Header alignment' },
+      regions: [
+        {
+          id: 'main',
+          width: '100%',
+          direction: 'column',
+          blocks: [
+            {
+              type: 'row',
+              children: [
+                { type: 'businessInfo', width: '50%', textAlign },
+                {
+                  type: 'invoiceMeta',
+                  width: '50%',
+                  textAlign,
+                  showTitle: true,
+                  showInvoiceLabel: true
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    };
+
+    const schemaBeforeRender = JSON.stringify(layoutSchema);
+
+    expect(parseLayoutSchema(schemaBeforeRender).errors).toEqual([]);
+
+    const document = await renderPdf(layoutSchema, {
+      invoicePrefix: 'INV-',
+      invoiceNumber: '2026-1234567890-1234567890',
+      issuedAt: '2026-01-15',
+      dueDate: '2026-02-15',
+      invoiceItems: [],
+      invoiceBusinessSnapshot: {
+        businessName: 'Example Consulting and Engineering Company',
+        businessShortName: 'Example',
+        businessAddress: '12 Example Street\nBuilding B, second floor\n75001 Paris',
+        businessEmail: 'contact@example.com',
+        businessPhone: '+33 1 23 45 67 89'
+      },
+      invoiceCustomization: {
+        pageFormat: PageFormat.a4,
+        fontFamily: FontFamily.roboto,
+        fontSize,
+        fieldSortOrders: {
+          no: 1,
+          item: 2,
+          unit: 3,
+          quantity: 4,
+          unitCost: 5,
+          total: 6
+        }
+      }
+    });
+
+    expect(document.getPageCount()).toBe(1);
+    expect(pageContent(document, 0).length).toBeGreaterThan(0);
+    expect(JSON.stringify(layoutSchema)).toBe(schemaBeforeRender);
+  });
+});

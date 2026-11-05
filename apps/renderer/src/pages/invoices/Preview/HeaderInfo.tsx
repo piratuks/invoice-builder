@@ -76,7 +76,7 @@ const HeaderInfoComponent: FC<Props> = ({ invoiceForm, storeSettings, logoUrl, p
       case 'businessInfo':
         return (
           <View key={key} style={style}>
-            <BusinessInfo invoiceForm={invoiceForm} />
+            <BusinessInfo invoiceForm={invoiceForm} textAlign={block.textAlign} />
           </View>
         );
       case 'clientInfo':
@@ -93,6 +93,7 @@ const HeaderInfoComponent: FC<Props> = ({ invoiceForm, storeSettings, logoUrl, p
               invoiceForm={invoiceForm}
               showTitle={block.showTitle}
               showInvoiceLabel={block.showInvoiceLabel}
+              textAlign={block.textAlign}
               labels={{
                 invoiceNoLabel: pdfTexts.invoiceNo,
                 quoteNoLabel: pdfTexts.quoteNo,

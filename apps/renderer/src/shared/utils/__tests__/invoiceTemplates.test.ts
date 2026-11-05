@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
 import { parseLayoutSchema, validHeaderBlockTypes, validTotalsRowBlockTypes } from '@invoice-builder/contracts';
+import { describe, expect, it } from 'vitest';
 
 import {
   addHeaderBlock,
@@ -465,5 +465,63 @@ describe('invoice template schema', () => {
 
     expect(validTotalsRow.errors).toEqual([]);
     expect(invalidTotalsRow.errors.map(error => error.path)).toContain('sections[0].totalsBlocks[0].type');
+  });
+});
+describe.each([1, 2])('header text alignment in schema V%i', schemaVersion => {
+  const parseBlock = (block: Record<string, unknown>) =>
+    parseLayoutSchema(
+      JSON.stringify({
+        schemaVersion,
+        meta: { name: 'Text alignment test' },
+        ...(schemaVersion === 1
+          ? {
+              sections: [{ type: 'header', visible: true, blocks: [block] }]
+            }
+          : {
+              regions: [{ id: 'main', width: '100%', direction: 'column', blocks: [block] }]
+            })
+      })
+    );
+
+  const propertyPath = schemaVersion === 1 ? 'sections[0].blocks[0].textAlign' : 'regions[0].blocks[0].textAlign';
+
+  describe.each(['businessInfo', 'invoiceMeta'])('%s', type => {
+    it.each(['left', 'center', 'right'])('accepts textAlign=%s', textAlign => {
+      const result = parseBlock({ type, textAlign });
+
+      expect(result.errors).toEqual([]);
+      expect(result.schema).toBeDefined();
+    });
+
+    it('accepts an existing block without textAlign', () => {
+      const result = parseBlock({ type });
+
+      expect(result.errors).toEqual([]);
+      expect(result.schema).toBeDefined();
+    });
+
+    it.each(['start', 'end', 'justify', '', null, 42, true])('rejects textAlign=%j', textAlign => {
+      const result = parseBlock({ type, textAlign });
+
+      expect(result.schema).toBeUndefined();
+      expect(result.errors).toMatchObject([
+        {
+          path: propertyPath,
+          message: 'layouts.validation.unsupportedValue'
+        }
+      ]);
+    });
+  });
+
+  it.each(['title', 'logo', 'clientInfo', 'paymentInfo'])('rejects textAlign on %s', type => {
+    const result = parseBlock({ type, textAlign: 'center' });
+
+    expect(result.schema).toBeUndefined();
+    expect(result.errors).toMatchObject([
+      {
+        path: propertyPath,
+        message: 'layouts.validation.unknownProperty'
+      }
+    ]);
   });
 });
