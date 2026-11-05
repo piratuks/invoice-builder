@@ -1,3 +1,11 @@
+import type { HeaderBlock, LayoutNode, LayoutSchemaV2, LayoutSectionType } from '@invoice-builder/contracts';
+import {
+  MAX_LAYOUT_NESTING_DEPTH,
+  MAX_LAYOUT_NODE_COUNT,
+  validHeaderBlockTextAlignments,
+  validHeaderBooleanProperties,
+  validV2ContainerNodeTypes
+} from '@invoice-builder/contracts';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
@@ -16,13 +24,6 @@ import {
   type SelectChangeEvent
 } from '@mui/material';
 import { useState, type ReactNode } from 'react';
-import type { HeaderBlock, LayoutNode, LayoutSchemaV2, LayoutSectionType } from '@invoice-builder/contracts';
-import {
-  MAX_LAYOUT_NESTING_DEPTH,
-  MAX_LAYOUT_NODE_COUNT,
-  validHeaderBooleanProperties,
-  validV2ContainerNodeTypes
-} from '@invoice-builder/contracts';
 
 import {
   supportedHeaderBlockAlignments,
@@ -243,6 +244,24 @@ export const V2LayoutBuilder = ({
             'layouts.align',
             supportedHeaderBlockAlignments
           )}
+          {(block.type === 'businessInfo' || block.type === 'invoiceMeta') &&
+            field(
+              block.textAlign ?? '',
+              event =>
+                update(current =>
+                  current.type === 'block'
+                    ? {
+                        ...current,
+                        block: {
+                          ...current.block,
+                          textAlign: (event.target.value || undefined) as HeaderBlock['textAlign']
+                        }
+                      }
+                    : current
+                ),
+              'layouts.textAlign',
+              validHeaderBlockTextAlignments
+            )}
           {field(
             String(block.gap ?? ''),
             event =>

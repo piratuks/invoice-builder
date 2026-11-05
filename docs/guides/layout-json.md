@@ -133,6 +133,7 @@ The Visual tab exposes the same values accepted by the schema validator. The lab
 | Section node          | `watermark`, `header`, `itemsTable`, `financialTotals`, `paymentInfo`, `totalsRow`, `notes`, `signature`, `pageCounter` | Adds the selected invoice section as a V2 node. Section types already used anywhere in the layout are removed from the palette because each section type may occur only once. |
 | Block width           | `20%`, `40%`, `50%`, `60%`, `100%`                                                                                      | Sets a header block's width within a row. The empty/default choice leaves width unset.                                                                                        |
 | Block alignment       | `start`, `center`, `end`                                                                                                | Aligns the block's content within its available space.                                                                                                                        |
+| Text alignment | `left`, `center`, `right` | Available for `businessInfo` and `invoiceMeta`. The default choice removes `textAlign` and preserves the existing rendering behavior. |
 | Gap                   | `5`, `10`                                                                                                               | Sets the spacing between children. The empty/default choice leaves the schema property unset.                                                                                 |
 | Padding               | `paddingTop`: `10`, `20`; `paddingBottom`: `20`                                                                         | Adds supported spacing before or after a header block. Empty choices leave the property unset.                                                                                |
 | Payment source        | `bank`, `legacyBusiness`                                                                                                | Chooses the bank snapshot or legacy business payment information for a payment block.                                                                                         |
@@ -312,6 +313,7 @@ Container block types:
 | `children`         | Array of header blocks                       | `row`, `column` only.                             |
 | `width`            | `"20%"`, `"40%"`, `"50%"`, `"60%"`, `"100%"` | Any block used in a row.                          |
 | `align`            | `"start"`, `"center"`, `"end"`               | Header blocks.                                    |
+| `textAlign`        | `"left"`, `"center"`, `"right"`              | `businessInfo` and `invoiceMeta` only.            |
 | `justify`          | `"between"`                                  | Rows.                                             |
 | `paddingTop`       | `10`, `20`                                   | Header blocks.                                    |
 | `paddingBottom`    | `20`                                         | Header blocks.                                    |
@@ -322,6 +324,65 @@ Container block types:
 | `paymentSource`    | `"bank"`, `"legacyBusiness"`                 | `paymentInfo`.                                    |
 
 `row` and `column` blocks must include a `children` array. Leaf blocks cannot include `children`.
+
+### Header text alignment
+
+The optional `textAlign` property controls text alignment inside `businessInfo`
+and `invoiceMeta` blocks. It accepts `"left"`, `"center"`, or `"right"`.
+
+The existing `align` property controls container alignment. It remains separate
+from `textAlign`, which controls text within the available block width.
+
+When `textAlign` is omitted, existing rendering behavior is preserved:
+business information starts on the left, and invoice metadata is aligned to
+the right. Existing layouts do not need to be updated.
+
+For `invoiceMeta`, the option applies to the number, dates, labels, and the
+title when `showTitle` is enabled.
+
+The property is supported in both V1 and V2 schemas. The V2 Visual Builder
+exposes it in the properties of these two blocks. Choosing
+**Text alignment (default)** removes the property from the saved JSON.
+
+The following V2 example defines a two-column header with centered business
+information and left-aligned invoice metadata:
+
+```json
+{
+  "schemaVersion": 2,
+  "meta": { "name": "Header text alignment" },
+  "regions": [
+    {
+      "id": "main",
+      "width": "100%",
+      "direction": "column",
+      "blocks": [
+        {
+          "type": "row",
+          "children": [
+            {
+              "type": "businessInfo",
+              "width": "50%",
+              "textAlign": "center"
+            },
+            {
+              "type": "invoiceMeta",
+              "width": "50%",
+              "textAlign": "left",
+              "showTitle": true,
+              "showInvoiceLabel": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+Other block types cannot use `textAlign`. Unsupported values, including
+`"start"`, `"end"`, `"justify"`, an empty string, and `null`, are rejected.
+Omit the property to retain the default behavior.
 
 ## Complete Example
 

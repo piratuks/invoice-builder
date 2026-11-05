@@ -1,15 +1,19 @@
-import type { InvoiceFromData } from '../../../shared/types/formData';
+import type { HeaderBlock } from '@invoice-builder/contracts';
 import { Text, View } from '@react-pdf/renderer';
 import { memo, type FC } from 'react';
+import type { InvoiceFromData } from '../../../shared/types/formData';
 
 import { DEFAULT_FONT_SIZES, FONT_SIZES, PDF_STYLES } from './constant';
 
 interface Props {
   invoiceForm?: InvoiceFromData;
+  textAlign?: HeaderBlock['textAlign'];
 }
-const BusinessInfoComponent: FC<Props> = ({ invoiceForm }) => {
+const BusinessInfoComponent: FC<Props> = ({ invoiceForm, textAlign }) => {
   return (
-    <View style={[PDF_STYLES.gap4, PDF_STYLES.alignStart]}>
+    <View
+      style={[PDF_STYLES.gap4, textAlign ? { width: '100%', alignItems: 'stretch', textAlign } : PDF_STYLES.alignStart]}
+    >
       <Text
         style={[
           PDF_STYLES.business,

@@ -1,6 +1,6 @@
+import { parseLayoutSchema } from '@invoice-builder/contracts';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { parseLayoutSchema } from '@invoice-builder/contracts';
 
 import { LayoutBuilder } from '../LayoutBuilder';
 
@@ -392,5 +392,86 @@ describe('V2 LayoutBuilder controls', () => {
     fireEvent.keyDown(resetNameField, { key: 'Enter' });
     fireEvent.blur(resetNameField);
     expect(latestSchema(view.onSchemaChange)?.regions[0].id).toBe('content');
+  });
+});
+describe('V2 header text alignment controls', () => {
+  it.each(['businessInfo', 'invoiceMeta'])('updates and clears textAlign on %s', type => {
+    const view = renderBuilder({
+      schemaVersion: 2,
+      meta: { name: 'Text alignment controls' },
+      regions: [
+        {
+          id: 'main',
+          width: '100%',
+          direction: 'column',
+          children: [
+            {
+              type: 'block',
+              block: { type, width: '50%', align: 'end' }
+            }
+          ]
+        }
+      ]
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'layouts.properties' }));
+
+    const choose = (currentLabel: string, option: string) => {
+      const blockNode = screen.getByText(type).closest('[role="treeitem"]') as HTMLElement;
+      const select = within(blockNode).getByText(currentLabel).closest('[role="combobox"]');
+
+      expect(select).not.toBeNull();
+      fireEvent.mouseDown(select!);
+      fireEvent.click(within(screen.getByRole('listbox')).getByRole('option', { name: option }));
+
+      const schema = latestSchema(view.onSchemaChange);
+      expect(schema).toBeDefined();
+      view.rerender(schema);
+
+      return schema?.regions[0].children?.[0];
+    };
+
+    let currentLabel = 'layouts.textAlign';
+
+    for (const textAlign of ['left', 'center', 'right']) {
+      const node = choose(currentLabel, textAlign);
+
+      expect(node).toEqual({
+        type: 'block',
+        block: { type, width: '50%', align: 'end', textAlign }
+      });
+
+      currentLabel = textAlign;
+    }
+
+    const resetNode = choose(currentLabel, 'layouts.textAlign');
+
+    expect(resetNode).toEqual({
+      type: 'block',
+      block: { type, width: '50%', align: 'end' }
+    });
+
+    const blockNode = screen.getByText(type).closest('[role="treeitem"]') as HTMLElement;
+    expect(within(blockNode).getByText('layouts.textAlign')).toBeInTheDocument();
+  });
+
+  it.each(['title', 'logo', 'clientInfo', 'paymentInfo'])('does not offer textAlign on %s', type => {
+    renderBuilder({
+      schemaVersion: 2,
+      meta: { name: 'Other block properties' },
+      regions: [
+        {
+          id: 'main',
+          width: '100%',
+          direction: 'column',
+          children: [{ type: 'block', block: { type } }]
+        }
+      ]
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'layouts.properties' }));
+
+    expect(screen.getByText('layouts.align')).toBeInTheDocument();
+    expect(screen.queryByText('layouts.textAlign')).not.toBeInTheDocument();
   });
 });

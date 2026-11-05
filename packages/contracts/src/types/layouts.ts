@@ -24,6 +24,7 @@ export interface HeaderBlock {
   children?: HeaderBlock[];
   width?: '20%' | '40%' | '50%' | '60%' | '100%';
   align?: 'start' | 'center' | 'end';
+  textAlign?: 'left' | 'center' | 'right';
   justify?: 'between';
   paddingTop?: 10 | 20;
   paddingBottom?: 20;
@@ -151,6 +152,7 @@ export const validRegionWidths: RegionWidth[] = [
 export const validRegionOverflows: RegionOverflow[] = ['continue', 'keepTogether'];
 export const validHeaderBlockWidths: NonNullable<HeaderBlock['width']>[] = ['20%', '40%', '50%', '60%', '100%'];
 export const validHeaderBlockAlignments: NonNullable<HeaderBlock['align']>[] = ['start', 'center', 'end'];
+export const validHeaderBlockTextAlignments: NonNullable<HeaderBlock['textAlign']>[] = ['left', 'center', 'right'];
 export const validHeaderBlockGaps: NonNullable<HeaderBlock['gap']>[] = [5, 10];
 export const validHeaderBlockPaddingTops: NonNullable<HeaderBlock['paddingTop']>[] = [10, 20];
 export const validHeaderBlockPaddingBottoms: NonNullable<HeaderBlock['paddingBottom']>[] = [20];
@@ -204,6 +206,7 @@ const validateHeaderBlocks = (value: unknown, path: string, errors: LayoutValida
         'width',
         'align',
         'justify',
+        ...(block.type === 'businessInfo' || block.type === 'invoiceMeta' ? ['textAlign'] : []),
         'paddingTop',
         'paddingBottom',
         'gap',
@@ -219,6 +222,7 @@ const validateHeaderBlocks = (value: unknown, path: string, errors: LayoutValida
       errors.push({ path: `${blockPath}.type`, message: 'layouts.validation.headerType' });
     enumValue(block.width, ['20%', '40%', '50%', '60%', '100%'], `${blockPath}.width`, errors);
     enumValue(block.align, ['start', 'center', 'end'], `${blockPath}.align`, errors);
+    enumValue(block.textAlign, validHeaderBlockTextAlignments, `${blockPath}.textAlign`, errors);
     enumValue(block.justify, ['between'], `${blockPath}.justify`, errors);
     enumValue(block.paymentSource, ['bank', 'legacyBusiness'], `${blockPath}.paymentSource`, errors);
     [block.paddingTop, block.paddingBottom, block.gap].forEach(item => {
