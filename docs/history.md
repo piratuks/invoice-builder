@@ -3,6 +3,12 @@ slug: /changelog
 title: Changelog
 ---
 
+## [DATE], version [VERSION]
+
+New features & improvements
+
+- Added optional text alignment controls for business information and invoice metadata in V1/V2 layouts and the V2 Visual Builder.
+
 ## 2026-10-26, version 3.2.1
 
 Bug Fixes
