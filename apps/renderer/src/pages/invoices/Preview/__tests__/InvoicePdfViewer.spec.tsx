@@ -126,6 +126,42 @@ describe('InvoicePdfViewer', () => {
     render(<InvoicePdfViewer>{makeDocument(true)}</InvoicePdfViewer>, { wrapper });
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Unable to generate this PDF.');
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
     expect(URL.createObjectURL).not.toHaveBeenCalled();
+  });
+
+  it('shows loading initially and while regenerating the preview', async () => {
+    let resolveRender!: (blob: Blob) => void;
+
+    vi.mocked(renderPdfDocument).mockImplementation(
+      () =>
+        new Promise<Blob>(resolve => {
+          resolveRender = resolve;
+        })
+    );
+
+    const { rerender } = render(<InvoicePdfViewer>{makeDocument(true)}</InvoicePdfViewer>, { wrapper });
+
+    expect(screen.getByRole('progressbar')).toBeInTheDocument();
+    expect(screen.queryByTitle(i18n.t('ariaLabel.preview'))).not.toBeInTheDocument();
+
+    await act(async () => {
+      resolveRender(new Blob(['first-pdf'], { type: 'application/pdf' }));
+    });
+
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+    expect(screen.getByTitle(i18n.t('ariaLabel.preview'))).toBeInTheDocument();
+
+    rerender(<InvoicePdfViewer>{makeDocument(true)}</InvoicePdfViewer>);
+
+    expect(screen.getByRole('progressbar')).toBeInTheDocument();
+    expect(screen.queryByTitle(i18n.t('ariaLabel.preview'))).not.toBeInTheDocument();
+
+    await act(async () => {
+      resolveRender(new Blob(['updated-pdf'], { type: 'application/pdf' }));
+    });
+
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+    expect(screen.getByTitle(i18n.t('ariaLabel.preview'))).toBeInTheDocument();
   });
 });

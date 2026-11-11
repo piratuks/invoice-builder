@@ -4,6 +4,9 @@ import type { PDFDocument } from './PDFDocument';
 
 type InvoicePdfElement = ReactElement<ComponentProps<typeof PDFDocument>>;
 
+// Private layout API verified with @react-pdf/renderer 4.9.0 and
+// @react-pdf/layout 5.2.0. Re-run v2PdfLayout.test.tsx when upgrading
+// either dependency to check row measurement and pagination.
 interface MeasuredNode {
   type?: string;
   props?: {
@@ -98,8 +101,7 @@ export const renderPdfDocument = async (document: InvoicePdfElement): Promise<Bl
       measureItemRows: true,
       splittableItemRowIds: undefined,
       onRender: result => {
-        // React-pdf exposes geometry through an internal callback field.
-        // Recheck this integration when upgrading the PDF renderer.
+        // Private renderer contract documented above MeasuredNode.
         const layout = (
           result as {
             _INTERNAL__LAYOUT__DATA_?: MeasuredNode;

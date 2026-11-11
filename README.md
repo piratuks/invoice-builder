@@ -30,7 +30,6 @@ Invoice Builder is an **offline-first, open-source invoicing and quoting applica
 ## What it does
 
 - Create and manage **Invoices** and **Quotes** with live PDF preview, A4/Letter formats, and a drag-and-drop Visual Layout Builder
-- Optionally display saved item descriptions beneath item names in invoice and quote PDFs
 - Manage Businesses, Clients, Banks, Items, Categories, Units, and Currencies, each with XLSX import/export
 - Flexible financials: surcharges, discounts, shipping, inclusive/exclusive tax, partial payments, and document states
 - Export invoices as UBL 2.1 / Peppol BIS Billing 3.0 or XRechnung XML for compliant e-invoicing

@@ -529,10 +529,21 @@ vi.mock('../Dropdowns/StyleProfilesDropdown', () => ({
   StyleProfilesDropdown: ({ onClick, onClose, onOpen }: MockDropdownProps) => (
     <div>
       <DropdownControls name="style" onClose={onClose} onOpen={onOpen} />
-      <button type="button" onClick={() => onClick({ id: 4, layoutId: 5, name: 'Brand', color: '#123456' })}>
+      <button
+        type="button"
+        onClick={() =>
+          onClick({
+            id: 4,
+            layoutId: 5,
+            name: 'Brand',
+            color: '#123456',
+            showItemDescriptions: false
+          })
+        }
+      >
         select-style
       </button>
-      {[undefined, false, true].map(enabled => (
+      {[false, true].map(enabled => (
         <button
           key={String(enabled)}
           type="button"
@@ -1079,35 +1090,32 @@ describe('InvoiceForm branching behaviors', () => {
     expect(screen.getByTestId('last-item-description')).toHaveTextContent('none');
   });
 
-  it.each([undefined, false, true])(
-    'applies description visibility %s from a selected style profile',
-    async enabled => {
-      const user = userEvent.setup();
+  it.each([false, true])('applies description visibility %s from a selected style profile', async enabled => {
+    const user = userEvent.setup();
 
-      const initial: InvoiceFromData = {
-        ...baseForm,
-        invoiceCustomization: {
-          showItemDescriptions: !(enabled ?? false),
-          fieldSortOrders: {
-            no: 0,
-            item: 1,
-            unit: 2,
-            quantity: 3,
-            unitCost: 4,
-            total: 5
-          }
+    const initial: InvoiceFromData = {
+      ...baseForm,
+      invoiceCustomization: {
+        showItemDescriptions: !enabled,
+        fieldSortOrders: {
+          no: 0,
+          item: 1,
+          unit: 2,
+          quantity: 3,
+          unitCost: 4,
+          total: 5
         }
-      };
+      }
+    };
 
-      render(<InvoiceFormHarness initial={initial} />, { wrapper });
+    render(<InvoiceFormHarness initial={initial} />, { wrapper });
 
-      await user.click(
-        screen.getByRole('button', {
-          name: `select-description-style-${String(enabled)}`
-        })
-      );
+    await user.click(
+      screen.getByRole('button', {
+        name: `select-description-style-${String(enabled)}`
+      })
+    );
 
-      expect(screen.getByTestId('description-visibility')).toHaveTextContent(String(enabled ?? false));
-    }
-  );
+    expect(screen.getByTestId('description-visibility')).toHaveTextContent(String(enabled));
+  });
 });
