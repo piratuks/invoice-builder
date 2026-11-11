@@ -1,8 +1,8 @@
-import { describe, beforeEach, afterEach, it, expect, vi } from 'vitest';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import sqlite3 from 'sqlite3';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getTableColumns, isTableExists } from '../../utils/dbHelper';
 import { createSqliteAdapter } from '../client';
 import { initSchema, openPostgreSql, openSqlLite, testPostgresConnection } from '../setup';
@@ -170,6 +170,63 @@ describe('initSchema invoice item quantity', () => {
     expect((await getTableColumns(db, 'invoice_customizations')).map(column => column.name)).not.toContain('layout');
     expect((await getTableColumns(db, 'invoice_items')).map(column => column.name)).toContain('customField');
     await db.close();
+  });
+});
+
+describe('initSchema item descriptions', () => {
+  it.each(['style_profiles', 'invoice_customizations'])(
+    'creates a required, default-off description setting in %s',
+    async table => {
+      const db = createSqliteAdapter(new sqlite3.Database(':memory:'));
+
+      try {
+        await initSchema(db);
+
+        const column = await db.get<{
+          type: string;
+          notnull: number;
+          dflt_value: string | null;
+        }>(
+          `SELECT type, "notnull", dflt_value
+           FROM pragma_table_info('${table}')
+           WHERE name = 'showItemDescriptions'`
+        );
+
+        expect(column).toEqual({
+          type: 'INTEGER',
+          notnull: 1,
+          dflt_value: '0'
+        });
+      } finally {
+        await db.close();
+      }
+    }
+  );
+
+  it('allows item snapshots without a description', async () => {
+    const db = createSqliteAdapter(new sqlite3.Database(':memory:'));
+
+    try {
+      await initSchema(db);
+
+      const column = await db.get<{
+        type: string;
+        notnull: number;
+        dflt_value: string | null;
+      }>(
+        `SELECT type, "notnull", dflt_value
+         FROM pragma_table_info('invoice_item_snapshots')
+         WHERE name = 'itemDescription'`
+      );
+
+      expect(column).toEqual({
+        type: 'TEXT',
+        notnull: 0,
+        dflt_value: null
+      });
+    } finally {
+      await db.close();
+    }
   });
 });
 

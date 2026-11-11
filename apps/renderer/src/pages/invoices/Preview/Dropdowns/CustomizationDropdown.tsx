@@ -1,11 +1,11 @@
-import type { StyleProfileFromData } from '../../../../shared/types/formData';
+import type { Language } from '@invoice-builder/contracts';
+import { FontFamily } from '@invoice-builder/contracts';
 import { Box, Button, SwipeableDrawer, useMediaQuery, useTheme } from '@mui/material';
 import { memo, useCallback, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CustomizationLayout } from '../../../../shared/components/layout/customizationLayout/CustomizationLayout';
 import { PageHeader } from '../../../../shared/components/layout/pageHeader/PageHeader';
-import type { Language } from '@invoice-builder/contracts';
-import { FontFamily } from '@invoice-builder/contracts';
+import type { StyleProfileFromData } from '../../../../shared/types/formData';
 
 import { useForm } from '../../../../shared/hooks/form/useForm';
 import type { CustomizationForm } from '../../../../shared/types/invoice';
@@ -81,6 +81,7 @@ const CustomizationDropdownComponent: FC<Props> = ({
                 showQuantity: data?.showQuantity ?? true,
                 showUnit: data?.showUnit ?? true,
                 showRowNo: data?.showRowNo ?? true,
+                showItemDescriptions: data?.showItemDescriptions ?? false,
                 fieldSortOrders: data?.fieldSortOrders ?? DEFAULT_TABLE_FIELD_SORT_ORDERS,
                 pdfTexts: data?.pdfTexts
               });
@@ -109,6 +110,7 @@ const CustomizationDropdownComponent: FC<Props> = ({
                 showQuantity: form?.showQuantity ?? true,
                 showUnit: form?.showUnit ?? true,
                 showRowNo: form?.showRowNo ?? true,
+                showItemDescriptions: form?.showItemDescriptions ?? false,
                 fieldSortOrders: form?.fieldSortOrders ?? DEFAULT_TABLE_FIELD_SORT_ORDERS,
                 pdfTexts: form?.pdfTexts
               });

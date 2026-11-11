@@ -9,7 +9,7 @@ import type {
 } from '@invoice-builder/contracts';
 import { InvoiceStatus } from '@invoice-builder/contracts';
 import { Document, Font, Image, Page, Text, View } from '@react-pdf/renderer';
-import { Fragment, memo, useMemo, type FC, type ReactNode } from 'react';
+import { Fragment, memo, useMemo, type ComponentProps, type FC, type ReactNode } from 'react';
 import type { InvoiceFromData } from '../../../shared/types/formData';
 
 import type { AttachmentURL, PdfTexts } from '../../../shared/types/invoice';
@@ -120,6 +120,9 @@ interface Props {
   layoutRequired: string;
   watermarkUrl?: string;
   watermarkPaidUrl?: string;
+  splittableItemRowIds?: ReadonlySet<string>;
+  measureItemRows?: boolean;
+  onRender?: ComponentProps<typeof Document>['onRender'];
 }
 const PDFDocumentComponent: FC<Props> = ({
   invoiceForm,
@@ -131,7 +134,10 @@ const PDFDocumentComponent: FC<Props> = ({
   pdfTexts,
   layoutRequired,
   watermarkUrl,
-  watermarkPaidUrl
+  watermarkPaidUrl,
+  splittableItemRowIds,
+  onRender,
+  measureItemRows = false
 }) => {
   const templateLayout = invoiceForm?.invoiceLayoutSnapshot?.layoutSchema;
   const templateSections = templateLayout?.schemaVersion === 1 ? (templateLayout.sections ?? []) : [];
@@ -189,6 +195,7 @@ const PDFDocumentComponent: FC<Props> = ({
               taxLabel: pdfTexts.taxLabel,
               discountLabel: pdfTexts.discountLabel
             }}
+            splittableItemRowIds={splittableItemRowIds}
           />
         );
       case 'financialTotals':
@@ -383,9 +390,10 @@ const PDFDocumentComponent: FC<Props> = ({
   };
 
   return (
-    <Document>
+    <Document onRender={onRender}>
       <Page
         size={invoiceForm?.invoiceCustomization?.pageFormat}
+        wrap={!measureItemRows}
         orientation={templateLayout?.schemaVersion === 2 ? templateLayout.orientation : undefined}
         style={[
           PDF_STYLES.page,

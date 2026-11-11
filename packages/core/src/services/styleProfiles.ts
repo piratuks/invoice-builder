@@ -30,6 +30,7 @@ const styleProfileFields: (keyof StyleProfileRow)[] = [
   'showQuantity',
   'showUnit',
   'showRowNo',
+  'showItemDescriptions',
   'fieldSortOrders',
   'pdfTexts'
 ];
@@ -89,6 +90,7 @@ export const addStyleProfile = async (
   });
   const result = await handle({
     ...data,
+    showItemDescriptions: data.showItemDescriptions ?? false,
     fieldSortOrders: JSON.stringify(data.fieldSortOrders),
     pdfTexts: JSON.stringify(data.pdfTexts)
   });
@@ -126,6 +128,7 @@ export const updateStyleProfile = async (
   const result = await handle(
     {
       ...data,
+      showItemDescriptions: data.showItemDescriptions ?? false,
       fieldSortOrders: JSON.stringify(data.fieldSortOrders),
       pdfTexts: JSON.stringify(data.pdfTexts)
     },
@@ -173,6 +176,7 @@ export const batchAddStyleProfile = async (db: DatabaseAdapter, data: EntityInpu
     for (const row of data) {
       const result = await handle({
         ...row,
+        showItemDescriptions: row.showItemDescriptions ?? false,
         fieldSortOrders:
           typeof row.fieldSortOrders === 'string' ? row.fieldSortOrders : JSON.stringify(row.fieldSortOrders),
         pdfTexts: typeof row.pdfTexts === 'string' ? row.pdfTexts : JSON.stringify(row.pdfTexts)

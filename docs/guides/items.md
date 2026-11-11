@@ -20,6 +20,12 @@ The item amount is always recorded in the selected currency. The currency is att
 
 ![Items creation](images/item-creation.jpg)
 
+## Descriptions on invoices and quotes
+
+An item's optional **Description** is copied into each invoice or quote line when the item is added. To display it in the PDF, enable **Show item descriptions** under the document's **Customization → Table** settings.
+
+Changing the catalog description affects newly added lines. Existing lines retain their saved descriptions, even when the same catalog item is added again.
+
 ## Editing / deleting an Item
 
 Each item also shows the number of invoices and quotes created with it (quotes count is hidden if the layout is disabled in settings).

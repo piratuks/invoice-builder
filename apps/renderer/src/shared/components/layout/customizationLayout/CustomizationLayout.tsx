@@ -1,7 +1,7 @@
+import type { Language } from '@invoice-builder/contracts';
 import { Box, Tab, Tabs } from '@mui/material';
 import { useCallback, useEffect, useMemo, useRef, useState, type FC, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { Language } from '@invoice-builder/contracts';
 
 import { useForm } from '../../../hooks/form/useForm';
 import type {
@@ -88,6 +88,7 @@ export const CustomizationLayout: FC<Props> = ({
       showQuantity: data?.showQuantity,
       showUnit: data?.showUnit,
       showRowNo: data?.showRowNo,
+      showItemDescriptions: data?.showItemDescriptions ?? false,
       fieldSortOrders: data?.fieldSortOrders,
       customField: data?.customField
     };

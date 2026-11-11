@@ -133,6 +133,7 @@ export interface CustomizationFormTable {
   showQuantity?: boolean;
   showUnit?: boolean;
   showRowNo?: boolean;
+  showItemDescriptions?: boolean;
   fieldSortOrders?: SortOrder;
   customField?: CustomField[];
 }
@@ -162,6 +163,7 @@ export interface CustomizationForm {
   showQuantity?: boolean;
   showUnit?: boolean;
   showRowNo?: boolean;
+  showItemDescriptions?: boolean;
   fieldSortOrders?: SortOrder;
   pdfTexts?: PDFText;
   customField?: CustomField[];

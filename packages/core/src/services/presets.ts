@@ -146,6 +146,7 @@ const getPresets = async (db: DatabaseAdapter, options: GetPresetsOptions) => {
           sp."showQuantity" as "styleProfileShowQuantity",
           sp."showUnit" as "styleProfileShowUnit",
           sp."showRowNo" as "styleProfileShowRowNo",
+          sp."showItemDescriptions" as "styleProfileShowItemDescriptions",
           sp."fieldSortOrders" as "styleProfileFieldSortOrders",          
           sp."pdfTexts" as "styleProfilePdfTexts",       
           sp."watermarkFileName" as "styleProfileWatermarkFileName",

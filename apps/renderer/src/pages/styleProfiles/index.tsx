@@ -1,3 +1,5 @@
+import type { StyleProfile, StyleProfileAdd, StyleProfileUpdate } from '@invoice-builder/contracts';
+import { FilterType } from '@invoice-builder/contracts';
 import { useTranslation } from 'react-i18next';
 import {
   useAddStyleProfileMutation,
@@ -7,8 +9,6 @@ import {
   useUpdateStyleProfileMutation
 } from '../../shared/api/styleProfilesApi';
 import { CRUDPageRTK } from '../../shared/components/layout/crudPage/CRUDPageRTK';
-import type { StyleProfile, StyleProfileAdd, StyleProfileUpdate } from '@invoice-builder/contracts';
-import { FilterType } from '@invoice-builder/contracts';
 
 import type { Rows } from '../../shared/types/excel';
 import type { Filter } from '../../shared/types/filter';
@@ -41,6 +41,7 @@ export const StyleProfilesPage = () => {
     'showQuantity',
     'showUnit',
     'showRowNo',
+    'showItemDescriptions',
     'fieldSortOrders',
     'pdfTexts'
   ];
@@ -61,6 +62,7 @@ export const StyleProfilesPage = () => {
       showQuantity: true,
       showUnit: true,
       showRowNo: true,
+      showItemDescriptions: false,
       fieldSortOrders: `{"total":0,"no":1,"item":2,"unit":3,"quantity":4,"unitCost":5}`,
       pdfTexts: `{"billTo":"Billing","invoiceNo":"Number"}`
     }

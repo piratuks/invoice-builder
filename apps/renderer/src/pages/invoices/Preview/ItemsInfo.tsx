@@ -2,7 +2,7 @@ import type { ColumnSizing, CustomField, Settings } from '@invoice-builder/contr
 import { TableHeaderStyle, TableRowStyle } from '@invoice-builder/contracts';
 import { Text, View } from '@react-pdf/renderer';
 import type { Style } from '@react-pdf/types';
-import { memo, useMemo, type FC } from 'react';
+import { memo, useId, useMemo, type FC } from 'react';
 import type { InvoiceFromData } from '../../../shared/types/formData';
 
 import { getItemFinancialData } from '../../../shared/utils/invoiceFunctions';
@@ -31,10 +31,17 @@ interface Props {
   storeSettings?: Settings;
   labels: PropsLabels;
   columnSizing?: ColumnSizing;
+  splittableItemRowIds?: ReadonlySet<string>;
 }
-const ItemsInfoComponent: FC<Props> = ({ invoiceForm, storeSettings, labels, columnSizing = 'fixedFlex' }) => {
+const ItemsInfoComponent: FC<Props> = ({
+  invoiceForm,
+  storeSettings,
+  labels,
+  columnSizing = 'fixedFlex',
+  splittableItemRowIds
+}) => {
+  const tableId = useId();
   const { itemLabel, unitLabel, qtyLabel, unitCostLabel, totalLabel, taxLabel, discountLabel } = labels;
-
   const customFields = useMemo(() => {
     const fields =
       invoiceForm?.invoiceItems
@@ -424,8 +431,10 @@ const ItemsInfoComponent: FC<Props> = ({ invoiceForm, storeSettings, labels, col
       </View>
       {invoiceForm?.invoiceItems?.map((item, index1) => {
         const { quantity, taxType, taxRate, invoiceItemSnapshot, customField } = item;
-        const { unitPriceCents = '0', itemName, unitName } = invoiceItemSnapshot;
-
+        const { unitPriceCents = '0', itemName, itemDescription, unitName } = invoiceItemSnapshot;
+        const showDescription =
+          invoiceForm?.invoiceCustomization?.showItemDescriptions === true && Boolean(itemDescription?.trim());
+        const rowId = `invoice-description-row-${tableId}-${index1}`;
         const { formattedUnitPrice, formattedTotal, formattedTax, formattedItemDiscountAmount, itemDiscountAmount } =
           getItemFinancialData({
             storeSettings,
@@ -446,7 +455,8 @@ const ItemsInfoComponent: FC<Props> = ({ invoiceForm, storeSettings, labels, col
         return (
           <View
             key={`invoice-item-prev-${item.itemId}-${index1}`}
-            wrap={false}
+            id={showDescription ? rowId : undefined}
+            wrap={showDescription && splittableItemRowIds?.has(rowId) === true}
             style={[
               PDF_STYLES.row,
               {
@@ -505,6 +515,21 @@ const ItemsInfoComponent: FC<Props> = ({ invoiceForm, storeSettings, labels, col
                       >
                         {itemName}
                       </Text>
+                      {showDescription && (
+                        <Text
+                          style={[
+                            PDF_STYLES.tableCellSubtle,
+                            {
+                              fontSize:
+                                FONT_SIZES[invoiceForm?.invoiceCustomization?.fontSize ?? DEFAULT_FONT_SIZES]
+                                  .tableCellSubtle,
+                              marginTop: 2
+                            }
+                          ]}
+                        >
+                          {itemDescription}
+                        </Text>
+                      )}
                       {taxType && (
                         <>
                           {itemDiscountAmount > 0 && (

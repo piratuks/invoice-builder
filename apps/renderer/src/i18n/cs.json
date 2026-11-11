@@ -257,6 +257,7 @@
     "shortName": "Krátký název",
     "shortNameHelper": "Maximálně 2 znaky",
     "showQuantity": "Zobrazit množství",
+    "showItemDescriptions": "Zobrazit popisy položek",
     "showRowNo": "Zobrazit číslo řádku",
     "showUnit": "Zobrazit jednotku",
     "signature": "Podpis",

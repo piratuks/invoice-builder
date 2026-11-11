@@ -1,4 +1,3 @@
-import { describe, beforeEach, it, expect, vi } from 'vitest';
 import type { Invoice, Preset } from '@invoice-builder/contracts';
 import {
   AmountFormat,
@@ -17,6 +16,7 @@ import type { ReactNode } from 'react';
 import { I18nextProvider } from 'react-i18next';
 import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router-dom';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import i18n from '../../../i18n';
 
 import { InvoiceFormMode } from '../../../shared/enums/invoiceFormMode';
@@ -318,5 +318,38 @@ describe('invoices Form wrapper', () => {
     await user.click(await findSaveProfileButton());
     await waitFor(() => expect(styleProfileMocks.trigger).toHaveBeenCalledTimes(2));
     await waitFor(() => expect(store.getState().pageSlice.toasts.at(-1)?.message).toBe(i18n.t('error.failedToLoad')));
+  });
+
+  it.each([InvoiceType.invoice, InvoiceType.quotation])(
+    'disables item descriptions by default for a new %s',
+    async type => {
+      render(<Form type={type} mode={InvoiceFormMode.edit} />, { wrapper });
+
+      await waitFor(() => {
+        expect(mockInvoiceForm.mock.calls.at(-1)?.[0]?.invoiceCustomization?.showItemDescriptions).toBe(false);
+      });
+    }
+  );
+
+  it.each([undefined, false, true])('applies preset item-description visibility %s', async enabled => {
+    const preset: Preset = {
+      id: 10,
+      name: 'Description preset',
+      styleProfilesId: 20,
+      styleProfileName: 'Description profile',
+      styleProfileShowItemDescriptions: enabled,
+      isArchived: false,
+      createdAt: '',
+      updatedAt: ''
+    };
+
+    render(<Form type={InvoiceType.invoice} mode={InvoiceFormMode.edit} preset={preset} />, { wrapper });
+
+    await waitFor(() => {
+      const form = mockInvoiceForm.mock.calls.at(-1)?.[0];
+
+      expect(form?.invoiceStyleProfileSnapshot?.styleProfileName).toBe('Description profile');
+      expect(form?.invoiceCustomization?.showItemDescriptions).toBe(enabled ?? false);
+    });
   });
 });

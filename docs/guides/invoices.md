@@ -258,6 +258,18 @@ Attachments and business logo snapshots are **not included** in the export.
 - Sections with zero values (**Surcharge**, **Discount**, **Tax**, **Shipping fees**) are **hidden** in the PDF.
 - **Save as Profile** button will create style profile item with these customization presets for futher usage on other quotes.
 
+### Item descriptions
+
+Enable **Show item descriptions** under **Customization → Table** to display descriptions below item names. The option is disabled by default. Items without a description do not gain an empty description line.
+
+Each item line saves the catalog description when the item is added to the document. Later catalog edits do not change existing lines. Adding the item again captures its current description.
+
+Existing lines created before this feature have no saved description. Enabling the option does not populate them from the catalog. To use the current catalog description, remove the line and add the item again, restoring any quantity, tax, or other adjustments.
+
+The visibility setting is saved with the document and can also be saved in a style profile or applied through a preset.
+
+Rows that fit on a full page stay together and move to the next page when necessary. A row taller than a full page can split across pages. Long descriptions require a layout that allows the item table to continue across pages.
+
 ![Invoices customized option 1](images/invoice-pdf-customization-1.jpg)
 ![Invoices customized option 2](images/invoice-pdf-customization-2.jpg)
 ![Invoices customized option 3](images/invoice-pdf-customization-3.jpg)

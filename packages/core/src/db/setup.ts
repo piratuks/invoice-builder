@@ -1,9 +1,9 @@
+import type { PostgresConfig } from '@invoice-builder/contracts';
+import { DatabaseType } from '@invoice-builder/contracts';
 import fs from 'fs';
 import path from 'path';
 import { Client } from 'pg';
 import sqlite3 from 'sqlite3';
-import type { PostgresConfig } from '@invoice-builder/contracts';
-import { DatabaseType } from '@invoice-builder/contracts';
 
 import type { DatabaseAdapter } from '../types/DatabaseAdapter';
 
@@ -284,6 +284,7 @@ export const initSchema = async (db: DatabaseAdapter): Promise<void> => {
       "showQuantity" INTEGER NOT NULL DEFAULT 1 CHECK ("showQuantity" IN (0,1)),
       "showUnit" INTEGER NOT NULL DEFAULT 1 CHECK ("showUnit" IN (0,1)),
       "showRowNo" INTEGER NOT NULL DEFAULT 1 CHECK ("showRowNo" IN (0,1)),
+      "showItemDescriptions" INTEGER NOT NULL DEFAULT 0 CHECK ("showItemDescriptions" IN (0,1)),
       "fieldSortOrders" TEXT NOT NULL DEFAULT '{"no":0,"item":1,"unit":2,"quantity":3,"unitCost":4,"total":5}',
       "watermarkFileName" TEXT,
       "watermarkFileType" TEXT,
@@ -567,6 +568,7 @@ export const initSchema = async (db: DatabaseAdapter): Promise<void> => {
       "showQuantity" INTEGER NOT NULL DEFAULT 1 CHECK ("showQuantity" IN (0,1)),
       "showUnit" INTEGER NOT NULL DEFAULT 1 CHECK ("showUnit" IN (0,1)),
       "showRowNo" INTEGER NOT NULL DEFAULT 1 CHECK ("showRowNo" IN (0,1)),
+      "showItemDescriptions" INTEGER NOT NULL DEFAULT 0 CHECK ("showItemDescriptions" IN (0,1)),
       "fieldSortOrders" TEXT NOT NULL DEFAULT '{"no":0,"item":1,"unit":2,"quantity":3,"unitCost":4,"total":5}',
       "fontFamily" TEXT NOT NULL DEFAULT 'Roboto',
       "pdfTexts" TEXT,
@@ -598,6 +600,7 @@ export const initSchema = async (db: DatabaseAdapter): Promise<void> => {
       "id" ${getColumnType('INTEGER PRIMARY KEY AUTOINCREMENT', db.type)},
       "parentInvoiceItemId" INTEGER NOT NULL,
       "itemName" TEXT NOT NULL,
+      "itemDescription" TEXT,
       "unitPriceCents" TEXT NOT NULL DEFAULT '0',
       "unitName" TEXT,
       "createdAt" ${getColumnType('DATETIME', db.type)} NOT NULL DEFAULT ${getDefaultValue("(datetime('now'))", db.type)},

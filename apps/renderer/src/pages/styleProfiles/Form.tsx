@@ -1,10 +1,10 @@
-import type { StyleProfileFromData } from '../../shared/types/formData';
+import type { StyleProfile } from '@invoice-builder/contracts';
+import { FontFamily } from '@invoice-builder/contracts';
 import { FormControlLabel, Grid, Switch, TextField } from '@mui/material';
 import { useCallback, useEffect, useMemo, useRef, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CustomizationLayout } from '../../shared/components/layout/customizationLayout/CustomizationLayout';
-import type { StyleProfile } from '@invoice-builder/contracts';
-import { FontFamily } from '@invoice-builder/contracts';
+import type { StyleProfileFromData } from '../../shared/types/formData';
 
 import { useForm } from '../../shared/hooks/form/useForm';
 import { useFormDirtyCheck } from '../../shared/hooks/form/useFormDirtyCheck';
@@ -48,6 +48,7 @@ export const Form: FC<Props> = ({ handleChange = () => {}, styleProfile }) => {
     showQuantity: styleProfile?.showQuantity ?? true,
     showUnit: styleProfile?.showUnit ?? true,
     showRowNo: styleProfile?.showRowNo ?? true,
+    showItemDescriptions: styleProfile?.showItemDescriptions ?? false,
     fieldSortOrders: styleProfile?.fieldSortOrders ?? DEFAULT_TABLE_FIELD_SORT_ORDERS,
     pdfTexts: styleProfile?.pdfTexts
   });
@@ -83,6 +84,7 @@ export const Form: FC<Props> = ({ handleChange = () => {}, styleProfile }) => {
         showQuantity: newData?.showQuantity ?? true,
         showUnit: newData?.showUnit ?? true,
         showRowNo: newData?.showRowNo ?? true,
+        showItemDescriptions: newData?.showItemDescriptions ?? false,
         fieldSortOrders: newData?.fieldSortOrders ?? DEFAULT_TABLE_FIELD_SORT_ORDERS,
         pdfTexts: newData?.pdfTexts
       });
@@ -121,6 +123,7 @@ export const Form: FC<Props> = ({ handleChange = () => {}, styleProfile }) => {
       showQuantity: form?.showQuantity ?? true,
       showUnit: form?.showUnit ?? true,
       showRowNo: form?.showRowNo ?? true,
+      showItemDescriptions: form?.showItemDescriptions ?? false,
       fieldSortOrders: form?.fieldSortOrders ?? DEFAULT_TABLE_FIELD_SORT_ORDERS,
       pdfTexts: form?.pdfTexts
     };
@@ -154,6 +157,7 @@ export const Form: FC<Props> = ({ handleChange = () => {}, styleProfile }) => {
       showQuantity: styleProfile?.showQuantity ?? true,
       showUnit: styleProfile?.showUnit ?? true,
       showRowNo: styleProfile?.showRowNo ?? true,
+      showItemDescriptions: styleProfile?.showItemDescriptions ?? false,
       fieldSortOrders: styleProfile?.fieldSortOrders ?? DEFAULT_TABLE_FIELD_SORT_ORDERS,
       pdfTexts: styleProfile?.pdfTexts
     };

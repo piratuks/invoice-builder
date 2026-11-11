@@ -8,6 +8,7 @@ title: Changelog
 New features & improvements
 
 - Added optional text alignment controls for business information and invoice metadata in V1/V2 layouts and the V2 Visual Builder.
+- Added optional item descriptions below invoice and quote item names, disabled by default. Descriptions are saved with each item line, supported by style profiles and presets, and can continue across PDF pages when a row exceeds one page.
 
 ## 2026-10-26, version 3.2.1
 

@@ -1,12 +1,12 @@
-import type { InvoiceFromData } from '../../types/formData';
-import { pdf } from '@react-pdf/renderer';
+import type { Settings } from '@invoice-builder/contracts';
+import { InvoiceType } from '@invoice-builder/contracts';
 import { parseISO } from 'date-fns';
 import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PDFDocument } from '../../../pages/invoices/Preview/PDFDocument';
+import { renderPdfDocument } from '../../../pages/invoices/Preview/renderPdfDocument';
 import { MONTH_NAMES } from '../../../state/constant';
-import type { Settings } from '@invoice-builder/contracts';
-import { InvoiceType } from '@invoice-builder/contracts';
+import type { InvoiceFromData } from '../../types/formData';
 
 import type { AttachmentURL, PdfTexts } from '../../types/invoice';
 
@@ -116,7 +116,7 @@ export const createPdfBlob = async (
   const signatureUrl = await getSignatureUrls(invoiceForm);
   const qrCodeUrl = await getQRCodeUrls(invoiceForm);
 
-  const blob = await pdf(
+  return renderPdfDocument(
     <PDFDocument
       invoiceForm={invoiceForm}
       storeSettings={storeSettings}
@@ -129,9 +129,7 @@ export const createPdfBlob = async (
       watermarkPaidUrl={watermarkPaidUrl}
       signatureUrl={signatureUrl}
     />
-  ).toBlob();
-
-  return blob;
+  );
 };
 
 export const getPDFFilename = (invoiceForm: InvoiceFromData, storeSettings: Settings) => {

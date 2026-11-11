@@ -320,6 +320,7 @@ const InvoiceFormComponent: FC<Props> = ({
             showQuantity: data.showQuantity,
             showUnit: data.showUnit,
             showRowNo: data.showRowNo,
+            showItemDescriptions: data.showItemDescriptions ?? false,
             fieldSortOrders: data.fieldSortOrders,
             pdfTexts: data.pdfTexts
           }
@@ -449,6 +450,7 @@ const InvoiceFormComponent: FC<Props> = ({
         invoiceItemSnapshot: {
           parentInvoiceItemId: newItemID,
           itemName: item.name,
+          itemDescription: item.description ?? null,
           unitName: item.unitName,
           unitPriceCents: unitPriceCents.toString()
         },

@@ -113,6 +113,7 @@ const InvoiceFormComponent: FC<Props> = ({
               showQuantity: true,
               showUnit: true,
               showRowNo: true,
+              showItemDescriptions: false,
               fieldSortOrders: DEFAULT_TABLE_FIELD_SORT_ORDERS,
               pdfTexts: undefined
             }
@@ -292,6 +293,7 @@ const InvoiceFormComponent: FC<Props> = ({
                 showQuantity: preset.styleProfileShowQuantity ?? current.invoiceCustomization?.showQuantity,
                 showUnit: preset.styleProfileShowUnit ?? current.invoiceCustomization?.showUnit,
                 showRowNo: preset.styleProfileShowRowNo ?? current.invoiceCustomization?.showRowNo,
+                showItemDescriptions: preset.styleProfileShowItemDescriptions ?? false,
                 fieldSortOrders:
                   preset.styleProfileFieldSortOrders ??
                   current.invoiceCustomization?.fieldSortOrders ??

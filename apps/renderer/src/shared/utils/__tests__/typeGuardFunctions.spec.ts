@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
   isBankFromData,
   isBusinessFromData,
@@ -673,5 +673,38 @@ describe('isInvoiceFromData', () => {
       ['surchargeType', 1],
       ['taxType', 1]
     ]);
+  });
+});
+
+describe('item description visibility validation', () => {
+  const validators: Array<{
+    name: string;
+    guard: (data: unknown) => boolean;
+    valid: Record<string, unknown>;
+  }> = [
+    {
+      name: 'style profile',
+      guard: isStyleProfileFromData,
+      valid: { name: 'Description profile' }
+    },
+    {
+      name: 'invoice customization',
+      guard: isInvoiceCustomizationFromData,
+      valid: {}
+    }
+  ];
+
+  describe.each(validators)('$name', ({ guard, valid }) => {
+    it('accepts older data without the setting', () => {
+      expect(guard(valid)).toBe(true);
+    });
+
+    it.each([undefined, null, false, true])('accepts description visibility %j', showItemDescriptions => {
+      expect(guard({ ...valid, showItemDescriptions })).toBe(true);
+    });
+
+    it.each(['true', 'false', '', 0, 1, {}, []])('rejects invalid description visibility %j', showItemDescriptions => {
+      expect(guard({ ...valid, showItemDescriptions })).toBe(false);
+    });
   });
 });

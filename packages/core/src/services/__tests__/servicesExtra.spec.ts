@@ -456,3 +456,135 @@ describe('importExport service', () => {
     await expect(importAllData(failingDb, {})).resolves.toMatchObject({ success: false });
   });
 });
+
+describe('style-profile item descriptions', () => {
+  let db: DatabaseAdapter;
+  let profile: StyleProfileAdd;
+
+  beforeEach(async () => {
+    db = await createTestDatabase();
+
+    profile = {
+      name: 'Description profile',
+      isArchived: false,
+      labelUpperCase: false,
+      showQuantity: true,
+      showUnit: true,
+      showRowNo: true,
+      fieldSortOrders: {
+        no: 0,
+        item: 1,
+        unit: 2,
+        quantity: 3,
+        unitCost: 4,
+        total: 5
+      }
+    };
+  });
+
+  afterEach(async () => {
+    await db.close();
+  });
+
+  it.each([undefined, false, true])(
+    'saves visibility %s, supports toggling, and accepts older updates',
+    async enabled => {
+      const added = await addStyleProfile(db, {
+        ...profile,
+        showItemDescriptions: enabled
+      });
+
+      expect(added.success).toBe(true);
+      expect(added.data?.showItemDescriptions).toBe(enabled ?? false);
+
+      const id = added.data!.id;
+
+      const listed = await getAllStyleProfiles(db);
+
+      expect(listed.success).toBe(true);
+      expect(listed.data?.find(row => row.id === id)?.showItemDescriptions).toBe(enabled ?? false);
+
+      const toggled = await updateStyleProfile(db, {
+        ...profile,
+        id,
+        showItemDescriptions: !(enabled ?? false)
+      });
+
+      expect(toggled.success).toBe(true);
+      expect(toggled.data?.showItemDescriptions).toBe(!(enabled ?? false));
+
+      const legacyUpdate = await updateStyleProfile(db, {
+        ...profile,
+        id
+      });
+
+      expect(legacyUpdate.success).toBe(true);
+      expect(legacyUpdate.data?.showItemDescriptions).toBe(false);
+    }
+  );
+
+  it('imports older profiles as disabled and preserves explicit settings', async () => {
+    const imported = await batchAddStyleProfile(db, [
+      {
+        ...profile,
+        name: 'Legacy profile'
+      },
+      {
+        ...profile,
+        name: 'Disabled profile',
+        showItemDescriptions: false
+      },
+      {
+        ...profile,
+        name: 'Enabled profile',
+        showItemDescriptions: true
+      }
+    ]);
+
+    expect(imported.success).toBe(true);
+
+    const listed = await getAllStyleProfiles(db);
+
+    expect(listed.success).toBe(true);
+    expect(listed.data).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: 'Legacy profile',
+          showItemDescriptions: false
+        }),
+        expect.objectContaining({
+          name: 'Disabled profile',
+          showItemDescriptions: false
+        }),
+        expect.objectContaining({
+          name: 'Enabled profile',
+          showItemDescriptions: true
+        })
+      ])
+    );
+  });
+
+  it.each([false, true])('loads the linked profile visibility %s through a preset', async enabled => {
+    const added = await addStyleProfile(db, {
+      ...profile,
+      showItemDescriptions: enabled
+    });
+
+    expect(added.success).toBe(true);
+
+    const preset = await addPreset(
+      db,
+      makePreset({
+        name: 'Description preset',
+        styleProfilesId: added.data!.id
+      })
+    );
+
+    expect(preset.success).toBe(true);
+
+    const listed = await getAllPresets(db);
+
+    expect(listed.success).toBe(true);
+    expect(listed.data?.find(row => row.name === 'Description preset')?.styleProfileShowItemDescriptions).toBe(enabled);
+  });
+});

@@ -1,5 +1,3 @@
-import type { InvoiceFromData } from '../../../shared/types/formData';
-import { PDFViewer } from '@react-pdf/renderer';
 import { memo, useEffect, useMemo, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -11,9 +9,11 @@ import {
   getWatermarkUrl
 } from '../../../shared/hooks/fileExport/useExportPdf';
 import { usePdfTexts } from '../../../shared/hooks/pdf/usePdfTexts';
+import type { InvoiceFromData } from '../../../shared/types/formData';
 import type { AttachmentURL } from '../../../shared/types/invoice';
 import { useAppSelector } from '../../../state/configureStore';
 import { selectSettings } from '../../../state/pageSlice';
+import { InvoicePdfViewer } from './InvoicePdfViewer';
 import { PDFDocument } from './PDFDocument';
 
 interface Props {
@@ -78,8 +78,7 @@ const PreviewCoreComponent: FC<Props> = ({ invoiceForm }) => {
   if (!isReady) return null;
 
   return (
-    // No key here: keeping the same instance lets @react-pdf update the existing preview instead of remounting it.
-    <PDFViewer style={{ width: '100%', height: '100%', border: 'none' }} showToolbar={false}>
+    <InvoicePdfViewer>
       <PDFDocument
         invoiceForm={invoiceForm}
         storeSettings={storeSettings}
@@ -92,7 +91,7 @@ const PreviewCoreComponent: FC<Props> = ({ invoiceForm }) => {
         watermarkPaidUrl={watermarkPaidUrl}
         signatureUrl={signatureUrl}
       />
-    </PDFViewer>
+    </InvoicePdfViewer>
   );
 };
 export const PreviewCore = memo(PreviewCoreComponent);

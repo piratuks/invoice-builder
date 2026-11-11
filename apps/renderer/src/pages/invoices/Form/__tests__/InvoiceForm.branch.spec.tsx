@@ -1,12 +1,3 @@
-import { describe, beforeEach, it, expect, vi } from 'vitest';
-import type { InvoiceFromData } from '../../../../shared/types/formData';
-import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { useState, type ReactNode } from 'react';
-import { I18nextProvider } from 'react-i18next';
-import { Provider } from 'react-redux';
-import { MemoryRouter } from 'react-router-dom';
-import i18n from '../../../../i18n';
 import type { InvoiceItem } from '@invoice-builder/contracts';
 import {
   AmountFormat,
@@ -16,6 +7,15 @@ import {
   Language,
   PaymentType
 } from '@invoice-builder/contracts';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { useState, type ReactNode } from 'react';
+import { I18nextProvider } from 'react-i18next';
+import { Provider } from 'react-redux';
+import { MemoryRouter } from 'react-router-dom';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import i18n from '../../../../i18n';
+import type { InvoiceFromData } from '../../../../shared/types/formData';
 
 import { store } from '../../../../state/configureStore';
 import { setSettings } from '../../../../state/pageSlice';
@@ -382,7 +382,12 @@ vi.mock('../Dropdowns/ItemsDropdown', () => ({
       <button
         onClick={() =>
           onClick(
-            { id: 8, name: 'Added item', unitName: 'hour' },
+            {
+              id: 8,
+              name: 'Added item',
+              description: 'Detailed service description',
+              unitName: 'hour'
+            },
             { quantity: 3, unitPrice: 2, header: 'Code', value: 'A', alignment: 'right', sortOrder: 2 }
           )
         }
@@ -527,6 +532,22 @@ vi.mock('../Dropdowns/StyleProfilesDropdown', () => ({
       <button type="button" onClick={() => onClick({ id: 4, layoutId: 5, name: 'Brand', color: '#123456' })}>
         select-style
       </button>
+      {[undefined, false, true].map(enabled => (
+        <button
+          key={String(enabled)}
+          type="button"
+          onClick={() =>
+            onClick({
+              id: 4,
+              layoutId: 5,
+              name: 'Description profile',
+              showItemDescriptions: enabled
+            })
+          }
+        >
+          select-description-style-{String(enabled)}
+        </button>
+      ))}
     </div>
   )
 }));
@@ -602,10 +623,14 @@ function InvoiceFormHarness({ initial = baseForm }: { initial?: InvoiceFromData 
       <div data-testid="payment-amount">{invoiceForm?.invoicePayments?.[0]?.amountCents ?? 'none'}</div>
       <div data-testid="payment-count">{invoiceForm?.invoicePayments?.length ?? 0}</div>
       <div data-testid="item-count">{invoiceForm?.invoiceItems?.length ?? 0}</div>
+      <div data-testid="last-item-description">
+        {invoiceForm?.invoiceItems?.at(-1)?.invoiceItemSnapshot.itemDescription ?? 'none'}
+      </div>
       <div data-testid="item-quantity">{invoiceForm?.invoiceItems?.[0]?.quantity ?? 'none'}</div>
       <div data-testid="item-unit-price">
         {invoiceForm?.invoiceItems?.[0]?.invoiceItemSnapshot.unitPriceCents ?? 'none'}
       </div>
+      <div data-testid="description-visibility">{String(invoiceForm?.invoiceCustomization?.showItemDescriptions)}</div>
       <div data-testid="bank-id">{invoiceForm?.bankId ?? 'none'}</div>
       <div data-testid="style-id">{invoiceForm?.styleProfilesId ?? 'none'}</div>
       <div data-testid="language">{invoiceForm?.language}</div>
@@ -1014,4 +1039,75 @@ describe('InvoiceForm branching behaviors', () => {
     await user.click(screen.getByRole('button', { name: /cancel-item-metadata/i }));
     expect(screen.queryByRole('button', { name: /cancel-item-metadata/i })).not.toBeInTheDocument();
   });
+
+  it.each([false, true])('captures an item description when visibility is %s', async enabled => {
+    const user = userEvent.setup();
+
+    const initial: InvoiceFromData = {
+      ...baseForm,
+      invoiceCustomization: {
+        showItemDescriptions: enabled,
+        fieldSortOrders: {
+          no: 0,
+          item: 1,
+          unit: 2,
+          quantity: 3,
+          unitCost: 4,
+          total: 5
+        }
+      }
+    };
+
+    render(<InvoiceFormHarness initial={initial} />, { wrapper });
+
+    await user.click(screen.getByRole('button', { name: 'edit-items' }));
+    await user.click(screen.getByRole('button', { name: 'select-item' }));
+
+    expect(screen.getByTestId('item-count')).toHaveTextContent('2');
+    expect(screen.getByTestId('last-item-description')).toHaveTextContent('Detailed service description');
+  });
+
+  it('accepts a selected item without a description', async () => {
+    const user = userEvent.setup();
+
+    render(<InvoiceFormHarness />, { wrapper });
+
+    await user.click(screen.getByRole('button', { name: 'edit-items' }));
+    await user.click(screen.getByRole('button', { name: 'select-plain-item' }));
+
+    expect(screen.getByTestId('item-count')).toHaveTextContent('2');
+    expect(screen.getByTestId('last-item-description')).toHaveTextContent('none');
+  });
+
+  it.each([undefined, false, true])(
+    'applies description visibility %s from a selected style profile',
+    async enabled => {
+      const user = userEvent.setup();
+
+      const initial: InvoiceFromData = {
+        ...baseForm,
+        invoiceCustomization: {
+          showItemDescriptions: !(enabled ?? false),
+          fieldSortOrders: {
+            no: 0,
+            item: 1,
+            unit: 2,
+            quantity: 3,
+            unitCost: 4,
+            total: 5
+          }
+        }
+      };
+
+      render(<InvoiceFormHarness initial={initial} />, { wrapper });
+
+      await user.click(
+        screen.getByRole('button', {
+          name: `select-description-style-${String(enabled)}`
+        })
+      );
+
+      expect(screen.getByTestId('description-visibility')).toHaveTextContent(String(enabled ?? false));
+    }
+  );
 });

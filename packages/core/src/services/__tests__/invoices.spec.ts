@@ -27,6 +27,7 @@ import {
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { DatabaseAdapter } from '../../types/DatabaseAdapter';
 import type { InvoiceRow } from '../../types/invoice';
+import { exportAllData, importAllData } from '../importExport';
 import {
   addInvoice,
   deleteInvoice,
@@ -782,5 +783,215 @@ describe('invoice service errors', () => {
       run: vi.fn().mockRejectedValue(Object.assign(new Error('SQLITE_IOERR: delete failed'), { code: 'SQLITE_IOERR' }))
     } as unknown as DatabaseAdapter;
     await expect(deleteInvoice(failingDb, 1)).resolves.toMatchObject({ success: false, key: 'error.diskIOError' });
+  });
+});
+
+describe('invoice item descriptions', () => {
+  let db: DatabaseAdapter;
+  let payload: NewInvoicePayload;
+
+  beforeEach(async () => {
+    db = await createTestDatabase();
+
+    const businessId = await insertBusiness(db, 'Description Business', 'DB');
+    const clientId = await insertClient(db, 'Description Client', 'DC');
+    const currencyId = await getCurrencyId(db, 'USD');
+
+    payload = createInvoicePayload(businessId, clientId, currencyId, '100');
+    await addOptionalInvoiceData(db, payload);
+  });
+
+  afterEach(async () => {
+    await db.close();
+  });
+
+  it.each([undefined, false, true])('saves visibility %s and accepts older update payloads', async enabled => {
+    payload.invoiceCustomization!.showItemDescriptions = enabled;
+
+    const added = await addInvoice(db, payload);
+
+    expect(added.success).toBe(true);
+
+    const saved = added.data as Invoice;
+
+    expect(saved.invoiceCustomization?.showItemDescriptions).toBe(enabled ?? false);
+    expect(saved.invoiceItems[0].invoiceItemSnapshot.itemDescription).toBeNull();
+
+    const updated = await updateInvoice(db, {
+      ...saved,
+      invoiceCustomization: {
+        ...saved.invoiceCustomization!,
+        showItemDescriptions: undefined
+      }
+    });
+
+    expect(updated.success).toBe(true);
+    expect(updated.data).toMatchObject({
+      invoiceCustomization: {
+        showItemDescriptions: false
+      }
+    });
+  });
+
+  it('preserves the saved description after catalog edits and invoice updates', async () => {
+    payload.invoiceCustomization!.showItemDescriptions = true;
+    payload.invoiceItems[0].invoiceItemSnapshot.itemDescription = 'Original description';
+
+    const added = await addInvoice(db, payload);
+
+    expect(added.success).toBe(true);
+
+    const saved = added.data as Invoice;
+
+    await db.run('UPDATE items SET "description" = ? WHERE "id" = ?', [
+      'Changed catalog description',
+      payload.invoiceItems[0].itemId
+    ]);
+
+    const reloaded = await getAllInvoices(db, InvoiceType.invoice);
+
+    expect(reloaded.success).toBe(true);
+
+    const invoice = reloaded.data.find(row => row.id === saved.id);
+
+    expect(invoice?.invoiceItems[0].invoiceItemSnapshot?.itemDescription).toBe('Original description');
+
+    const updated = await updateInvoice(db, {
+      ...saved,
+      invoiceCustomization: {
+        ...saved.invoiceCustomization!,
+        showItemDescriptions: false
+      }
+    });
+
+    expect(updated.success).toBe(true);
+    expect(updated.data).toMatchObject({
+      invoiceCustomization: {
+        showItemDescriptions: false
+      },
+      invoiceItems: [
+        {
+          invoiceItemSnapshot: {
+            itemDescription: 'Original description'
+          }
+        }
+      ]
+    });
+  });
+
+  it.each([InvoiceType.invoice, InvoiceType.quotation])(
+    'preserves descriptions when copying a %s to an invoice',
+    async sourceType => {
+      payload.invoiceType = sourceType;
+      payload.invoiceCustomization!.showItemDescriptions = true;
+      payload.invoiceItems[0].invoiceItemSnapshot.itemDescription = 'Saved description';
+
+      const added = await addInvoice(db, payload);
+
+      expect(added.success).toBe(true);
+
+      const saved = added.data as Invoice;
+      const copied = await duplicateInvoice(db, saved.id, InvoiceType.invoice);
+
+      expect(copied.success).toBe(true);
+
+      const reloaded = await getAllInvoices(db, InvoiceType.invoice);
+
+      expect(reloaded.success).toBe(true);
+
+      const createdInvoices = reloaded.data.filter(invoice => invoice.id !== saved.id);
+
+      expect(createdInvoices).toHaveLength(1);
+      expect(createdInvoices[0]).toMatchObject({
+        invoiceType: InvoiceType.invoice,
+        invoiceCustomization: {
+          showItemDescriptions: true
+        },
+        invoiceItems: [
+          {
+            invoiceItemSnapshot: {
+              itemDescription: 'Saved description'
+            }
+          }
+        ]
+      });
+    }
+  );
+  it.each([
+    { label: 'enabled descriptions', enabled: true, legacy: false },
+    { label: 'hidden descriptions', enabled: false, legacy: false },
+    { label: 'an older backup', enabled: true, legacy: true }
+  ])('restores $label safely', async ({ enabled, legacy }) => {
+    const description = 'Création graphique\nMise en page du dépliant';
+
+    payload.invoiceCustomization!.showItemDescriptions = enabled;
+    payload.invoiceItems[0].invoiceItemSnapshot.itemDescription = description;
+
+    await db.run('UPDATE style_profiles SET "showItemDescriptions" = ? WHERE "id" = ?', [
+      enabled ? 1 : 0,
+      payload.styleProfilesId!
+    ]);
+
+    await db.run('UPDATE items SET "description" = ? WHERE "id" = ?', [
+      'Current catalog description',
+      payload.invoiceItems[0].itemId
+    ]);
+
+    const added = await addInvoice(db, payload);
+    expect(added.success).toBe(true);
+
+    const exported = await exportAllData(db);
+    expect(exported.success).toBe(true);
+    expect(exported.data).toBeDefined();
+    expect(exported.data?.invoiceItemSnapshots).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          itemName: 'Consulting',
+          itemDescription: description
+        })
+      ])
+    );
+
+    // Older backups contain neither the visibility fields nor snapshot descriptions.
+    const backupJson = JSON.stringify(exported.data, (key, value: unknown) => {
+      if (legacy && (key === 'showItemDescriptions' || key === 'itemDescription')) {
+        return undefined;
+      }
+
+      return value;
+    });
+
+    const backup = JSON.parse(backupJson) as Record<string, unknown>;
+    const restoredDb = await createTestDatabase();
+
+    try {
+      const imported = await importAllData(restoredDb, backup);
+      expect(imported).toEqual({ success: true });
+
+      const reloaded = await getAllInvoices(restoredDb, InvoiceType.invoice);
+      expect(reloaded.success).toBe(true);
+      expect(reloaded.data).toHaveLength(1);
+
+      const restored = reloaded.data[0];
+
+      expect(restored.invoiceCustomization?.showItemDescriptions).toBe(legacy ? false : enabled);
+      expect(restored.invoiceItems).toHaveLength(1);
+      expect(restored.invoiceItems[0].invoiceItemSnapshot?.itemDescription).toBe(legacy ? null : description);
+
+      const profile = await restoredDb.get<{
+        showItemDescriptions: boolean;
+      }>('SELECT "showItemDescriptions" FROM style_profiles WHERE "id" = ?', [payload.styleProfilesId!]);
+
+      expect(profile?.showItemDescriptions).toBe(legacy ? false : enabled);
+
+      const catalogItem = await restoredDb.get<{
+        description: string | null;
+      }>('SELECT "description" FROM items WHERE "id" = ?', [payload.invoiceItems[0].itemId]);
+
+      expect(catalogItem?.description).toBe('Current catalog description');
+      expect(await restoredDb.all('PRAGMA foreign_key_check')).toEqual([]);
+    } finally {
+      await restoredDb.close();
+    }
   });
 });

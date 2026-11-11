@@ -1,11 +1,11 @@
-import { describe, it, expect, vi } from 'vitest';
+import { Language } from '@invoice-builder/contracts';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { I18nextProvider } from 'react-i18next';
 import { Provider } from 'react-redux';
+import { describe, expect, it, vi } from 'vitest';
 import i18n from '../../../../../i18n';
-import { Language } from '@invoice-builder/contracts';
 
 import type { CustomizationForm } from '../../../../../shared/types/invoice';
 import { store } from '../../../../../state/configureStore';
@@ -17,6 +17,7 @@ type MockPageHeaderProps = {
 };
 
 type MockCustomizationLayoutProps = {
+  data?: CustomizationForm;
   onChange: (data: Record<string, unknown>) => void;
 };
 
@@ -37,10 +38,27 @@ vi.mock('../../../../../shared/components/layout/pageHeader/PageHeader', () => (
 }));
 
 vi.mock('../../../../../shared/components/layout/customizationLayout/CustomizationLayout', () => ({
-  CustomizationLayout: ({ onChange }: MockCustomizationLayoutProps) => (
-    <button type="button" onClick={() => onChange({ color: '#123456', fieldSortOrders: {} })}>
-      change-customization
-    </button>
+  CustomizationLayout: ({ data, onChange }: MockCustomizationLayoutProps) => (
+    <div>
+      <button type="button" onClick={() => onChange({ color: '#123456', fieldSortOrders: {} })}>
+        change-customization
+      </button>
+
+      {[undefined, false, true].map(enabled => (
+        <button
+          key={String(enabled)}
+          type="button"
+          onClick={() =>
+            onChange({
+              ...data,
+              showItemDescriptions: enabled
+            })
+          }
+        >
+          description-visibility-{String(enabled)}
+        </button>
+      ))}
+    </div>
   )
 }));
 
@@ -107,5 +125,78 @@ describe('CustomizationDropdown', () => {
 
     expect(onSaveProfile).toHaveBeenCalledWith(expect.objectContaining({ name: 'Brand', color: '#123456' }));
     expect(onClose).toHaveBeenCalled();
+  });
+});
+
+describe('CustomizationDropdown item descriptions', () => {
+  it.each([undefined, false, true])('saves original description visibility without editing: %j', async enabled => {
+    const user = userEvent.setup();
+    const onSaveProfile = vi.fn();
+
+    render(
+      <CustomizationDropdown
+        isOpen
+        data={{ ...data, showItemDescriptions: enabled }}
+        onSaveProfile={onSaveProfile}
+        language={Language.en}
+      />,
+      { wrapper }
+    );
+
+    await user.click(screen.getByRole('button', { name: i18n.t('common.saveAsProfile') }));
+    await user.click(screen.getByRole('button', { name: 'save-profile-name' }));
+
+    expect(onSaveProfile).toHaveBeenCalledTimes(1);
+    expect(onSaveProfile).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Brand',
+        color: '#000000',
+        showItemDescriptions: enabled ?? false
+      })
+    );
+  });
+
+  it.each([undefined, false, true])('forwards and saves edited description visibility: %j', async enabled => {
+    const user = userEvent.setup();
+    const onClick = vi.fn();
+    const onSaveProfile = vi.fn();
+
+    render(
+      <CustomizationDropdown
+        isOpen
+        data={{
+          ...data,
+          showItemDescriptions: !(enabled ?? false)
+        }}
+        onClick={onClick}
+        onSaveProfile={onSaveProfile}
+        language={Language.en}
+      />,
+      { wrapper }
+    );
+
+    await user.click(
+      screen.getByRole('button', {
+        name: `description-visibility-${String(enabled)}`
+      })
+    );
+
+    expect(onClick).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        showItemDescriptions: enabled
+      })
+    );
+
+    await user.click(screen.getByRole('button', { name: i18n.t('common.saveAsProfile') }));
+    await user.click(screen.getByRole('button', { name: 'save-profile-name' }));
+
+    expect(onSaveProfile).toHaveBeenCalledTimes(1);
+    expect(onSaveProfile).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Brand',
+        color: '#000000',
+        showItemDescriptions: enabled ?? false
+      })
+    );
   });
 });

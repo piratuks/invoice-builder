@@ -1,5 +1,7 @@
 import { closestCenter, DndContext, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import type { SortOrder } from '@invoice-builder/contracts';
+import { TableHeaderStyle, TableRowStyle } from '@invoice-builder/contracts';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import {
   FormControl,
@@ -17,8 +19,6 @@ import {
 } from '@mui/material';
 import { useEffect, useMemo, useRef, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { SortOrder } from '@invoice-builder/contracts';
-import { TableHeaderStyle, TableRowStyle } from '@invoice-builder/contracts';
 
 import { useForm } from '../../../../hooks/form/useForm';
 import type { CustomizationFormTable } from '../../../../types/invoice';
@@ -190,6 +190,19 @@ export const TableTab: FC<Props> = ({ data, value, onChange }) => {
               />
             }
             label={t('common.showUnit')}
+          />
+        </Grid>
+        <Grid size={{ xs: 12, md: 4 }}>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={form.showItemDescriptions ?? false}
+                onChange={(_e, newValue) => {
+                  update('showItemDescriptions', newValue);
+                }}
+              />
+            }
+            label={t('common.showItemDescriptions')}
           />
         </Grid>
         <Grid size={{ xs: 12, md: 12 }}>

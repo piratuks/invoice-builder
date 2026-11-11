@@ -257,6 +257,7 @@
     "shortName": "Nom court",
     "shortNameHelper": "Maximum 2 caractères",
     "showQuantity": "Afficher la quantité",
+    "showItemDescriptions": "Afficher les descriptions des articles",
     "showRowNo": "Afficher le numéro de ligne",
     "showUnit": "Afficher l’unité",
     "signature": "Signature",
