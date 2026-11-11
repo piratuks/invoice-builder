@@ -320,7 +320,7 @@ const InvoiceFormComponent: FC<Props> = ({
             showQuantity: data.showQuantity,
             showUnit: data.showUnit,
             showRowNo: data.showRowNo,
-            showItemDescriptions: data.showItemDescriptions ?? false,
+            showItemDescriptions: data.showItemDescriptions,
             fieldSortOrders: data.fieldSortOrders,
             pdfTexts: data.pdfTexts
           }

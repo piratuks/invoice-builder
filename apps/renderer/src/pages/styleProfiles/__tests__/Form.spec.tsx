@@ -49,6 +49,7 @@ describe('styleProfiles Form', () => {
       showQuantity: true,
       showUnit: true,
       showRowNo: true,
+      showItemDescriptions: false,
       invoiceCount: 0,
       quotesCount: 0
     } as StyleProfile;
@@ -71,92 +72,89 @@ describe('styleProfiles Form', () => {
     expect(archivedSwitch).toBeChecked();
   });
 
-  it.each([undefined, false, true])(
-    'loads description visibility %s, emits changes, and loads another profile',
-    async enabled => {
-      const user = userEvent.setup();
-      const handleChange = vi.fn();
+  it.each([false, true])('loads description visibility %s, emits changes, and loads another profile', async enabled => {
+    const user = userEvent.setup();
+    const handleChange = vi.fn();
 
-      const styleProfile: StyleProfile = {
-        id: 1,
-        name: 'Description profile',
-        isArchived: false,
-        labelUpperCase: false,
-        showQuantity: true,
-        showUnit: true,
-        showRowNo: true,
-        showItemDescriptions: enabled,
-        fieldSortOrders: {
-          no: 0,
-          item: 1,
-          unit: 2,
-          quantity: 3,
-          unitCost: 4,
-          total: 5
-        },
-        invoiceCount: 0,
-        quotesCount: 0,
-        createdAt: '',
-        updatedAt: ''
-      };
+    const styleProfile: StyleProfile = {
+      id: 1,
+      name: 'Description profile',
+      isArchived: false,
+      labelUpperCase: false,
+      showQuantity: true,
+      showUnit: true,
+      showRowNo: true,
+      showItemDescriptions: enabled,
+      fieldSortOrders: {
+        no: 0,
+        item: 1,
+        unit: 2,
+        quantity: 3,
+        unitCost: 4,
+        total: 5
+      },
+      invoiceCount: 0,
+      quotesCount: 0,
+      createdAt: '',
+      updatedAt: ''
+    };
 
-      const { rerender } = render(<Form styleProfile={styleProfile} handleChange={handleChange} />, { wrapper });
+    const { rerender } = render(<Form styleProfile={styleProfile} handleChange={handleChange} />, { wrapper });
 
-      await user.click(screen.getByRole('tab', { name: i18n.t('common.table') }));
+    await user.click(screen.getByRole('tab', { name: i18n.t('common.table') }));
 
-      const descriptionSwitch = screen.getByRole('switch', {
-        name: i18n.t('common.showItemDescriptions')
-      });
+    const descriptionSwitch = screen.getByRole('switch', {
+      name: i18n.t('common.showItemDescriptions')
+    });
 
-      if (enabled === true) {
-        expect(descriptionSwitch).toBeChecked();
-      } else {
-        expect(descriptionSwitch).not.toBeChecked();
-      }
+    if (enabled === true) {
+      expect(descriptionSwitch).toBeChecked();
+    } else {
+      expect(descriptionSwitch).not.toBeChecked();
+    }
 
-      await user.click(descriptionSwitch);
+    await user.click(descriptionSwitch);
 
-      await waitFor(() => {
-        expect(handleChange).toHaveBeenLastCalledWith(
-          expect.objectContaining({
-            isFormValid: true,
-            styleProfile: expect.objectContaining({
-              name: 'Description profile',
-              showItemDescriptions: !(enabled ?? false)
-            })
+    await waitFor(() => {
+      expect(handleChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          isFormValid: true,
+          styleProfile: expect.objectContaining({
+            name: 'Description profile',
+            showItemDescriptions: !enabled
           })
-        );
-      });
+        })
+      );
+    });
 
-      rerender(
-        <Form
-          styleProfile={{
-            ...styleProfile,
+    rerender(
+      <Form
+        styleProfile={{
+          ...styleProfile,
+          id: 2,
+          name: 'Another profile',
+          showItemDescriptions: enabled
+        }}
+        handleChange={handleChange}
+      />
+    );
+
+    await waitFor(() => {
+      expect(handleChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          styleProfile: expect.objectContaining({
             id: 2,
             name: 'Another profile',
-            showItemDescriptions: enabled ?? false
-          }}
-          handleChange={handleChange}
-        />
-      );
-
-      await waitFor(() => {
-        expect(handleChange).toHaveBeenLastCalledWith(
-          expect.objectContaining({
-            styleProfile: expect.objectContaining({
-              id: 2,
-              name: 'Another profile',
-              showItemDescriptions: enabled ?? false
-            })
+            showItemDescriptions: enabled
           })
-        );
-      });
+        })
+      );
+    });
 
-      if (enabled === true) {
-        expect(descriptionSwitch).toBeChecked();
-      } else {
-        expect(descriptionSwitch).not.toBeChecked();
-      }
+    if (enabled === true) {
+      expect(descriptionSwitch).toBeChecked();
+    } else {
+      expect(descriptionSwitch).not.toBeChecked();
     }
-  );
+  });
 });

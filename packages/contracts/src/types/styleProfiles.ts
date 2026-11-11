@@ -34,7 +34,7 @@ export interface StyleProfileMeta {
   showQuantity: boolean;
   showUnit: boolean;
   showRowNo: boolean;
-  showItemDescriptions?: boolean;
+  showItemDescriptions: boolean;
   fieldSortOrders: SortOrder;
   pdfTexts?: PDFText;
 }
