@@ -310,3 +310,105 @@ describe('Preview item and financial branches', () => {
     expect(container).toHaveTextContent('Balance due');
   });
 });
+
+describe('PDF item descriptions', () => {
+  it.each([undefined, false, true])('renders a saved description only when visibility is enabled: %s', enabled => {
+    const description = 'Création graphique\nMise en page du dépliant';
+
+    render(
+      <ItemsInfo
+        invoiceForm={{
+          ...baseInvoice,
+          invoiceCustomization: {
+            ...baseInvoice.invoiceCustomization!,
+            showItemDescriptions: enabled
+          },
+          invoiceItems: [
+            {
+              ...invoiceItems[0],
+              invoiceItemSnapshot: {
+                ...invoiceItems[0].invoiceItemSnapshot,
+                itemDescription: description
+              }
+            }
+          ]
+        }}
+        storeSettings={settings}
+        labels={itemLabels}
+      />
+    );
+
+    const itemName = screen.getByText('Consulting');
+
+    expect(itemName).toBeInTheDocument();
+    expect(screen.getByText(/^Tax\(20%\):/)).toBeInTheDocument();
+
+    if (enabled === true) {
+      expect(itemName.nextElementSibling?.textContent).toBe(description);
+      expect(itemName.nextElementSibling?.nextElementSibling).toHaveTextContent(/^Tax\(20%\):/);
+    } else {
+      expect(itemName.parentElement?.textContent).not.toContain('Création graphique');
+      expect(itemName.nextElementSibling).toHaveTextContent(/^Tax\(20%\):/);
+    }
+  });
+
+  it.each([undefined, null, '', ' \n\t '])('adds no description element for an empty value: %j', description => {
+    render(
+      <ItemsInfo
+        invoiceForm={{
+          ...baseInvoice,
+          invoiceCustomization: {
+            ...baseInvoice.invoiceCustomization!,
+            showItemDescriptions: true
+          },
+          invoiceItems: [
+            {
+              ...invoiceItems[1],
+              invoiceItemSnapshot: {
+                ...invoiceItems[1].invoiceItemSnapshot,
+                itemDescription: description
+              }
+            }
+          ]
+        }}
+        storeSettings={settings}
+        labels={itemLabels}
+      />
+    );
+
+    const itemName = screen.getByText('Expenses');
+
+    expect(itemName.parentElement?.childElementCount).toBe(1);
+    expect(itemName.nextElementSibling).toBeNull();
+  });
+
+  it('renders descriptions only for the items that have them', () => {
+    render(
+      <ItemsInfo
+        invoiceForm={{
+          ...baseInvoice,
+          invoiceCustomization: {
+            ...baseInvoice.invoiceCustomization!,
+            showItemDescriptions: true
+          },
+          invoiceItems: [
+            {
+              ...invoiceItems[0],
+              invoiceItemSnapshot: {
+                ...invoiceItems[0].invoiceItemSnapshot,
+                itemDescription: 'Consulting details'
+              }
+            },
+            invoiceItems[1]
+          ]
+        }}
+        storeSettings={settings}
+        labels={itemLabels}
+      />
+    );
+
+    expect(screen.getByText('Consulting').nextElementSibling).toHaveTextContent('Consulting details');
+    expect(screen.getAllByText('Consulting details')).toHaveLength(1);
+    expect(screen.getByText('Expenses').parentElement?.childElementCount).toBe(1);
+  });
+});

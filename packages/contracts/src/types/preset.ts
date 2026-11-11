@@ -85,6 +85,7 @@ export interface PresetMeta {
   styleProfileShowQuantity?: boolean;
   styleProfileShowUnit?: boolean;
   styleProfileShowRowNo?: boolean;
+  styleProfileShowItemDescriptions?: boolean;
   styleProfileFieldSortOrders?: SortOrder;
   styleProfilePdfTexts?: PDFText;
   //the rest

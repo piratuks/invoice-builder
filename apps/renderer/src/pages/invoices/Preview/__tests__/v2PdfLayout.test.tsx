@@ -34,6 +34,7 @@ import {
   serializeLayoutBuilderV2State
 } from '../../../../shared/utils/visualBuilderV2';
 import { PDFDocument } from '../PDFDocument';
+import { renderPdfDocument } from '../renderPdfDocument';
 
 vi.mock('@react-pdf/renderer', async () => {
   const actual = await vi.importActual<typeof import('@react-pdf/renderer')>('@react-pdf/renderer');
@@ -117,7 +118,7 @@ const invoice = (layoutSchema: LayoutSchemaAny): InvoiceFromData => ({
 });
 
 const renderPdfBytes = async (layoutSchema: LayoutSchemaAny, invoiceOverrides: Partial<InvoiceFromData> = {}) => {
-  const blob = await pdf(
+  const blob = await renderPdfDocument(
     <PDFDocument
       invoiceForm={{ ...invoice(layoutSchema), ...invoiceOverrides }}
       storeSettings={settings}
@@ -125,7 +126,8 @@ const renderPdfBytes = async (layoutSchema: LayoutSchemaAny, invoiceOverrides: P
       pdfTexts={pdfTexts}
       layoutRequired="Layout required"
     />
-  ).toBlob();
+  );
+
   return new Uint8Array(await blob.arrayBuffer());
 };
 
@@ -407,5 +409,246 @@ describe.each([SizeType.small, SizeType.medium, SizeType.large])('PDF header tex
     expect(document.getPageCount()).toBe(1);
     expect(pageContent(document, 0).length).toBeGreaterThan(0);
     expect(JSON.stringify(layoutSchema)).toBe(schemaBeforeRender);
+  });
+});
+
+describe('item descriptions in generated PDFs', () => {
+  const layouts: Array<{
+    label: string;
+    layoutSchema: LayoutSchemaAny;
+  }> = [
+    {
+      label: 'V1',
+      layoutSchema: {
+        schemaVersion: 1,
+        meta: { name: 'Item descriptions V1' },
+        sections: [{ type: 'itemsTable', visible: true }]
+      }
+    },
+    {
+      label: 'V2',
+      layoutSchema: {
+        schemaVersion: 2,
+        meta: { name: 'Item descriptions V2' },
+        regions: [
+          {
+            id: 'main',
+            width: '100%',
+            direction: 'column',
+            overflow: 'continue',
+            children: [
+              {
+                type: 'section',
+                section: {
+                  type: 'itemsTable',
+                  visible: true
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ];
+
+  describe.each(layouts)('$label layout', ({ layoutSchema }) => {
+    it.each([InvoiceType.invoice, InvoiceType.quotation])(
+      'moves an ordinary row intact to the next page for %s',
+      async invoiceType => {
+        interface LayoutNode {
+          props?: { id?: string };
+          children?: LayoutNode[];
+        }
+
+        const baseInvoice = invoice(layoutSchema);
+        const invoiceCustomization = {
+          ...baseInvoice.invoiceCustomization!,
+          showItemDescriptions: true
+        };
+
+        const invoiceItems = items.slice(0, 2).map((item, index) => ({
+          ...item,
+          invoiceItemSnapshot: {
+            ...item.invoiceItemSnapshot,
+            itemDescription: Array.from(
+              { length: index === 0 ? 90 : 30 },
+              (_, line) => `Description line ${line + 1}`
+            ).join('\n')
+          }
+        }));
+
+        // Each row fits on a page by itself.
+        for (const item of invoiceItems) {
+          const singleRowDocument = await renderPdf(layoutSchema, {
+            invoiceType,
+            invoiceItems: [item],
+            invoiceCustomization
+          });
+
+          expect(singleRowDocument.getPageCount()).toBe(1);
+        }
+
+        let rowsByPage: string[][] = [];
+
+        const blob = await renderPdfDocument(
+          <PDFDocument
+            invoiceForm={{
+              ...baseInvoice,
+              invoiceType,
+              invoiceItems,
+              invoiceCustomization
+            }}
+            storeSettings={settings}
+            attachmentUrls={[]}
+            pdfTexts={pdfTexts}
+            layoutRequired="Layout required"
+            onRender={result => {
+              const layout = (
+                result as {
+                  _INTERNAL__LAYOUT__DATA_?: LayoutNode;
+                }
+              )._INTERNAL__LAYOUT__DATA_;
+
+              if (!layout?.children) {
+                throw new Error('Missing final PDF layout.');
+              }
+
+              rowsByPage = layout.children.map(page => {
+                const rowIndices: string[] = [];
+
+                const visit = (node: LayoutNode): void => {
+                  const id = node.props?.id;
+
+                  if (id?.startsWith('invoice-description-row-')) {
+                    rowIndices.push(id.slice(id.lastIndexOf('-') + 1));
+                  }
+
+                  for (const child of node.children ?? []) {
+                    visit(child);
+                  }
+                };
+
+                visit(page);
+                return rowIndices;
+              });
+            }}
+          />
+        );
+
+        const document = await PdfLibDocument.load(await blob.arrayBuffer());
+
+        expect(document.getPageCount()).toBe(2);
+
+        // Neither row is fragmented across pages.
+        expect(rowsByPage).toEqual([['0'], ['1']]);
+      },
+      20_000
+    );
+    it.each([InvoiceType.invoice, InvoiceType.quotation])(
+      'splits an oversized item description for %s',
+      async invoiceType => {
+        const description = [
+          ...Array.from({ length: 200 }, (_, index) => `Description line ${index + 1}`),
+          'END OF DESCRIPTION'
+        ].join('\n');
+
+        const baseInvoice = invoice(layoutSchema);
+        const invoiceItems = [
+          {
+            ...items[0],
+            invoiceItemSnapshot: {
+              ...items[0].invoiceItemSnapshot,
+              itemDescription: description
+            }
+          }
+        ];
+
+        const warn = vi.spyOn(console, 'warn');
+
+        try {
+          const visibleDocument = await renderPdf(layoutSchema, {
+            invoiceType,
+            invoiceItems,
+            invoiceCustomization: {
+              ...baseInvoice.invoiceCustomization!,
+              showItemDescriptions: true
+            }
+          });
+
+          expect(visibleDocument.getPageCount()).toBeGreaterThan(1);
+
+          expect(warn).not.toHaveBeenCalledWith(expect.stringContaining("can't wrap between pages"));
+
+          const hiddenDocument = await renderPdf(layoutSchema, {
+            invoiceType,
+            invoiceItems,
+            invoiceCustomization: {
+              ...baseInvoice.invoiceCustomization!,
+              showItemDescriptions: false
+            }
+          });
+
+          expect(hiddenDocument.getPageCount()).toBe(1);
+        } finally {
+          warn.mockRestore();
+        }
+      },
+      20_000
+    );
+
+    it.each([InvoiceType.invoice, InvoiceType.quotation])(
+      'paginates descriptions only when enabled for %s',
+      async invoiceType => {
+        const description = [
+          'Création graphique',
+          'Préparation des contenus',
+          'Mise en page',
+          'Révision des textes',
+          'Validation du document',
+          'Livraison des fichiers'
+        ].join('\n');
+
+        const describedItems = items.slice(0, 40).map(item => ({
+          ...item,
+          invoiceItemSnapshot: {
+            ...item.invoiceItemSnapshot,
+            itemDescription: description
+          }
+        }));
+
+        const baseInvoice = invoice(layoutSchema);
+        const schemaBeforeRender = JSON.stringify(layoutSchema);
+        const itemsBeforeRender = JSON.stringify(describedItems);
+
+        const renderWithVisibility = (showItemDescriptions: boolean | undefined) =>
+          renderPdf(layoutSchema, {
+            invoiceType,
+            invoiceItems: describedItems,
+            invoiceCustomization: {
+              ...baseInvoice.invoiceCustomization!,
+              showItemDescriptions
+            }
+          });
+
+        const defaultDocument = await renderWithVisibility(undefined);
+        const hiddenDocument = await renderWithVisibility(false);
+        const visibleDocument = await renderWithVisibility(true);
+
+        expect(defaultDocument.getPageCount()).toBe(hiddenDocument.getPageCount());
+        expect(visibleDocument.getPageCount()).toBeGreaterThan(hiddenDocument.getPageCount());
+
+        for (const document of [defaultDocument, hiddenDocument, visibleDocument]) {
+          expect(document.getPageCount()).toBeGreaterThan(0);
+
+          for (let pageIndex = 0; pageIndex < document.getPageCount(); pageIndex += 1) {
+            expect(pageContent(document, pageIndex).length).toBeGreaterThan(0);
+          }
+        }
+
+        expect(JSON.stringify(layoutSchema)).toBe(schemaBeforeRender);
+        expect(JSON.stringify(describedItems)).toBe(itemsBeforeRender);
+      },
+      20_000
+    );
   });
 });

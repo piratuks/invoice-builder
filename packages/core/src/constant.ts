@@ -14,11 +14,13 @@ export const BOOLEAN_FIELDS = [
   'showQuantity',
   'showUnit',
   'showRowNo',
+  'showItemDescriptions',
   'ublON',
   'xrechnungON',
   'styleProfileShowQuantity',
   'styleProfileShowUnit',
-  'styleProfileShowRowNo'
+  'styleProfileShowRowNo',
+  'styleProfileShowItemDescriptions'
 ] as const;
 
 export const DATE_FIELDS = [

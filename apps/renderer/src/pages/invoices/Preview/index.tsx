@@ -1,12 +1,12 @@
-import type { InvoiceFromData, StyleProfileFromData } from '../../../shared/types/formData';
+import type { CustomField, SortOrder } from '@invoice-builder/contracts';
+import { InvoiceType } from '@invoice-builder/contracts';
 import ColorLensIcon from '@mui/icons-material/ColorLens';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import PrintIcon from '@mui/icons-material/Print';
 import { Box, Fab, Tooltip } from '@mui/material';
 import { memo, useCallback, useMemo, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { CustomField, SortOrder } from '@invoice-builder/contracts';
-import { InvoiceType } from '@invoice-builder/contracts';
+import type { InvoiceFromData, StyleProfileFromData } from '../../../shared/types/formData';
 
 import { useExportPdf } from '../../../shared/hooks/fileExport/useExportPdf';
 import { usePrintReceipt } from '../../../shared/hooks/print/usePrintReceipt';
@@ -118,6 +118,7 @@ const InvoicesPreviewComponent: FC<Props> = ({ onSaveProfile = () => {}, setInvo
       showQuantity: invoiceForm?.invoiceCustomization?.showQuantity,
       showUnit: invoiceForm?.invoiceCustomization?.showUnit,
       showRowNo: invoiceForm?.invoiceCustomization?.showRowNo,
+      showItemDescriptions: invoiceForm?.invoiceCustomization?.showItemDescriptions ?? false,
       fieldSortOrders: invoiceForm?.invoiceCustomization?.fieldSortOrders,
       pdfTexts: invoiceForm?.invoiceCustomization?.pdfTexts,
       customField: customFieldHeaders

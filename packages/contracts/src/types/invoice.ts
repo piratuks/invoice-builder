@@ -88,6 +88,7 @@ export interface InvoiceCustomizationMeta {
   showQuantity?: boolean;
   showUnit?: boolean;
   showRowNo?: boolean;
+  showItemDescriptions?: boolean;
   fieldSortOrders: SortOrder;
   pdfTexts?: PDFText;
 }
@@ -135,6 +136,7 @@ export interface InvoiceItemSnapshots {
   parentInvoiceItemId: number;
   id?: number;
   itemName: string;
+  itemDescription?: string | null;
   unitPriceCents: string;
   unitName?: string;
 }

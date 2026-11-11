@@ -129,6 +129,7 @@ const invoiceCustomizationFields: (keyof InvoiceCustomizationRow)[] = [
   'showQuantity',
   'showUnit',
   'showRowNo',
+  'showItemDescriptions',
   'fieldSortOrders',
   'pdfTexts'
 ];
@@ -184,6 +185,7 @@ const itemsFields: (keyof InvoiceItemRow)[] = [
 const itemsSnapshotFields: (keyof InvoiceItemSnapshots)[] = [
   'parentInvoiceItemId',
   'itemName',
+  'itemDescription',
   'unitPriceCents',
   'unitName'
 ];
@@ -920,6 +922,7 @@ export const addInvoice = async (db: DatabaseAdapter, data: InvoiceAdd) => {
     if (data.invoiceCustomization) {
       const ibs = await handleInvoiceCustomization({
         ...data.invoiceCustomization,
+        showItemDescriptions: data.invoiceCustomization.showItemDescriptions ?? false,
         parentInvoiceId: newId,
         fieldSortOrders: JSON.stringify(data.invoiceCustomization.fieldSortOrders),
         pdfTexts: JSON.stringify(data.invoiceCustomization.pdfTexts)
@@ -1077,6 +1080,7 @@ export const updateInvoice = async (db: DatabaseAdapter, data: InvoiceUpdate) =>
       const ibs = await handleInvoiceCustomization(
         {
           ...data.invoiceCustomization,
+          showItemDescriptions: data.invoiceCustomization.showItemDescriptions ?? false,
           parentInvoiceId: data.id,
           fieldSortOrders: JSON.stringify(data.invoiceCustomization.fieldSortOrders),
           pdfTexts: JSON.stringify(data.invoiceCustomization.pdfTexts)
@@ -1385,6 +1389,7 @@ export const duplicateInvoice = async (
       'showQuantity',
       'showUnit',
       'showRowNo',
+      'showItemDescriptions',
       'fieldSortOrders',
       'pdfTexts'
     ]);
@@ -1402,12 +1407,14 @@ export const duplicateInvoice = async (
       `INSERT INTO invoice_item_snapshots (
         "parentInvoiceItemId",
         "itemName",
+        "itemDescription",
         "unitPriceCents",
         "unitName"
       )
       SELECT
         "newItems"."id",
         snap."itemName",
+        snap."itemDescription",
         snap."unitPriceCents",
         snap."unitName"
       FROM invoice_item_snapshots AS snap
