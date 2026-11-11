@@ -32,5 +32,5 @@ Export behavior:
 - When editing an invoice, make sure to save changes before exporting.
 
 Use a UBL Peppol XML validator (e.g., [https://peppolvalidator.com/](https://peppolvalidator.com/)) to ensure compliance before sending.
-Use a XRechnung (UBL 2.1) XML validator (e.g., [https://validator.invoice-portal.de/](https://validator.invoice-portal.de/)) to ensure compliance before sending.
+Use a XRechnung (UBL 2.1) XML validator (e.g., [https://validator.invoice-portal.de/](https://validator.invoice-portal.de/) or [https://peppolvalidator.com/xrechnung-validator](https://peppolvalidator.com/xrechnung-validator), which also checks XRechnung UBL and CII against the official KoSIT rules) to ensure compliance before sending.
 :::
