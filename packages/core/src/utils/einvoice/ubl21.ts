@@ -389,15 +389,26 @@ const getXMLLegalMonetaryTotal = (invoice: InvoiceRow, calc: CalculatedInvoice) 
   const toUnit = (cents: number) => cents / c.currencySubunit;
 
   const paidCents = getTotalAmountPaidCents(invoice.invoicePayments);
+  // Round each amount once, the way the lines, allowances and TaxTotal do,
+  // and build the document totals from those rounded amounts so they add up
+  // (EN 16931 BR-CO-10/11/13/15/16).
+  const round = (cents: number) => Number(decimals2(toUnit(cents)));
+  const lineExtension = round(calc.subtotalNet + calc.discountTotal);
+  // same rounding as the AllowanceCharge amounts in getXMLDiscount
+  const allowance = Math.round(calc.discountTotal) / c.currencySubunit;
+  const charges = round(calc.shippingTotal + calc.surchargeTotal);
+  const taxExclusive = Number(decimals2(lineExtension - allowance + charges));
+  const taxInclusive = Number(decimals2(taxExclusive + round(calc.taxTotal)));
+  const prepaid = round(paidCents);
   return `
     <cac:LegalMonetaryTotal>
-      ${amountTag('LineExtensionAmount', toUnit(calc.subtotalNet + calc.discountTotal), c.currencyCode)}
-      ${amountTag('TaxExclusiveAmount', toUnit(calc.subtotalNet + calc.shippingTotal + calc.surchargeTotal), c.currencyCode)}
-      ${amountTag('TaxInclusiveAmount', toUnit(calc.subtotalNet + calc.shippingTotal + calc.surchargeTotal + calc.taxTotal), c.currencyCode)}
-      ${calc.discountTotal > 0 ? amountTag('AllowanceTotalAmount', toUnit(calc.discountTotal), c.currencyCode) : ''}
-      ${calc.shippingTotal > 0 || calc.surchargeTotal > 0 ? amountTag('ChargeTotalAmount', toUnit(calc.shippingTotal + calc.surchargeTotal), c.currencyCode) : ''}
-      ${paidCents > 0 ? amountTag('PrepaidAmount', toUnit(paidCents), c.currencyCode) : ''}
-      ${amountTag('PayableAmount', toUnit(calc.payableTotal - paidCents), c.currencyCode)}
+      ${amountTag('LineExtensionAmount', lineExtension, c.currencyCode)}
+      ${amountTag('TaxExclusiveAmount', taxExclusive, c.currencyCode)}
+      ${amountTag('TaxInclusiveAmount', taxInclusive, c.currencyCode)}
+      ${calc.discountTotal > 0 ? amountTag('AllowanceTotalAmount', allowance, c.currencyCode) : ''}
+      ${calc.shippingTotal > 0 || calc.surchargeTotal > 0 ? amountTag('ChargeTotalAmount', charges, c.currencyCode) : ''}
+      ${paidCents > 0 ? amountTag('PrepaidAmount', prepaid, c.currencyCode) : ''}
+      ${amountTag('PayableAmount', Number(decimals2(taxInclusive - prepaid)), c.currencyCode)}
     </cac:LegalMonetaryTotal>
   `;
 };
