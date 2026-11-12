@@ -102,6 +102,30 @@ describe('generateUBLInvoiceXML', () => {
     expect(xml).not.toContain('PrepaidAmount');
   });
 
+  it('builds document totals from the rounded tax amount (BR-CO-15)', () => {
+    const xml = generateUBLInvoiceXML(
+      baseInvoice({
+        shippingFeeCents: '0',
+        discountPercent: 0,
+        surchargeAmountCents: '0',
+        invoicePayments: [],
+        invoiceItems: [
+          {
+            itemId: 1,
+            quantity: '1',
+            taxRate: 19,
+            taxType: InvoiceItemTaxType.exclusive,
+            invoiceItemSnapshot: { parentInvoiceItemId: 1, itemName: 'Widget', unitPriceCents: '1750', unitName: 'each' }
+          }
+        ] as unknown as InvoiceRow['invoiceItems']
+      }),
+      EInvoice.ubl21
+    );
+    expect(xml).toContain('<cbc:TaxAmount currencyID="EUR">3.33</cbc:TaxAmount>');
+    expect(xml).toContain('<cbc:TaxInclusiveAmount currencyID="EUR">20.83</cbc:TaxInclusiveAmount>');
+    expect(xml).toContain('<cbc:PayableAmount currencyID="EUR">20.83</cbc:PayableAmount>');
+  });
+
   it('supports a single VAT group and a fixed discount', () => {
     const xml = generateUBLInvoiceXML(
       baseInvoice({
