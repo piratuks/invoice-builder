@@ -115,7 +115,12 @@ describe('generateUBLInvoiceXML', () => {
             quantity: '1',
             taxRate: 19,
             taxType: InvoiceItemTaxType.exclusive,
-            invoiceItemSnapshot: { parentInvoiceItemId: 1, itemName: 'Widget', unitPriceCents: '1750', unitName: 'each' }
+            invoiceItemSnapshot: {
+              parentInvoiceItemId: 1,
+              itemName: 'Widget',
+              unitPriceCents: '1750',
+              unitName: 'each'
+            }
           }
         ] as unknown as InvoiceRow['invoiceItems']
       }),
