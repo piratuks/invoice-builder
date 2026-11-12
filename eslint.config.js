@@ -10,11 +10,13 @@ export default [
     ignores: [
       'dist-renderer/**',
       'dist-desktop/**',
+      'dist-website/**',
       'dist-server/**',
       'dist-migrations/**',
       '**/dist/**',
       'release/**',
       'coverage/**',
+      '**/.docusaurus/**',
       'index.html',
       '.eslintrc.js',
       'public/**',
