@@ -68,12 +68,7 @@
       "width": "60%",
       "direction": "column",
       "overflow": "continue",
-      "sections": [
-        "itemsTable",
-        "financialTotals",
-        "notes",
-        "signature"
-      ]
+      "sections": ["itemsTable", "financialTotals", "notes", "signature"]
     }
   ]
 }
