@@ -131,6 +131,51 @@ describe('generateUBLInvoiceXML', () => {
     expect(xml).toContain('<cbc:PayableAmount currencyID="EUR">20.83</cbc:PayableAmount>');
   });
 
+  it('emits the discount in the invoice currency unit (BR-CO-11)', () => {
+    const xml = generateUBLInvoiceXML(
+      baseInvoice({
+        invoiceCurrencySnapshot: { currencyCode: 'JPY', currencySymbol: '\u00a5', currencySubunit: 1 },
+        discountType: DiscountType.fixed,
+        discountAmountCents: '175',
+        surchargeAmountCents: '0',
+        shippingFeeCents: '0',
+        invoicePayments: [],
+        invoiceItems: [
+          {
+            itemId: 1,
+            quantity: '1',
+            taxRate: 19,
+            taxType: InvoiceItemTaxType.exclusive,
+            invoiceItemSnapshot: {
+              parentInvoiceItemId: 1,
+              itemName: 'Widget',
+              unitPriceCents: '2000',
+              unitName: 'each'
+            }
+          }
+        ] as unknown as InvoiceRow['invoiceItems']
+      }),
+      EInvoice.ubl21
+    );
+    expect(xml).toContain('<cbc:Amount currencyID="JPY">175.00</cbc:Amount>');
+    expect(xml).toContain('<cbc:AllowanceTotalAmount currencyID="JPY">175.00</cbc:AllowanceTotalAmount>');
+  });
+
+  it('rounds the surcharge charge the same as ChargeTotalAmount (BR-CO-12)', () => {
+    const xml = generateUBLInvoiceXML(
+      baseInvoice({
+        discountPercent: 0,
+        surchargeType: DiscountType.percentage,
+        surchargePercent: 9.99,
+        shippingFeeCents: '0',
+        invoicePayments: []
+      }),
+      EInvoice.ubl21
+    );
+    expect(xml).toContain('<cbc:Amount currencyID="EUR">4.00</cbc:Amount>');
+    expect(xml).toContain('<cbc:ChargeTotalAmount currencyID="EUR">4.00</cbc:ChargeTotalAmount>');
+  });
+
   it('supports a single VAT group and a fixed discount', () => {
     const xml = generateUBLInvoiceXML(
       baseInvoice({

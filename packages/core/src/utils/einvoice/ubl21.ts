@@ -107,7 +107,7 @@ const getXMLDiscount = (invoice: InvoiceRow, discountCents: number) => {
 
     return { ...d, amount: roundedAmount };
   });
-  const targetTotal = Math.round(discountCents) / 100;
+  const targetTotal = Math.round(discountCents) / invoice.invoiceCurrencySnapshot!.currencySubunit;
   const remainder = +(targetTotal - runningTotal).toFixed(2);
   rounded[rounded.length - 1] = {
     ...rounded[rounded.length - 1],
@@ -148,7 +148,7 @@ const getAllowances = (invoice: InvoiceRow, calc: CalculatedInvoice) => {
           <cac:AllowanceCharge>
             <cbc:ChargeIndicator>true</cbc:ChargeIndicator>
             <cbc:AllowanceChargeReason>${xmlEscape(invoice.surchargeName || 'Surcharge')}</cbc:AllowanceChargeReason>
-            <cbc:Amount currencyID="${xmlEscape(invoice.invoiceCurrencySnapshot!.currencyCode)}">${surchargeAmount}</cbc:Amount>
+            <cbc:Amount currencyID="${xmlEscape(invoice.invoiceCurrencySnapshot!.currencyCode)}">${decimals2(surchargeAmount)}</cbc:Amount>
             <cac:TaxCategory>
               <cbc:ID>Z</cbc:ID>
               <cbc:Percent>0.00</cbc:Percent>
@@ -163,7 +163,7 @@ const getAllowances = (invoice: InvoiceRow, calc: CalculatedInvoice) => {
         <cac:AllowanceCharge>
           <cbc:ChargeIndicator>true</cbc:ChargeIndicator>
           <cbc:AllowanceChargeReason>Shipping fee</cbc:AllowanceChargeReason>
-          <cbc:Amount currencyID="${xmlEscape(invoice.invoiceCurrencySnapshot!.currencyCode)}">${shippingAmount}</cbc:Amount>
+          <cbc:Amount currencyID="${xmlEscape(invoice.invoiceCurrencySnapshot!.currencyCode)}">${decimals2(shippingAmount)}</cbc:Amount>
           <cac:TaxCategory>
             <cbc:ID>Z</cbc:ID>
             <cbc:Percent>0.00</cbc:Percent>
@@ -396,7 +396,8 @@ const getXMLLegalMonetaryTotal = (invoice: InvoiceRow, calc: CalculatedInvoice) 
   const lineExtension = round(calc.subtotalNet + calc.discountTotal);
   // same rounding as the AllowanceCharge amounts in getXMLDiscount
   const allowance = Math.round(calc.discountTotal) / c.currencySubunit;
-  const charges = round(calc.shippingTotal + calc.surchargeTotal);
+  // sum of the rounded charge amounts in getAllowances (BR-CO-12)
+  const charges = Number(decimals2(round(calc.shippingTotal) + round(calc.surchargeTotal)));
   const taxExclusive = Number(decimals2(lineExtension - allowance + charges));
   const taxInclusive = Number(decimals2(taxExclusive + round(calc.taxTotal)));
   const prepaid = round(paidCents);
