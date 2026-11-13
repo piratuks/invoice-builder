@@ -3,12 +3,16 @@ slug: /changelog
 title: Changelog
 ---
 
-## [DATE], version [VERSION]
+## 2026-11-13, version 3.3.0
 
 New features & improvements
 
 - Added optional text alignment controls for business information and invoice metadata in V1/V2 layouts and the V2 Visual Builder.
 - Added optional item descriptions below invoice and quote item names, disabled by default. Descriptions are saved with each item line, supported by style profiles and presets, and can continue across PDF pages when a row exceeds one page.
+
+Bug fixes
+
+- Fixed UBL/PEPPOL/XRechnung document totals rounding independently and producing amounts that failed validation; totals are now derived consistently from rounded line, allowance, tax, and prepaid amounts.
 
 ## 2026-10-26, version 3.2.1
 
