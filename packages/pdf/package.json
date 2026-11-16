@@ -1,0 +1,67 @@
+{
+  "name": "@invoice-builder/pdf",
+  "version": "1.0.0",
+  "private": false,
+  "description": "Shared invoice PDF rendering, presentation components, and invoice formatting utilities.",
+  "type": "module",
+  "files": ["dist/**", "assets/**"],
+  "exports": {
+    ".": {
+      "types": "./dist/runtime/browser.d.ts",
+      "import": "./dist/runtime/browser.js",
+      "default": "./dist/runtime/browser.js"
+    },
+    "./node": {
+      "types": "./dist/runtime/node.d.ts",
+      "import": "./dist/runtime/node.js",
+      "default": "./dist/runtime/node.js"
+    },
+    "./components": {
+      "types": "./dist/components/PDFDocument.d.ts",
+      "import": "./dist/components/PDFDocument.js"
+    },
+    "./components/*": {
+      "types": "./dist/components/*.d.ts",
+      "import": "./dist/components/*.js"
+    },
+    "./constants": {
+      "types": "./dist/sharedConstants.d.ts",
+      "import": "./dist/sharedConstants.js"
+    },
+    "./currencyFormat": {
+      "types": "./dist/currencyFormat.d.ts",
+      "import": "./dist/currencyFormat.js"
+    },
+    "./reportDateType": {
+      "types": "./dist/reportDateType.d.ts",
+      "import": "./dist/reportDateType.js"
+    },
+    "./render": {
+      "types": "./dist/runtime/renderPdfDocument.d.ts",
+      "import": "./dist/runtime/renderPdfDocument.js"
+    },
+    "./invoiceFunctions": {
+      "types": "./dist/invoiceFunctions.d.ts",
+      "import": "./dist/invoiceFunctions.js"
+    },
+    "./formatFunctions": {
+      "types": "./dist/formatFunctions.d.ts",
+      "import": "./dist/formatFunctions.js"
+    }
+  },
+  "dependencies": {
+    "@react-pdf/renderer": "4.9.0",
+    "date-fns": "^4.1.0"
+  },
+  "peerDependencies": {
+    "@invoice-builder/contracts": "*",
+    "react": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsc -p tsconfig.build.json --watch"
+  }
+}

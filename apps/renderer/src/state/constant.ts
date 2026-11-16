@@ -1,6 +1,7 @@
 import { AmountFormat, DateFormat, Language } from '@invoice-builder/contracts';
+export { DEFAULT_TABLE_FIELD_SORT_ORDERS } from '@invoice-builder/pdf/constants';
 
-import { CurrencyFormat } from '../shared/enums/currencyFormat';
+import { CurrencyFormat } from '@invoice-builder/pdf/currencyFormat';
 
 export const LANGUAGE_ITEMS = {
   [Language.lt]: { label: 'Lithuanian', value: Language.lt },
@@ -69,15 +70,6 @@ export const MONTH_NAMES = [
   'November',
   'December'
 ];
-
-export const DEFAULT_TABLE_FIELD_SORT_ORDERS = {
-  no: 0,
-  item: 1,
-  unit: 2,
-  quantity: 3,
-  unitCost: 4,
-  total: 5
-};
 
 export const FONT_ITEMS_ARRAY = [
   { label: 'Helvetica', value: 'Helvetica' },

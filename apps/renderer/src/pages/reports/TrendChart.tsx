@@ -2,7 +2,7 @@ import { Box, Typography, useTheme } from '@mui/material';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { formatDate } from '../../shared/utils/formatFunctions';
+import { formatDate } from '@invoice-builder/pdf/formatFunctions';
 import { useAppSelector } from '../../state/configureStore';
 import { selectSettings } from '../../state/pageSlice';
 import { CustomTooltip } from './CustomTooltip';

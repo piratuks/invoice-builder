@@ -6,18 +6,18 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import i18n from '../../../../i18n';
 import type { PdfTexts } from '../../../../shared/types/invoice';
 import { InvoicePdfViewer } from '../InvoicePdfViewer';
-import { PDFDocument } from '../PDFDocument';
-import { renderPdfDocument } from '../renderPdfDocument';
+import { PDFDocument } from '@invoice-builder/pdf/components';
+import { renderPdfDocument } from '@invoice-builder/pdf/render';
 
 vi.mock('@react-pdf/renderer', () => ({
   PDFViewer: ({ children }: { children: ReactNode }) => <div data-testid="standard-pdf-viewer">{children}</div>
 }));
 
-vi.mock('../PDFDocument', () => ({
+vi.mock('@invoice-builder/pdf/components', () => ({
   PDFDocument: () => null
 }));
 
-vi.mock('../renderPdfDocument', () => ({
+vi.mock('@invoice-builder/pdf/render', () => ({
   renderPdfDocument: vi.fn()
 }));
 

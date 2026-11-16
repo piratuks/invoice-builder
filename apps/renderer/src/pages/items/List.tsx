@@ -1,7 +1,7 @@
 import { type FC } from 'react';
 import { GenericList } from '../../shared/components/lists/genericList/GenericList';
 import type { Item } from '@invoice-builder/contracts';
-import { formatAmount } from '../../shared/utils/formatFunctions';
+import { formatAmount } from '@invoice-builder/pdf/formatFunctions';
 import { useAppSelector } from '../../state/configureStore';
 import { selectSettings } from '../../state/pageSlice';
 

@@ -2,7 +2,7 @@ import { Paper, Typography, useTheme } from '@mui/material';
 import { memo } from 'react';
 import { type TooltipContentProps } from 'recharts';
 import type { NameType, ValueType } from 'recharts/types/component/DefaultTooltipContent';
-import { formatAmount, formatDate } from '../../shared/utils/formatFunctions';
+import { formatAmount, formatDate } from '@invoice-builder/pdf/formatFunctions';
 import { useAppSelector } from '../../state/configureStore';
 import { selectSettings } from '../../state/pageSlice';
 

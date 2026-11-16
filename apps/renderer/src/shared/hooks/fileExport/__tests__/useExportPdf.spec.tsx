@@ -19,14 +19,8 @@ import {
   useExportPdf
 } from '../useExportPdf';
 
-const fakeBlob = new Blob(['fake-pdf'], { type: 'application/pdf' });
-
-vi.mock('@react-pdf/renderer', () => ({
-  pdf: vi.fn(() => ({ toBlob: () => Promise.resolve(fakeBlob) }))
-}));
-
-vi.mock('../../../../pages/invoices/Preview/PDFDocument', () => ({
-  PDFDocument: () => null
+vi.mock('@invoice-builder/pdf', () => ({
+  renderInvoicePdf: vi.fn(() => Promise.resolve(new TextEncoder().encode('fake-pdf')))
 }));
 
 const wrapper = ({ children }: { children: ReactNode }) => <I18nextProvider i18n={i18n}>{children}</I18nextProvider>;
@@ -48,12 +42,11 @@ describe('getAttachmentsUrl', () => {
     expect(result[0].url).toMatch(/^data:application\/pdf/);
   });
 
-  it('leaves the url undefined when attachment data is missing', async () => {
+  it('rejects attachments whose image data is missing', async () => {
     const invoiceForm = {
       invoiceAttachments: [{ id: 2, data: undefined }]
     } as unknown as InvoiceFromData;
-    const result = await getAttachmentsUrl(invoiceForm);
-    expect(result).toEqual([{ id: 2, url: undefined }]);
+    await expect(getAttachmentsUrl(invoiceForm)).rejects.toThrow('Missing data for invoice attachment 2.');
   });
 });
 
@@ -154,7 +147,8 @@ describe('createPdfBlob', () => {
   it('renders a PDF document blob using the resolved asset urls', async () => {
     const invoiceForm = { invoiceType: InvoiceType.invoice, invoiceItems: [] } as unknown as InvoiceFromData;
     const blob = await createPdfBlob(invoiceForm, {} as Settings, {} as never, 'Layout required');
-    expect(blob).toBe(fakeBlob);
+    expect(blob.type).toBe('application/pdf');
+    expect(await blob.text()).toBe('fake-pdf');
   });
 });
 
@@ -182,7 +176,7 @@ describe('useExportPdf', () => {
     await waitFor(() => expect(result.current.exportPdf).toBeInstanceOf(Function));
     await result.current.exportPdf();
 
-    expect(URL.createObjectURL).toHaveBeenCalledWith(fakeBlob);
+    expect(URL.createObjectURL).toHaveBeenCalledWith(expect.objectContaining({ type: 'application/pdf' }));
     expect(clickSpy).toHaveBeenCalled();
     expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:mock');
     clickSpy.mockRestore();

@@ -2,8 +2,8 @@ import { Alert, Box, CircularProgress } from '@mui/material';
 import { PDFViewer } from '@react-pdf/renderer';
 import { useEffect, useState, type ComponentProps, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { PDFDocument } from './PDFDocument';
-import { renderPdfDocument } from './renderPdfDocument';
+import type { PDFDocument } from '@invoice-builder/pdf/components';
+import { renderPdfDocument } from '@invoice-builder/pdf/render';
 
 interface Props {
   children: ReactElement<ComponentProps<typeof PDFDocument>>;

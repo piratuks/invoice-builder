@@ -3,7 +3,7 @@ import { Box } from '@mui/material';
 import { PDFViewer } from '@react-pdf/renderer';
 import { useMemo, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CurrencyFormat } from '../../shared/enums/currencyFormat';
+import { CurrencyFormat } from '@invoice-builder/pdf/currencyFormat';
 import type { LayoutSchemaAny } from '@invoice-builder/contracts';
 import {
   DiscountType,
@@ -21,7 +21,8 @@ import { usePdfTexts } from '../../shared/hooks/pdf/usePdfTexts';
 
 import { useAppSelector } from '../../state/configureStore';
 import { selectSettings } from '../../state/pageSlice';
-import { PDFDocument } from '../invoices/Preview/PDFDocument';
+import '@invoice-builder/pdf';
+import { PDFDocument } from '@invoice-builder/pdf/components';
 
 const previewInvoice = (layoutSchema: LayoutSchemaAny): InvoiceFromData => ({
   invoiceType: InvoiceType.invoice,

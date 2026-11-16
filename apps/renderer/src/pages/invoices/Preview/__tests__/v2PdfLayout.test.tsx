@@ -9,16 +9,18 @@ import {
   AmountFormat,
   DateFormat,
   FontFamily,
+  InvoiceStatus,
   InvoiceType,
   PageFormat,
   parseLayoutSchema,
   SizeType
 } from '@invoice-builder/contracts';
-import { pdf } from '@react-pdf/renderer';
 import { readFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import { resolve } from 'node:path';
 import { PDFDocument as PdfLibDocument } from 'pdf-lib';
 import { describe, expect, it, vi } from 'vitest';
+import { renderInvoicePdf, type InvoicePdfInput } from '@invoice-builder/pdf/node';
 
 import type { PdfTexts } from '../../../../shared/types/invoice';
 
@@ -33,23 +35,8 @@ import {
   createLayoutBuilderV2State,
   serializeLayoutBuilderV2State
 } from '../../../../shared/utils/visualBuilderV2';
-import { PDFDocument } from '../PDFDocument';
-import { renderPdfDocument } from '../renderPdfDocument';
-
-vi.mock('@react-pdf/renderer', async () => {
-  const actual = await vi.importActual<typeof import('@react-pdf/renderer')>('@react-pdf/renderer');
-  return {
-    ...actual,
-    Font: {
-      register: vi.fn(config =>
-        actual.Font.register({
-          ...config,
-          src: resolve(process.cwd(), 'apps/renderer/src/assets/roboto/Roboto-Regular.ttf')
-        })
-      )
-    }
-  };
-});
+import { PDFDocument } from '@invoice-builder/pdf/components';
+import { renderPdfDocument } from '@invoice-builder/pdf/render';
 
 const pdfTexts: PdfTexts = {
   billTo: 'Bill to',
@@ -117,19 +104,24 @@ const invoice = (layoutSchema: LayoutSchemaAny): InvoiceFromData => ({
   }
 });
 
-const renderPdfBytes = async (layoutSchema: LayoutSchemaAny, invoiceOverrides: Partial<InvoiceFromData> = {}) => {
-  const blob = await renderPdfDocument(
-    <PDFDocument
-      invoiceForm={{ ...invoice(layoutSchema), ...invoiceOverrides }}
-      storeSettings={settings}
-      attachmentUrls={[]}
-      pdfTexts={pdfTexts}
-      layoutRequired="Layout required"
-    />
-  );
-
-  return new Uint8Array(await blob.arrayBuffer());
-};
+const renderPdfBytes = async (
+  layoutSchema: LayoutSchemaAny,
+  invoiceOverrides: Partial<InvoiceFromData> = {},
+  assets: Partial<
+    Pick<
+      InvoicePdfInput,
+      'logoUrl' | 'qrCodeUrl' | 'signatureUrl' | 'watermarkUrl' | 'watermarkPaidUrl' | 'attachmentUrls'
+    >
+  > = {}
+) =>
+  renderInvoicePdf({
+    invoiceForm: { ...invoice(layoutSchema), ...invoiceOverrides },
+    storeSettings: settings,
+    attachmentUrls: [],
+    pdfTexts,
+    layoutRequired: 'Layout required',
+    ...assets
+  });
 
 const renderPdf = async (layoutSchema: LayoutSchemaAny, invoiceOverrides: Partial<InvoiceFromData> = {}) => {
   return PdfLibDocument.load(await renderPdfBytes(layoutSchema, invoiceOverrides));
@@ -151,6 +143,33 @@ const pageContent = (document: PdfLibDocument, pageIndex: number) => {
 };
 
 describe('V2 PDF layout rendering', () => {
+  it('renders parseable Node PDF bytes containing visible layout text', async () => {
+    const bytes = await renderInvoicePdf({
+      invoiceForm: {
+        ...invoice({
+          schemaVersion: 1,
+          meta: { name: 'Visible text' },
+          sections: []
+        }),
+        layoutId: undefined,
+        invoiceLayoutSnapshot: undefined
+      },
+      storeSettings: settings,
+      attachmentUrls: [],
+      pdfTexts,
+      layoutRequired: 'VISIBLE PDF CONTENT MARKER'
+    });
+    const document = await PdfLibDocument.load(bytes);
+    expect(document.getPageCount()).toBe(1);
+
+    // Poppler is optional in local and Windows environments; when available, use
+    // its parser to assert actual text extraction rather than just non-empty streams.
+    const text = spawnSync('pdftotext', ['-', '-'], { input: bytes, encoding: 'utf8' });
+    if (text.error && 'code' in text.error && text.error.code === 'ENOENT') return;
+    expect(text.status).toBe(0);
+    expect(text.stdout).toContain('VISIBLE PDF CONTENT MARKER');
+  });
+
   it('renders a schema produced by the visual builder', async () => {
     const initialLayout: LayoutSchemaV2 = {
       schemaVersion: 2,
@@ -167,6 +186,33 @@ describe('V2 PDF layout rendering', () => {
 
     expect(document.getPageCount()).toBeGreaterThan(0);
     expect(pageContent(document, 0).length).toBeGreaterThan(0);
+  });
+
+  it('renders both schema versions with the packaged Inter font files', async () => {
+    const layouts: LayoutSchemaAny[] = [
+      {
+        schemaVersion: 1,
+        meta: { name: 'Inter V1' },
+        sections: [{ type: 'itemsTable', visible: true }]
+      },
+      {
+        schemaVersion: 2,
+        meta: { name: 'Inter V2' },
+        regions: [{ id: 'main', width: '100%', direction: 'column', sections: ['itemsTable'] }]
+      }
+    ];
+
+    for (const layoutSchema of layouts) {
+      const bytes = await renderPdfBytes(layoutSchema, {
+        invoiceCustomization: {
+          ...invoice(layoutSchema).invoiceCustomization!,
+          fontFamily: FontFamily.inter
+        }
+      });
+      const document = await PdfLibDocument.load(bytes);
+      expect(document.getPageCount()).toBeGreaterThan(0);
+      expect(pageContent(document, 0).length).toBeGreaterThan(0);
+    }
   });
 
   it('renders a V1 schema produced by the visual builder', async () => {
@@ -187,6 +233,41 @@ describe('V2 PDF layout rendering', () => {
 
     expect(document.getPageCount()).toBeGreaterThan(0);
     expect(pageContent(document, 0).length).toBeGreaterThan(0);
+  });
+
+  it('rejects remote asset references instead of returning an empty-looking PDF', async () => {
+    const layoutSchema: LayoutSchemaAny = {
+      schemaVersion: 1,
+      meta: { name: 'Invalid asset' },
+      sections: [{ type: 'itemsTable', visible: true }]
+    };
+    const input: InvoicePdfInput = {
+      invoiceForm: invoice(layoutSchema),
+      storeSettings: settings,
+      attachmentUrls: [],
+      pdfTexts,
+      layoutRequired: 'Layout required',
+      logoUrl: 'https://example.invalid/logo.png'
+    };
+
+    await expect(renderInvoicePdf(input)).rejects.toThrow('PDF image assets must be non-empty inline data URLs.');
+  });
+
+  it('rejects required attachments without a render-ready data URL', async () => {
+    const layoutSchema: LayoutSchemaAny = {
+      schemaVersion: 1,
+      meta: { name: 'Missing attachment data' },
+      sections: [{ type: 'itemsTable', visible: true }]
+    };
+    const input = {
+      invoiceForm: invoice(layoutSchema),
+      storeSettings: settings,
+      attachmentUrls: [{ id: 8, url: '' }],
+      pdfTexts,
+      layoutRequired: 'Layout required'
+    } as InvoicePdfInput;
+
+    await expect(renderInvoicePdf(input)).rejects.toThrow('Missing inline data URL for invoice attachment 8.');
   });
 
   it('rehydrates and reserializes persisted V1 builder JSON', () => {
@@ -301,43 +382,47 @@ describe('V2 PDF layout rendering', () => {
         unitName: 'each'
       }
     }));
-    const blob = await pdf(
-      <PDFDocument
-        invoiceForm={{
-          ...invoice({
-            schemaVersion: 2,
-            meta: { name: 'Assets' },
-            regions: [
-              {
-                id: 'main',
-                width: '100%',
-                direction: 'column',
-                children: [
-                  { type: 'section', section: { type: 'watermark', visible: true } },
-                  { type: 'section', section: { type: 'itemsTable', visible: true } },
-                  { type: 'section', section: { type: 'signature', visible: true } },
-                  { type: 'section', section: { type: 'pageCounter', visible: true } }
-                ]
-              }
+    const bytes = await renderPdfBytes(
+      {
+        schemaVersion: 2,
+        meta: { name: 'Assets' },
+        regions: [
+          {
+            id: 'main',
+            width: '100%',
+            direction: 'column',
+            children: [
+              { type: 'block', block: { type: 'logo' } },
+              { type: 'section', section: { type: 'watermark', visible: true } },
+              { type: 'section', section: { type: 'itemsTable', visible: true } },
+              { type: 'section', section: { type: 'paymentInfo', visible: true } },
+              { type: 'section', section: { type: 'signature', visible: true } },
+              { type: 'section', section: { type: 'pageCounter', visible: true } }
             ]
-          }),
-          invoiceItems: manyItems,
-          signatureData: new Uint8Array([1]),
-          invoiceCustomization: {
-            ...invoice({ schemaVersion: 2, meta: { name: 'Assets' }, regions: [] }).invoiceCustomization,
-            fieldSortOrders: { no: 1, item: 2, unit: 3, quantity: 4, unitCost: 5, total: 6 },
-            watermarkFileData: new Uint8Array([1])
           }
-        }}
-        storeSettings={settings}
-        attachmentUrls={[{ id: 1, url: imageDataUrl }]}
-        pdfTexts={pdfTexts}
-        layoutRequired="Layout required"
-        watermarkUrl={imageDataUrl}
-        signatureUrl={imageDataUrl}
-      />
-    ).toBlob();
-    const document = await PdfLibDocument.load(await blob.arrayBuffer());
+        ]
+      },
+      {
+        status: InvoiceStatus.paid,
+        invoiceBankSnapshot: { bankName: 'Example Bank' },
+        invoiceItems: manyItems,
+        signatureData: new Uint8Array([1]),
+        invoiceCustomization: {
+          ...invoice({ schemaVersion: 2, meta: { name: 'Assets' }, regions: [] }).invoiceCustomization,
+          fieldSortOrders: { no: 1, item: 2, unit: 3, quantity: 4, unitCost: 5, total: 6 },
+          watermarkFileData: new Uint8Array([1])
+        }
+      },
+      {
+        attachmentUrls: [{ id: 1, url: imageDataUrl }],
+        logoUrl: imageDataUrl,
+        qrCodeUrl: imageDataUrl,
+        signatureUrl: imageDataUrl,
+        watermarkUrl: imageDataUrl,
+        watermarkPaidUrl: imageDataUrl
+      }
+    );
+    const document = await PdfLibDocument.load(bytes);
     const contents = Array.from({ length: document.getPageCount() }, (_, index) => pageContent(document, index));
 
     expect(document.getPageCount()).toBeGreaterThan(2);

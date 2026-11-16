@@ -1,6 +1,6 @@
 import { Box, Typography } from '@mui/material';
 import { memo, type FC } from 'react';
-import { formatAmount } from '../../shared/utils/formatFunctions';
+import { formatAmount } from '@invoice-builder/pdf/formatFunctions';
 import { useAppSelector } from '../../state/configureStore';
 import { selectSettings } from '../../state/pageSlice';
 

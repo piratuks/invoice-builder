@@ -34,7 +34,7 @@ import type {
   TaxForm
 } from '../../../shared/types/invoice';
 
-import { getInvoiceTotal, getPaidAmount } from '../../../shared/utils/invoiceFunctions';
+import { getInvoiceTotal, getPaidAmount } from '@invoice-builder/pdf/invoiceFunctions';
 import { useAppDispatch, useAppSelector } from '../../../state/configureStore';
 import { addToast, disableLoadingCursor, enableLoadingCursor, selectSettings } from '../../../state/pageSlice';
 import { NotesSelector } from './../Form/NotesSelector';

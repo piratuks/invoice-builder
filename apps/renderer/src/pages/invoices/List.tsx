@@ -1,14 +1,14 @@
 import { Box, Card, CardActionArea, CardContent, Chip, darken, lighten, Typography, useTheme } from '@mui/material';
 import { memo, useCallback, useMemo, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { CurrencyFormat } from '../../shared/enums/currencyFormat';
+import type { CurrencyFormat } from '@invoice-builder/pdf/currencyFormat';
 import type { Invoice } from '@invoice-builder/contracts';
 import { InvoiceStatus, InvoiceType } from '@invoice-builder/contracts';
 
 import { Themes } from '../../shared/enums/themes';
 
-import { formatDate, getFormattedCurrency } from '../../shared/utils/formatFunctions';
-import { getBalanceDue, getDaysLeft, getInvoiceTotal } from '../../shared/utils/invoiceFunctions';
+import { formatDate, getFormattedCurrency } from '@invoice-builder/pdf/formatFunctions';
+import { getBalanceDue, getDaysLeft, getInvoiceTotal } from '@invoice-builder/pdf/invoiceFunctions';
 import { useAppSelector } from '../../state/configureStore';
 import { selectSettings } from '../../state/pageSlice';
 

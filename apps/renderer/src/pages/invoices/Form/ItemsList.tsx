@@ -8,7 +8,7 @@ import React, { memo, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SortableItem } from '../../../shared/components/lists/sortableItem/SortableItem';
 import type { InvoiceItem } from '@invoice-builder/contracts';
-import { getItemFinancialData } from '../../../shared/utils/invoiceFunctions';
+import { getItemFinancialData } from '@invoice-builder/pdf/invoiceFunctions';
 import { useAppSelector } from '../../../state/configureStore';
 import { selectSettings } from '../../../state/pageSlice';
 

@@ -10,7 +10,7 @@ vi.mock('@react-pdf/renderer', () => ({
   PDFViewer: ({ children }: { children: React.ReactNode }) => <div data-testid="pdf-viewer">{children}</div>
 }));
 
-vi.mock('../../invoices/Preview/PDFDocument', () => ({
+vi.mock('@invoice-builder/pdf/components', () => ({
   PDFDocument: ({ invoiceForm }: { invoiceForm: Record<string, unknown> }) => (
     <div data-testid="pdf-document" data-invoice={JSON.stringify(invoiceForm)} />
   )

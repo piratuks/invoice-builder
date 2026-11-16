@@ -3,7 +3,7 @@ import { Box, ListItemButton, ListItemText, Typography } from '@mui/material';
 import { memo, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { InvoiceType } from '@invoice-builder/contracts';
-import { formatDate } from '../../../shared/utils/formatFunctions';
+import { formatDate } from '@invoice-builder/pdf/formatFunctions';
 import { useAppSelector } from '../../../state/configureStore';
 import { selectSettings } from '../../../state/pageSlice';
 
