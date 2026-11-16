@@ -27,6 +27,9 @@ describe('preload electronAPI bridge', () => {
     const api = bridge.api;
     expect(api).toBeDefined();
     if (!api) return;
+    expect(api.edition).toEqual({});
+    expect(api).not.toHaveProperty('ipcRenderer');
+    expect(api).not.toHaveProperty('invoke');
 
     Object.entries(api).forEach(([name, method]) => {
       const invoke = method as unknown as (...args: unknown[]) => unknown;
@@ -34,7 +37,7 @@ describe('preload electronAPI bridge', () => {
         invoke(() => {});
       } else if (name === 'initializeDatabase') {
         invoke({ fullPath: 'C:\\data\\new.db', mode: DBInitType.create, dbType: DatabaseType.sqlite });
-      } else {
+      } else if (name !== 'edition') {
         invoke();
       }
     });

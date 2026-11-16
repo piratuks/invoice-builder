@@ -27,8 +27,30 @@ import { ThemeProviderWrapper } from './shared/components/layout/theme/ThemeProv
 import { InvoiceType } from '@invoice-builder/contracts';
 
 import { store } from './state/configureStore';
+import { getEditionContribution } from './edition';
+import { mergeEditionRoutes } from './edition/routes';
 
 const createRouter = () => {
+  const children = [
+    { index: true, element: <Navigate to="/invoices" replace /> },
+    { path: 'settings', element: <SettingsPage /> },
+    { path: 'businesses', element: <BusinessesPage /> },
+    { path: 'clients', element: <ClientsPage /> },
+    { path: 'currencies', element: <CurrenciesPage /> },
+    { path: 'units', element: <UnitsPage /> },
+    { path: 'categories', element: <CategoriesPage /> },
+    { path: 'items', element: <ItemsPage /> },
+    { path: 'styleProfiles', element: <StyleProfilesPage /> },
+    { path: 'layouts', element: <LayoutsPage /> },
+    { path: 'invoices', element: <InvoicesPage type={InvoiceType.invoice} /> },
+    { path: 'quotes', element: <QuotesPage /> },
+    { path: 'reports', element: <ReportsPage /> },
+    { path: 'banks', element: <BanksPage /> },
+    { path: 'presets', element: <PresetsPage /> },
+    { path: '*', element: <Navigate to="/invoices" replace /> }
+  ];
+  const edition = getEditionContribution();
+  const childRoutes = mergeEditionRoutes(children, edition.routes);
   const routes = [
     {
       path: '/',
@@ -37,24 +59,7 @@ const createRouter = () => {
           <App />
         </ThemeProviderWrapper>
       ),
-      children: [
-        { index: true, element: <Navigate to="/invoices" replace /> },
-        { path: 'settings', element: <SettingsPage /> },
-        { path: 'businesses', element: <BusinessesPage /> },
-        { path: 'clients', element: <ClientsPage /> },
-        { path: 'currencies', element: <CurrenciesPage /> },
-        { path: 'units', element: <UnitsPage /> },
-        { path: 'categories', element: <CategoriesPage /> },
-        { path: 'items', element: <ItemsPage /> },
-        { path: 'styleProfiles', element: <StyleProfilesPage /> },
-        { path: 'layouts', element: <LayoutsPage /> },
-        { path: 'invoices', element: <InvoicesPage type={InvoiceType.invoice} /> },
-        { path: 'quotes', element: <QuotesPage /> },
-        { path: 'reports', element: <ReportsPage /> },
-        { path: 'banks', element: <BanksPage /> },
-        { path: 'presets', element: <PresetsPage /> },
-        { path: '*', element: <Navigate to="/invoices" replace /> }
-      ]
+      children: childRoutes
     }
   ];
 

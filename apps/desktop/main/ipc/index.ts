@@ -15,6 +15,7 @@ import { initReceiptHandlers } from './receipt';
 import { initSettingsHandlers } from './settings';
 import { initStyleProfilesHandlers } from './styleProfiles';
 import { initUnitsHandlers } from './units';
+import { initEditionIpcHandlers } from '../edition/registration';
 
 export const initIpcHandler = (mainWindow: BrowserWindow) => {
   ipcMain.handle(IpcChannel.openUrl, async (_event, url: string) => {
@@ -36,4 +37,5 @@ export const initIpcHandler = (mainWindow: BrowserWindow) => {
   initBanksHandlers();
   initPresetHandlers();
   initReceiptHandlers();
+  initEditionIpcHandlers();
 };

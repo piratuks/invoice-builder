@@ -1,5 +1,6 @@
 import cors from 'cors';
-import express, { type NextFunction, type Request, type Response } from 'express';
+import express, { Router, type Express, type NextFunction, type Request, type Response } from 'express';
+import type { Server } from 'node:http';
 import { getBackendConfig } from '@invoice-builder/core/config';
 import { startCleanupScheduler, stopCleanupScheduler } from './cleanup';
 import { initControllers } from './controllers';
@@ -7,6 +8,7 @@ import { initDatabaseController } from './controllers/database';
 import { closeAllDatabases, getDatabaseKeyFromRequest, getRequestDatabase, registerSessionDatabase } from './database';
 import { authenticateSession, getSessionTokenFromRequest } from './session';
 import { createSessionAuthorizationLimiter } from './utils/functions';
+import { onEditionServerStarted, onEditionServerStopping, registerEditionRoutes } from './edition';
 
 const backendConfig = getBackendConfig();
 const { frontendUrl: feServer } = backendConfig;
@@ -75,6 +77,10 @@ export const createApp = () => {
   initDatabaseController(app);
   initControllers(app);
 
+  const editionRouter = Router();
+  registerEditionRoutes(editionRouter);
+  app.use('/api/edition', editionRouter);
+
   app.get('/api/health', (_req: Request, res: Response) => {
     res.json({ ok: true });
   });
@@ -84,19 +90,97 @@ export const createApp = () => {
   return app;
 };
 
-const main = async () => {
-  createApp();
-  startCleanupScheduler();
-  const httpServer = app.listen(port, server, () => {
-    console.log(`Server listening at http://${host}:${port}`);
+const waitUntilListening = (httpServer: Server): Promise<void> =>
+  new Promise((resolve, reject) => {
+    const onListening = () => {
+      httpServer.off('error', onError);
+      resolve();
+    };
+    const onError = (error: Error) => {
+      httpServer.off('listening', onListening);
+      reject(error);
+    };
+    httpServer.once('listening', onListening);
+    httpServer.once('error', onError);
   });
+
+const closeHttpServer = (httpServer: Server): Promise<void> =>
+  new Promise((resolve, reject) => {
+    httpServer.close(error => (error ? reject(error) : resolve()));
+  });
+
+export const startHttpServer = async (serverApp: Express, listenPort = port, listenHost = server): Promise<Server> => {
+  const httpServer = serverApp.listen(listenPort, listenHost);
+  try {
+    await waitUntilListening(httpServer);
+    console.log(`Server listening at http://${host}:${listenPort}`);
+    await onEditionServerStarted();
+    return httpServer;
+  } catch (error) {
+    const errors: unknown[] = [error];
+    if (httpServer.listening) {
+      try {
+        await closeHttpServer(httpServer);
+      } catch (closeError) {
+        errors.push(closeError);
+      }
+    }
+    if (errors.length > 1) throw new AggregateError(errors, 'Server startup and cleanup failed.');
+    throw error;
+  }
+};
+
+export const stopHttpServer = async (
+  httpServer: Server,
+  closeDatabases: () => Promise<void> = closeAllDatabases
+): Promise<void> => {
+  const errors: unknown[] = [];
+  try {
+    await onEditionServerStopping();
+  } catch (error) {
+    errors.push(error);
+  }
+  try {
+    await closeDatabases();
+  } catch (error) {
+    errors.push(error);
+  }
+  if (httpServer.listening) {
+    try {
+      await closeHttpServer(httpServer);
+    } catch (error) {
+      errors.push(error);
+    }
+  }
+
+  if (errors.length === 1) throw errors[0];
+  if (errors.length > 1) throw new AggregateError(errors, 'Server shutdown failed.');
+};
+
+const main = async () => {
+  const serverApp = createApp();
+  startCleanupScheduler();
+  let httpServer: Server;
+  try {
+    httpServer = await startHttpServer(serverApp);
+  } catch (error) {
+    stopCleanupScheduler();
+    throw error;
+  }
   const shutdown = async () => {
     stopCleanupScheduler();
-    await closeAllDatabases();
-    httpServer.close(() => process.exit(0));
+    await stopHttpServer(httpServer);
   };
-  process.once('SIGINT', () => void shutdown());
-  process.once('SIGTERM', () => void shutdown());
+  const handleShutdown = () => {
+    void shutdown()
+      .then(() => process.exit(0))
+      .catch(error => {
+        console.error('Failed to stop server:', error);
+        process.exit(1);
+      });
+  };
+  process.once('SIGINT', handleShutdown);
+  process.once('SIGTERM', handleShutdown);
   // app.get('*', (_req: Request, res: Response) => {
   //   res.sendFile(path.join(distPath, 'index.html'));
   // });
