@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { AmountFormat } from '@invoice-builder/contracts';
 import '@testing-library/jest-dom/vitest';
 
-import { CurrencyFormat } from '@invoice-builder/pdf/currencyFormat';
+import { CurrencyFormat } from '../currencyFormat.js';
 import {
   createCurrencyFormatter,
   formatAmount,
@@ -12,7 +12,7 @@ import {
   getFormattingMeta,
   supportsCurrencySubunit,
   toUTCISOString
-} from '@invoice-builder/pdf/formatFunctions';
+} from '../formatFunctions.js';
 
 describe('toUTCISOString', () => {
   it('converts a local date to a UTC ISO string using local field values', () => {
