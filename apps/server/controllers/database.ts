@@ -49,6 +49,14 @@ export const initDatabaseController = (app: Express) => {
       const name = String(req.body?.fullPath ?? '');
       const mode = String(req.body?.mode ?? '');
       const dbType = req.body?.dbType ?? DatabaseType.sqlite;
+      const fullPath = path.resolve(dbDir, name);
+      if (dbType === DatabaseType.sqlite) {
+        const relativePath = path.relative(dbDir, fullPath);
+        if (relativePath === '' || relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
+          res.status(400).json({ success: false, key: 'error.invalidDatabasePath' });
+          return;
+        }
+      }
       const postgresConfig = req.body?.postgresConfig;
       const databaseKey = String(req.body?.databaseKey ?? '');
       const workspaceId = String(req.body?.workspaceId ?? '');
@@ -57,7 +65,6 @@ export const initDatabaseController = (app: Express) => {
         req.sessionId && existingToken ? { token: req.sessionId, workspaceId: req.workspaceId } : undefined;
       sessionToken = session?.token ?? (await issueSession(workspaceId || undefined)).token;
       const selectedWorkspaceId = session?.workspaceId ?? (workspaceId || undefined);
-      const fullPath = path.resolve(dbDir, name);
       const createIfMissing = mode === DBInitType.create || typeof mode === 'undefined';
 
       if (backendConfig.nodeEnvironment === 'docker' && postgresConfig && postgresConfig.host === 'localhost') {
