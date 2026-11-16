@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useForm } from '../../shared/hooks/form/useForm';
 import { useFormDirtyCheck } from '../../shared/hooks/form/useFormDirtyCheck';
 import type { Currency } from '@invoice-builder/contracts';
-import { getFormattedLabel } from '../../shared/utils/formatFunctions';
+import { getFormattedLabel } from '@invoice-builder/pdf/formatFunctions';
 import { validators } from '../../shared/utils/validatorFunctions';
 import { CURRENCY_FORMAT_ITEMS_ARRAY } from '../../state/constant';
 

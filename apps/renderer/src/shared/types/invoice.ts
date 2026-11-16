@@ -15,60 +15,7 @@ import type {
   TableHeaderStyle,
   TableRowStyle
 } from '@invoice-builder/contracts';
-
-export interface PdfTexts {
-  billTo: string;
-  invoiceNo: string;
-  quoteNo: string;
-  date: string;
-  dueDate: string;
-  customerNote: string;
-  termsConditions: string;
-  of: string;
-  page: string;
-  paymentInfo: string;
-  pdfINVOICE: string;
-  pdfQUOTE: string;
-  subTotalLabel: string;
-  discountLabel: string;
-  surchargeLabel: string;
-  incLabel: string;
-  taxLabel: string;
-  taxExclusivePerItemLabel: string;
-  taxInclusivePerItemLabel: string;
-  shippingFeeLabel: string;
-  totalLabel: string;
-  paidLabel: string;
-  balanceDueLabel: string;
-  itemLabel: string;
-  unitLabel: string;
-  qtyLabel: string;
-  unitCostLabel: string;
-  authorisedSignatoryLabel: string;
-}
-
-export interface AttachmentURL {
-  id: number;
-  url?: string;
-}
-
-export interface InvoicesByCurrencyMeta {
-  currencyCode: string;
-  currencySymbol: string;
-  totalAmount: number;
-  totalAmountPaid: number;
-  balanceDue: number;
-  invoiceCount: number;
-  overdueCount: number;
-  collectionRate: number;
-  avgPerInvoice: number;
-  issuedAt: string;
-  paidAt?: string;
-  currencyId: number;
-}
-export interface InvoicesByCurrency {
-  [currencyCode: string]: InvoicesByCurrencyMeta;
-}
+export type { AttachmentURL, PdfTexts, InvoicesByCurrency, InvoicesByCurrencyMeta } from '@invoice-builder/pdf';
 
 export interface ItemForm {
   quantity: number | undefined;

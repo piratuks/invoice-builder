@@ -8,8 +8,8 @@ import {
   InvoiceType
 } from '@invoice-builder/contracts';
 
-import { formatDate } from './formatFunctions';
-import { getFinancialData, getItemFinancialData } from './invoiceFunctions';
+import { formatDate } from '@invoice-builder/pdf/formatFunctions';
+import { getFinancialData, getItemFinancialData } from '@invoice-builder/pdf/invoiceFunctions';
 
 const escapeHtml = (value?: string) =>
   (value ?? '').replace(/[&<>"']/g, char => {

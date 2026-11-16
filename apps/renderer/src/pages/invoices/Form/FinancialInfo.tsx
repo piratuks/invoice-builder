@@ -6,7 +6,7 @@ import type { InvoicePayment } from '@invoice-builder/contracts';
 import { DiscountType, InvoiceItemTaxType, InvoiceTaxType, InvoiceType } from '@invoice-builder/contracts';
 
 import type { DiscountForm, PaymentForm, SurchargeForm, TaxForm } from '../../../shared/types/invoice';
-import { getFinancialData, getPaidData } from '../../../shared/utils/invoiceFunctions';
+import { getFinancialData, getPaidData } from '@invoice-builder/pdf/invoiceFunctions';
 import { useAppSelector } from '../../../state/configureStore';
 import { selectSettings } from '../../../state/pageSlice';
 import { AddPaymentDropdown } from './Dropdowns/AddPaymentDropdown';

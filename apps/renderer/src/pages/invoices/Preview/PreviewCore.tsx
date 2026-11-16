@@ -10,11 +10,10 @@ import {
 } from '../../../shared/hooks/fileExport/useExportPdf';
 import { usePdfTexts } from '../../../shared/hooks/pdf/usePdfTexts';
 import type { InvoiceFromData } from '../../../shared/types/formData';
-import type { AttachmentURL } from '../../../shared/types/invoice';
 import { useAppSelector } from '../../../state/configureStore';
 import { selectSettings } from '../../../state/pageSlice';
 import { InvoicePdfViewer } from './InvoicePdfViewer';
-import { PDFDocument } from './PDFDocument';
+import { InvoicePdfDocument, type InvoicePdfInput } from '@invoice-builder/pdf';
 
 interface Props {
   invoiceForm?: InvoiceFromData;
@@ -25,7 +24,7 @@ const PreviewCoreComponent: FC<Props> = ({ invoiceForm }) => {
   const [logoUrl, setLogoUrl] = useState<string | undefined>();
   const [watermarkUrl, setWatermarkUrl] = useState<string | undefined>();
   const [watermarkPaidUrl, setWatermarkPaidUrl] = useState<string | undefined>();
-  const [attachmentUrls, setAttachmentUrls] = useState<AttachmentURL[]>([]);
+  const [attachmentUrls, setAttachmentUrls] = useState<InvoicePdfInput['attachmentUrls']>([]);
   const [signatureUrl, setSignatureUrl] = useState<string | undefined>();
   const [qrCodeUrl, setQrCodeUrl] = useState<string | undefined>();
   // Only gates the very first render; later updates keep the current preview visible until new assets resolve.
@@ -42,6 +41,33 @@ const PreviewCoreComponent: FC<Props> = ({ invoiceForm }) => {
       ...customLabels
     };
   }, [invoiceForm, pdfTextsDefaults]);
+
+  const input = useMemo<InvoicePdfInput | undefined>(() => {
+    if (!invoiceForm || !storeSettings) return undefined;
+    return {
+      invoiceForm,
+      storeSettings,
+      logoUrl,
+      qrCodeUrl,
+      attachmentUrls,
+      pdfTexts,
+      layoutRequired: t('common.layoutRequired'),
+      watermarkUrl,
+      watermarkPaidUrl,
+      signatureUrl
+    };
+  }, [
+    invoiceForm,
+    storeSettings,
+    logoUrl,
+    qrCodeUrl,
+    attachmentUrls,
+    pdfTexts,
+    t,
+    watermarkUrl,
+    watermarkPaidUrl,
+    signatureUrl
+  ]);
 
   useEffect(() => {
     let cancelled = false;
@@ -75,22 +101,11 @@ const PreviewCoreComponent: FC<Props> = ({ invoiceForm }) => {
     };
   }, [invoiceForm]);
 
-  if (!isReady) return null;
+  if (!isReady || !input) return null;
 
   return (
     <InvoicePdfViewer>
-      <PDFDocument
-        invoiceForm={invoiceForm}
-        storeSettings={storeSettings}
-        logoUrl={logoUrl}
-        qrCodeUrl={qrCodeUrl}
-        attachmentUrls={attachmentUrls}
-        pdfTexts={pdfTexts}
-        layoutRequired={t('common.layoutRequired')}
-        watermarkUrl={watermarkUrl}
-        watermarkPaidUrl={watermarkPaidUrl}
-        signatureUrl={signatureUrl}
-      />
+      <InvoicePdfDocument input={input} />
     </InvoicePdfViewer>
   );
 };

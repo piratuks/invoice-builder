@@ -19,8 +19,8 @@ import { memo, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PageHeader } from '../../../../shared/components/layout/pageHeader/PageHeader';
 import type { InvoicePayment } from '@invoice-builder/contracts';
-import { formatDate } from '../../../../shared/utils/formatFunctions';
-import { getPaidData } from '../../../../shared/utils/invoiceFunctions';
+import { formatDate } from '@invoice-builder/pdf/formatFunctions';
+import { getPaidData } from '@invoice-builder/pdf/invoiceFunctions';
 import { useAppSelector } from '../../../../state/configureStore';
 import { selectSettings } from '../../../../state/pageSlice';
 

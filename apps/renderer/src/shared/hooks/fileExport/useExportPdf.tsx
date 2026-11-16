@@ -3,17 +3,16 @@ import { InvoiceType } from '@invoice-builder/contracts';
 import { parseISO } from 'date-fns';
 import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { PDFDocument } from '../../../pages/invoices/Preview/PDFDocument';
-import { renderPdfDocument } from '../../../pages/invoices/Preview/renderPdfDocument';
+import { renderInvoicePdf, type InvoicePdfInput } from '@invoice-builder/pdf';
 import { MONTH_NAMES } from '../../../state/constant';
 import type { InvoiceFromData } from '../../types/formData';
 
-import type { AttachmentURL, PdfTexts } from '../../types/invoice';
+import type { PdfTexts } from '@invoice-builder/pdf';
 
 import { toDataUrl } from '../../utils/dataUrlFunctions';
 import { usePdfTexts } from '../pdf/usePdfTexts';
 
-export const getAttachmentsUrl = async (invoiceForm?: InvoiceFromData): Promise<AttachmentURL[]> => {
+export const getAttachmentsUrl = async (invoiceForm?: InvoiceFromData): Promise<InvoicePdfInput['attachmentUrls']> => {
   const attachments = invoiceForm?.invoiceAttachments ?? [];
 
   if (attachments.length === 0) {
@@ -21,10 +20,13 @@ export const getAttachmentsUrl = async (invoiceForm?: InvoiceFromData): Promise<
   }
 
   const list = await Promise.all(
-    attachments.map(async attachment => {
-      const url = attachment.data ? await toDataUrl(attachment.data, attachment.fileType) : undefined;
+    attachments.map(async (attachment, index) => {
+      if (!attachment.data) {
+        throw new Error(`Missing data for invoice attachment ${attachment.id ?? attachment.fileName}.`);
+      }
+      const url = await toDataUrl(attachment.data, attachment.fileType);
 
-      return { id: attachment.id as number, url };
+      return { id: attachment.id ?? index, url };
     })
   );
 
@@ -116,20 +118,22 @@ export const createPdfBlob = async (
   const signatureUrl = await getSignatureUrls(invoiceForm);
   const qrCodeUrl = await getQRCodeUrls(invoiceForm);
 
-  return renderPdfDocument(
-    <PDFDocument
-      invoiceForm={invoiceForm}
-      storeSettings={storeSettings}
-      logoUrl={logoUrl}
-      qrCodeUrl={qrCodeUrl}
-      attachmentUrls={attachmentUrls}
-      pdfTexts={pdfTexts}
-      layoutRequired={layoutRequired}
-      watermarkUrl={watermarkUrl}
-      watermarkPaidUrl={watermarkPaidUrl}
-      signatureUrl={signatureUrl}
-    />
-  );
+  const input: InvoicePdfInput = {
+    invoiceForm,
+    storeSettings,
+    logoUrl,
+    qrCodeUrl,
+    attachmentUrls,
+    pdfTexts,
+    layoutRequired,
+    watermarkUrl,
+    watermarkPaidUrl,
+    signatureUrl
+  };
+  const bytes = await renderInvoicePdf(input);
+  const pdfBuffer = new ArrayBuffer(bytes.byteLength);
+  new Uint8Array(pdfBuffer).set(bytes);
+  return new Blob([pdfBuffer], { type: 'application/pdf' });
 };
 
 export const getPDFFilename = (invoiceForm: InvoiceFromData, storeSettings: Settings) => {

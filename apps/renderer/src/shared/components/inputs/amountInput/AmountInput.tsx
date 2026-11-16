@@ -2,7 +2,7 @@ import { TextField } from '@mui/material';
 import type { FC, ReactNode } from 'react';
 import { NumericFormat } from 'react-number-format';
 import { AmountFormat } from '@invoice-builder/contracts';
-import { getFormattingMeta } from '../../../utils/formatFunctions';
+import { getFormattingMeta } from '@invoice-builder/pdf/formatFunctions';
 
 interface Props {
   value?: number;

@@ -1,0 +1,416 @@
+import type { InvoiceAdd } from '@invoice-builder/contracts';
+import {
+  AmountFormat,
+  DateFormat,
+  DiscountType,
+  FontFamily,
+  InvoiceItemTaxType,
+  InvoiceStatus,
+  InvoiceTaxType,
+  InvoiceType,
+  PaymentType,
+  TableHeaderStyle,
+  TableRowStyle
+} from '@invoice-builder/contracts';
+import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom/vitest';
+import type { ReactNode } from 'react';
+import { describe, expect, it, vi } from 'vitest';
+import type { PdfSettings } from '../types.js';
+
+import { FinancialInfo } from '../components/FinancialInfo.js';
+import { ItemsInfo } from '../components/ItemsInfo.js';
+
+vi.mock('@react-pdf/renderer', () => ({
+  StyleSheet: { create: (styles: Record<string, unknown>) => styles },
+  Text: ({ children }: { children?: ReactNode }) => <span>{children}</span>,
+  View: ({
+    children,
+    style,
+    fixed,
+    wrap
+  }: {
+    children?: ReactNode;
+    style?: unknown;
+    fixed?: boolean;
+    wrap?: boolean;
+  }) => (
+    <div data-pdf-fixed={fixed} data-pdf-style={JSON.stringify(style)} data-pdf-wrap={wrap}>
+      {children}
+    </div>
+  )
+}));
+
+const settings: PdfSettings = { amountFormat: AmountFormat.enUS, dateFormat: DateFormat.MMddyyyy };
+
+const itemLabels = {
+  itemLabel: 'Item',
+  unitLabel: 'Unit',
+  qtyLabel: 'Quantity',
+  unitCostLabel: 'Unit cost',
+  totalLabel: 'Total',
+  taxLabel: 'Tax',
+  discountLabel: 'Discount'
+};
+
+const financialLabels = {
+  subTotalLabel: 'Subtotal',
+  discountLabel: 'Discount',
+  surchargeLabel: 'Surcharge',
+  incLabel: 'incl.',
+  taxLabel: 'Tax',
+  taxExclusivePerItemLabel: 'Per-item tax excl.',
+  taxInclusivePerItemLabel: 'Per-item tax incl.',
+  shippingFeeLabel: 'Shipping',
+  totalLabel: 'Total',
+  paidLabel: 'Paid',
+  balanceDueLabel: 'Balance due'
+};
+
+const invoiceItems = [
+  {
+    itemId: 1,
+    quantity: '2',
+    taxRate: 20,
+    taxType: InvoiceItemTaxType.exclusive,
+    customField: { header: 'Project phase', value: 'Discovery', alignment: 'left', sortOrder: 7 },
+    invoiceItemSnapshot: { parentInvoiceItemId: 1, itemName: 'Consulting', unitPriceCents: '10000', unitName: 'hour' }
+  },
+  {
+    itemId: 2,
+    quantity: '1',
+    taxRate: 0,
+    customField: { header: 'Project phase', value: '', alignment: 'left', sortOrder: 7 },
+    invoiceItemSnapshot: { parentInvoiceItemId: 2, itemName: 'Expenses', unitPriceCents: '2500', unitName: 'each' }
+  }
+] as NonNullable<InvoiceAdd['invoiceItems']>;
+
+const baseInvoice: InvoiceAdd = {
+  invoiceType: InvoiceType.invoice,
+  status: InvoiceStatus.open,
+  invoiceItems,
+  invoicePayments: [],
+  discountAmountCents: '0',
+  shippingFeeCents: '0',
+  surchargeAmountCents: '0',
+  taxRate: 0,
+  invoiceCustomization: {
+    color: '#204060',
+    fontFamily: FontFamily.roboto,
+    showRowNo: true,
+    showQuantity: true,
+    showUnit: true,
+    tableHeaderStyle: TableHeaderStyle.light,
+    tableRowStyle: TableRowStyle.bordered,
+    fieldSortOrders: { no: 1, item: 2, unit: 3, quantity: 4, unitCost: 5, total: 6, missing: 8 }
+  }
+};
+
+describe('Preview item and financial branches', () => {
+  it('renders fixed columns, custom values, item tax, and distributed discounts', () => {
+    render(
+      <ItemsInfo
+        invoiceForm={{
+          ...baseInvoice,
+          discountType: DiscountType.percentage,
+          discountPercent: 10
+        }}
+        storeSettings={settings}
+        labels={itemLabels}
+      />
+    );
+
+    for (const heading of ['#', 'Item', 'Unit', 'Quantity', 'Unit cost', 'Total', 'Project phase']) {
+      expect(screen.getByText(heading)).toBeInTheDocument();
+    }
+    expect(screen.getByText('Consulting')).toBeInTheDocument();
+    expect(screen.getByText('Discovery')).toBeInTheDocument();
+    expect(screen.getByText(/^Discount:/)).toBeInTheDocument();
+    expect(screen.getByText(/^Tax\(20%\):/)).toBeInTheDocument();
+    expect(screen.getByText('Item').parentElement?.parentElement).not.toHaveAttribute('data-pdf-fixed', 'true');
+    expect(screen.getByText('Consulting').parentElement?.parentElement).toHaveAttribute('data-pdf-wrap', 'false');
+  });
+
+  it('gives longer custom-field content more flex space than a short item name', () => {
+    render(
+      <ItemsInfo
+        invoiceForm={{
+          ...baseInvoice,
+          invoiceItems: [
+            {
+              ...invoiceItems[0],
+              customField: {
+                ...invoiceItems[0].customField!,
+                value: 'Discovery and implementation planning'
+              },
+              invoiceItemSnapshot: { ...invoiceItems[0].invoiceItemSnapshot, itemName: 'Fee' }
+            }
+          ]
+        }}
+        storeSettings={settings}
+        labels={itemLabels}
+      />
+    );
+
+    const itemStyle = JSON.parse(screen.getByText('Item').parentElement?.dataset.pdfStyle ?? '[]');
+    const customStyle = JSON.parse(screen.getByText('Project phase').parentElement?.dataset.pdfStyle ?? '[]');
+
+    expect(itemStyle[1].minWidth).toBe(customStyle[1].minWidth);
+    expect(customStyle[1].flexGrow).toBeGreaterThan(itemStyle[1].flexGrow * 4);
+  });
+
+  it('renders proportional dark and stripped layouts with optional columns hidden', () => {
+    const { container, rerender } = render(
+      <ItemsInfo
+        columnSizing="proportional"
+        invoiceForm={{
+          ...baseInvoice,
+          invoiceCustomization: {
+            ...baseInvoice.invoiceCustomization,
+            color: undefined,
+            fontFamily: undefined,
+            showRowNo: false,
+            showQuantity: false,
+            showUnit: false,
+            tableHeaderStyle: TableHeaderStyle.dark,
+            tableRowStyle: TableRowStyle.stripped
+          } as NonNullable<InvoiceAdd['invoiceCustomization']>
+        }}
+        storeSettings={settings}
+        labels={itemLabels}
+      />
+    );
+
+    expect(screen.queryByText('#')).not.toBeInTheDocument();
+    expect(screen.queryByText('Quantity')).not.toBeInTheDocument();
+    expect(screen.queryByText('Unit')).not.toBeInTheDocument();
+    expect(screen.getByText('Project phase')).toBeInTheDocument();
+    expect(container).toHaveTextContent('Expenses');
+
+    rerender(
+      <ItemsInfo
+        invoiceForm={{
+          ...baseInvoice,
+          invoiceCustomization: {
+            ...baseInvoice.invoiceCustomization,
+            fontFamily: undefined,
+            tableHeaderStyle: TableHeaderStyle.outline,
+            tableRowStyle: TableRowStyle.bordered
+          } as NonNullable<InvoiceAdd['invoiceCustomization']>
+        }}
+        storeSettings={settings}
+        labels={itemLabels}
+      />
+    );
+    expect(screen.getByText('Project phase')).toBeInTheDocument();
+
+    rerender(
+      <ItemsInfo
+        invoiceForm={{
+          ...baseInvoice,
+          invoiceCustomization: {
+            ...baseInvoice.invoiceCustomization,
+            tableHeaderStyle: undefined,
+            tableRowStyle: TableRowStyle.classic
+          } as NonNullable<InvoiceAdd['invoiceCustomization']>
+        }}
+        storeSettings={settings}
+        labels={itemLabels}
+      />
+    );
+    expect(screen.getByText('Consulting')).toBeInTheDocument();
+  });
+
+  it('renders all global adjustments, named exclusive tax, and a partial payment', () => {
+    const { container } = render(
+      <FinancialInfo
+        align="start"
+        invoiceForm={{
+          ...baseInvoice,
+          invoiceItems: [{ ...invoiceItems[1], taxType: undefined }],
+          discountType: DiscountType.percentage,
+          discountPercent: 10,
+          taxType: InvoiceTaxType.exclusive,
+          taxName: 'VAT',
+          taxRate: 20,
+          shippingFeeCents: '500',
+          surchargeType: DiscountType.percentage,
+          surchargePercent: 5,
+          invoicePayments: [{ amountCents: '1000', paidAt: '2026-01-20', paymentMethod: PaymentType.bank }]
+        }}
+        storeSettings={settings}
+        labels={financialLabels}
+      />
+    );
+
+    expect(container).toHaveTextContent('Discount (10%)');
+    expect(container).toHaveTextContent('VAT (20%)');
+    expect(container).toHaveTextContent('Shipping');
+    expect(container).toHaveTextContent('Surcharge (5%)');
+    expect(container).toHaveTextContent('Paid');
+    expect(container).toHaveTextContent('Balance due');
+  });
+
+  it('renders inclusive and exclusive per-item tax labels for a quotation', () => {
+    const { container } = render(
+      <FinancialInfo
+        align="center"
+        invoiceForm={{
+          ...baseInvoice,
+          invoiceType: InvoiceType.quotation,
+          invoiceItems: [invoiceItems[0], { ...invoiceItems[1], taxRate: 10, taxType: InvoiceItemTaxType.inclusive }],
+          discountType: DiscountType.fixed,
+          discountAmountCents: '100',
+          surchargeType: DiscountType.fixed,
+          surchargeAmountCents: '200'
+        }}
+        storeSettings={settings}
+        labels={financialLabels}
+      />
+    );
+
+    expect(container).toHaveTextContent('Per-item tax excl.');
+    expect(container).toHaveTextContent('Per-item tax incl.');
+    expect(container).toHaveTextContent('Discount');
+    expect(container).toHaveTextContent('Surcharge');
+    expect(container).toHaveTextContent('Total');
+    expect(container).not.toHaveTextContent('Balance due');
+  });
+
+  it('renders inclusive unnamed tax and suppresses the balance for paid invoices', () => {
+    const { container, rerender } = render(
+      <FinancialInfo
+        invoiceForm={{
+          ...baseInvoice,
+          status: InvoiceStatus.paid,
+          invoiceItems: [{ ...invoiceItems[1], taxType: undefined }],
+          taxType: InvoiceTaxType.inclusive,
+          taxRate: 15
+        }}
+        storeSettings={settings}
+        labels={financialLabels}
+      />
+    );
+
+    expect(container).toHaveTextContent('Tax (incl. 15%)');
+    expect(container).toHaveTextContent('Total');
+    expect(container).not.toHaveTextContent('Balance due');
+
+    rerender(
+      <FinancialInfo
+        invoiceForm={{
+          ...baseInvoice,
+          invoiceItems: [{ ...invoiceItems[1], taxType: undefined }],
+          taxType: InvoiceTaxType.deducted,
+          taxRate: 5
+        }}
+        storeSettings={settings}
+        labels={financialLabels}
+      />
+    );
+    expect(container).toHaveTextContent('Tax (5%)');
+    expect(container).toHaveTextContent('Balance due');
+  });
+});
+
+describe('PDF item descriptions', () => {
+  it.each([undefined, false, true])('renders a saved description only when visibility is enabled: %s', enabled => {
+    const description = 'Création graphique\nMise en page du dépliant';
+
+    render(
+      <ItemsInfo
+        invoiceForm={{
+          ...baseInvoice,
+          invoiceCustomization: {
+            ...baseInvoice.invoiceCustomization!,
+            showItemDescriptions: enabled
+          },
+          invoiceItems: [
+            {
+              ...invoiceItems[0],
+              invoiceItemSnapshot: {
+                ...invoiceItems[0].invoiceItemSnapshot,
+                itemDescription: description
+              }
+            }
+          ]
+        }}
+        storeSettings={settings}
+        labels={itemLabels}
+      />
+    );
+
+    const itemName = screen.getByText('Consulting');
+
+    expect(itemName).toBeInTheDocument();
+    expect(screen.getByText(/^Tax\(20%\):/)).toBeInTheDocument();
+
+    if (enabled === true) {
+      expect(itemName.nextElementSibling?.textContent).toBe(description);
+      expect(itemName.nextElementSibling?.nextElementSibling).toHaveTextContent(/^Tax\(20%\):/);
+    } else {
+      expect(itemName.parentElement?.textContent).not.toContain('Création graphique');
+      expect(itemName.nextElementSibling).toHaveTextContent(/^Tax\(20%\):/);
+    }
+  });
+
+  it.each([undefined, null, '', ' \n\t '])('adds no description element for an empty value: %j', description => {
+    render(
+      <ItemsInfo
+        invoiceForm={{
+          ...baseInvoice,
+          invoiceCustomization: {
+            ...baseInvoice.invoiceCustomization!,
+            showItemDescriptions: true
+          },
+          invoiceItems: [
+            {
+              ...invoiceItems[1],
+              invoiceItemSnapshot: {
+                ...invoiceItems[1].invoiceItemSnapshot,
+                itemDescription: description
+              }
+            }
+          ]
+        }}
+        storeSettings={settings}
+        labels={itemLabels}
+      />
+    );
+
+    const itemName = screen.getByText('Expenses');
+
+    expect(itemName.parentElement?.childElementCount).toBe(1);
+    expect(itemName.nextElementSibling).toBeNull();
+  });
+
+  it('renders descriptions only for the items that have them', () => {
+    render(
+      <ItemsInfo
+        invoiceForm={{
+          ...baseInvoice,
+          invoiceCustomization: {
+            ...baseInvoice.invoiceCustomization!,
+            showItemDescriptions: true
+          },
+          invoiceItems: [
+            {
+              ...invoiceItems[0],
+              invoiceItemSnapshot: {
+                ...invoiceItems[0].invoiceItemSnapshot,
+                itemDescription: 'Consulting details'
+              }
+            },
+            invoiceItems[1]
+          ]
+        }}
+        storeSettings={settings}
+        labels={itemLabels}
+      />
+    );
+
+    expect(screen.getByText('Consulting').nextElementSibling).toHaveTextContent('Consulting details');
+    expect(screen.getAllByText('Consulting details')).toHaveLength(1);
+    expect(screen.getByText('Expenses').parentElement?.childElementCount).toBe(1);
+  });
+});

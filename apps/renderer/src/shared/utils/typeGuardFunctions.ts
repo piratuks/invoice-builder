@@ -10,7 +10,7 @@ import type {
   SortOrder
 } from '@invoice-builder/contracts';
 import { parseLayoutSchema, validateLayoutSchema, validateLayoutSchemaV2 } from '@invoice-builder/contracts';
-import { CurrencyFormat } from '../enums/currencyFormat';
+import { CurrencyFormat } from '@invoice-builder/pdf/currencyFormat';
 import type {
   BankFromData,
   BusinessFromData,

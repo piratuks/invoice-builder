@@ -24,10 +24,10 @@ import {
 } from 'date-fns';
 import { memo, useCallback, useEffect, useState, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ReportDateType } from '../../shared/enums/reportDateType';
+import { ReportDateType } from '@invoice-builder/pdf/reportDateType';
 import { ReportRangeType } from '../../shared/enums/reportRangeType';
 import type { InvoicesByCurrency } from '../../shared/types/invoice';
-import { toUTCISOString } from '../../shared/utils/formatFunctions';
+import { toUTCISOString } from '@invoice-builder/pdf/formatFunctions';
 import { useAppSelector } from '../../state/configureStore';
 import { selectSettings } from '../../state/pageSlice';
 import { RangeSetter } from './Modals/RangeSetter';

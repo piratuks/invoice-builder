@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { SummaryCard } from '../../shared/components/layout/summaryCard/SummaryCard';
 import { Themes } from '../../shared/enums/themes';
 import type { InvoicesByCurrencyMeta } from '../../shared/types/invoice';
-import { formatAmount } from '../../shared/utils/formatFunctions';
+import { formatAmount } from '@invoice-builder/pdf/formatFunctions';
 import { useAppSelector } from '../../state/configureStore';
 import { selectSettings } from '../../state/pageSlice';
 

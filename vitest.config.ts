@@ -13,6 +13,7 @@ export default defineConfig({
     setupFiles: path.join(rendererRoot, 'setupTests.ts'),
     coverage: {
       include: [
+        'packages/pdf/src/**/*.{js,jsx,ts,tsx,mjs,cjs,mts,cts}',
         'apps/renderer/src/**/*.{js,jsx,ts,tsx,mjs,cjs,mts,cts}',
         'apps/desktop/**/*.{js,jsx,ts,tsx,mjs,cjs,mts,cts}',
         'packages/core/src/**/*.{js,jsx,ts,tsx,mjs,cjs,mts,cts}',
@@ -34,6 +35,7 @@ export default defineConfig({
     },
     exclude: [...configDefaults.exclude, 'node_modules'],
     include: [
+      'packages/pdf/src/**/__tests__/*.{test,spec}.{js,ts,jsx,tsx}',
       'apps/renderer/src/**/__tests__/*.{test,spec}.{js,ts,jsx,tsx}',
       'apps/desktop/**/__tests__/*.{test,spec}.{js,ts,jsx,tsx}',
       'packages/core/src/**/__tests__/*.{test,spec}.{js,ts,jsx,tsx}',

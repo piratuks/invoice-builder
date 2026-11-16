@@ -4,8 +4,8 @@ import i18n from '../../i18n';
 import { useGetInvoicesQuery } from '../../shared/api/invoicesApi';
 import { InvoiceType } from '@invoice-builder/contracts';
 
-import { ReportDateType } from '../../shared/enums/reportDateType';
-import { aggregateInvoicesByCurrency } from '../../shared/utils/invoiceFunctions';
+import { ReportDateType } from '@invoice-builder/pdf/reportDateType';
+import { aggregateInvoicesByCurrency } from '@invoice-builder/pdf/invoiceFunctions';
 import { useAppDispatch } from '../../state/configureStore';
 import { addToast, disableLoadingCursor, enableLoadingCursor } from '../../state/pageSlice';
 import { Header } from './Header';

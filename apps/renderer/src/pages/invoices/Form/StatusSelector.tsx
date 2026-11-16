@@ -3,7 +3,7 @@ import { Box, FormControlLabel, Switch, useMediaQuery, useTheme } from '@mui/mat
 import { memo, useMemo, type FC } from 'react';
 import { useTranslation } from 'react-i18next';
 import { InvoiceStatus, InvoiceType } from '@invoice-builder/contracts';
-import { getBalanceDue, getPaidAmount } from '../../../shared/utils/invoiceFunctions';
+import { getBalanceDue, getPaidAmount } from '@invoice-builder/pdf/invoiceFunctions';
 
 interface Props {
   invoiceForm?: InvoiceFromData;

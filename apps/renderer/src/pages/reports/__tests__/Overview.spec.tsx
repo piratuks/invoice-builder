@@ -7,7 +7,7 @@ import i18n from '../../../i18n';
 import type { Invoice } from '@invoice-builder/contracts';
 import { AmountFormat, DateFormat, Language } from '@invoice-builder/contracts';
 
-import { ReportDateType } from '../../../shared/enums/reportDateType';
+import { ReportDateType } from '@invoice-builder/pdf/reportDateType';
 import type { InvoicesByCurrency } from '../../../shared/types/invoice';
 import { store } from '../../../state/configureStore';
 import { setSettings } from '../../../state/pageSlice';
