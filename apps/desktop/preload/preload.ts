@@ -31,8 +31,11 @@ import type {
 } from '@invoice-builder/contracts';
 import { IpcChannel } from '@invoice-builder/contracts';
 import { contextBridge, ipcRenderer } from 'electron';
+import { createEditionPreloadApi } from './edition';
+import type { EditionPreloadApi } from './edition/contract';
 
 contextBridge.exposeInMainWorld('electronAPI', {
+  edition: createEditionPreloadApi(),
   ping: () => console.log('pong'),
 
   getAppVersion: () => ipcRenderer.invoke(IpcChannel.getAppVersion),
@@ -153,4 +156,4 @@ contextBridge.exposeInMainWorld('electronAPI', {
   importAllData: () => ipcRenderer.invoke(IpcChannel.importAllData),
 
   printReceipt: (html: string) => ipcRenderer.invoke(IpcChannel.printReceipt, html)
-} satisfies ElectronAPI);
+} satisfies ElectronAPI & { edition: EditionPreloadApi });

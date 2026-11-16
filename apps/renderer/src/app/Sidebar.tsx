@@ -32,6 +32,7 @@ import { Confirmation } from '../shared/components/modals/confirmation';
 import type { MenuItem } from '../shared/types/menuItem';
 import { useAppDispatch, useAppSelector } from '../state/configureStore';
 import { logout, selectSettings, selectVersion, setVersion } from '../state/pageSlice';
+import { getEditionContribution } from '../edition';
 const DRAWER_WIDTH = 240;
 const COLLAPSED_WIDTH = 60;
 
@@ -78,6 +79,7 @@ export const Sidebar: FC = () => {
     dispatch(logout());
   }, [dispatch]);
 
+  const editionNavigation = getEditionContribution().navigationEntries;
   const menuItems = [
     {
       groupName: t('common.documents'),
@@ -223,6 +225,17 @@ export const Sidebar: FC = () => {
     },
     {
       items: [
+        ...editionNavigation
+          .filter(item => !item.groupName)
+          .map(item => ({
+            text: t(item.label),
+            icon: item.icon,
+            path: item.path,
+            isToggle: false,
+            minHeight: 50,
+            isSelected: isSelected,
+            onClick: onClickNavigate
+          })),
         ...(storeSettings?.reportsON
           ? [
               {
@@ -254,7 +267,25 @@ export const Sidebar: FC = () => {
           onClick: handleLogoutClick
         }
       ]
-    }
+    },
+    ...editionNavigation
+      .filter(item => item.groupName)
+      .map(item => ({
+        groupName: item.groupName,
+        groupIcon: item.groupIcon,
+        isOpen: true,
+        items: [
+          {
+            text: t(item.label),
+            icon: item.icon,
+            path: item.path,
+            isToggle: false,
+            minHeight: 50,
+            isSelected: isSelected,
+            onClick: onClickNavigate
+          }
+        ]
+      }))
   ];
 
   const handleToggle = () => setOpen(!open);

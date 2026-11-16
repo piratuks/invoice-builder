@@ -20,6 +20,7 @@ const initializers = vi.hoisted(() => ({
   styleProfiles: vi.fn(),
   units: vi.fn()
 }));
+const editionInitializer = vi.hoisted(() => vi.fn());
 
 vi.mock('electron', () => ({ ipcMain: ipc, shell }));
 vi.mock('../autoUpdater', () => ({ initAutoUpdaterHandlers: initializers.autoUpdater }));
@@ -37,6 +38,7 @@ vi.mock('../receipt', () => ({ initReceiptHandlers: initializers.receipt }));
 vi.mock('../settings', () => ({ initSettingsHandlers: initializers.settings }));
 vi.mock('../styleProfiles', () => ({ initStyleProfilesHandlers: initializers.styleProfiles }));
 vi.mock('../units', () => ({ initUnitsHandlers: initializers.units }));
+vi.mock('../../edition/registration', () => ({ initEditionIpcHandlers: editionInitializer }));
 
 describe('Electron IPC registration', () => {
   beforeEach(() => {
@@ -48,6 +50,7 @@ describe('Electron IPC registration', () => {
     initIpcHandler(window);
 
     expect(ipc.handle).toHaveBeenCalledWith('open-url', expect.any(Function));
+    expect(editionInitializer).toHaveBeenCalledOnce();
     Object.values(initializers).forEach(initializer => expect(initializer).toHaveBeenCalled());
 
     const openUrl = ipc.handle.mock.calls[0][1] as (_event: unknown, url: string) => Promise<void>;
