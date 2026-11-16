@@ -9,9 +9,9 @@ import {
   InvoiceTaxType
 } from '@invoice-builder/contracts';
 
-import { CurrencyFormat } from '@invoice-builder/pdf/currencyFormat';
+import { CurrencyFormat } from '../currencyFormat.js';
 
-import { ReportDateType } from '@invoice-builder/pdf/reportDateType';
+import { ReportDateType } from '../reportDateType.js';
 
 import {
   aggregateInvoicesByCurrency,
@@ -30,7 +30,7 @@ import {
   getPaidAmount,
   getPaidData,
   supportsCurrencySubunit
-} from '@invoice-builder/pdf/invoiceFunctions';
+} from '../invoiceFunctions.js';
 
 const item = (overrides: Partial<InvoiceItem> = {}): InvoiceItem =>
   ({
