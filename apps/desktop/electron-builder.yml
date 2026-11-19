@@ -47,7 +47,7 @@ linux:
     - deb
     - AppImage
   category: Office
-  maintainer: 'Piratuks <evaldiz@gmail.com>'
+  maintainer: 'Piratuks <evaldas.laureckas@gmail.com>'
   icon: 'apps/desktop/main/assets/linux-icons'
 
 appImage:
